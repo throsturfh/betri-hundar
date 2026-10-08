@@ -127,7 +127,12 @@ function eatVisual(cell, c, pid) {
   G.chain++; G.chainT = 0.7;
   Snd.crunch(G.chain);
   const base = colHex(c);
-  for (let k = 0; k < 7; k++) G.parts.push({ x: cp.x, y: cp.y, vx: (Math.random() - 0.5) * 220, vy: -Math.random() * 220 - 40, life: 0.5 + Math.random() * 0.3, max: 0.8, col: k < 5 ? base : '#fff', size: L.cell * (0.12 + Math.random() * 0.14), g: 700 });
+  for (let k = 0; k < 6; k++) G.parts.push({ x: cp.x, y: cp.y, vx: (Math.random() - 0.5) * 220, vy: -Math.random() * 220 - 40, life: 0.5 + Math.random() * 0.3, max: 0.8, col: k < 4 ? base : '#fff', size: L.cell * (0.12 + Math.random() * 0.14), g: 700 });
+  // sparkle burst: a quick colour ring + a few glowing 4-point stars (cached sprite, additive)
+  G.parts.push({ ring: true, x: cp.x, y: cp.y, life: 0.32, max: 0.32, col: shade(base, 0.5), size: L.cell * 1.1 });
+  const ns = G.sleds.length ? 1 : 3;   // husky sleds eat a whole row at once: keep it light
+  for (let k = 0; k < ns; k++) { const a = Math.random() * 6.28, sp = 30 + Math.random() * 70;
+    G.parts.push({ spark: true, x: cp.x, y: cp.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 30, life: 0.38 + Math.random() * 0.22, max: 0.6, col: base, size: L.cell * (1.5 + Math.random() * 1.0), g: 60, rot: Math.random() * 1.6, vr: (Math.random() - 0.5) * 6 }); }
   const pv = packById(pid); if (pv) pv.shown = Math.max(0, pv.shown - 1);
   if (G.s.rem[c] === 0 && !G.clearedShown[c] && ![...G.pending.values()].includes(c)) colourCleared(c);
 }
@@ -237,11 +242,7 @@ function renderGame() {
   const t = G.time;
   ctx.save();
   if (G.shake > 0) ctx.translate((Math.random() - 0.5) * G.shake, (Math.random() - 0.5) * G.shake);
-  drawBackdrop(t);
-  // board panel
-  const bp = 6;
-  roundRect(ctx, L.bx - bp, L.by - bp, L.bw + bp * 2, L.bh + bp * 2, 12); ctx.fillStyle = '#2a1f3d'; ctx.fill();
-  roundRect(ctx, L.bx - bp + 3, L.by - bp + 3, L.bw + bp * 2 - 6, L.bh + bp * 2 - 6, 11); ctx.fillStyle = '#4b3f8f'; ctx.fill();
+  drawBackdrop(t);   // (also contains the glossy board frame, baked into the cached backdrop layer)
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(portrait(G.dog), L.bx, L.by, L.bw, L.bh);
   // blocks: static ones come from a cached layer (redrawn only when the board changes); blocks a runner is
@@ -255,6 +256,14 @@ function renderGame() {
       const x = L.bx + (i % s.w) * cs, y = L.by + ((i / s.w) | 0) * cs, k = 1 + Math.sin(t * 40 + i) * 0.08;
       ctx.drawImage(blockImg(c, pxs, false), x + cs * (1 - k) / 2, y + cs * (1 - k) / 2, cs * k, cs * k);
     }
+  }
+  // idle shimmer: a faint diagonal shine glides over the board every ~7s (one gradient, only while it is visible)
+  const sh = (t % 7) / 0.9;
+  if (!G.won && sh < 1) {
+    ctx.save(); ctx.beginPath(); ctx.rect(L.bx, L.by, L.bw, L.bh); ctx.clip();
+    const sx = L.bx - L.bw * 0.6 + sh * L.bw * 2.2, gr = ctx.createLinearGradient(sx, L.by, sx + L.bw * 0.35, L.by + L.bh * 0.5);
+    gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(0.5, 'rgba(255,255,255,.13)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = gr; ctx.fillRect(L.bx, L.by, L.bw, L.bh); ctx.restore();
   }
   if (G.flash > 0) { ctx.globalAlpha = G.flash * 0.5; ctx.strokeStyle = G.flashCol; ctx.lineWidth = 8; roundRect(ctx, L.bx - 4, L.by - 4, L.bw + 8, L.bh + 8, 10); ctx.stroke(); ctx.globalAlpha = 1; }
   if (G.won) { // shine sweep over the revealed portrait
@@ -308,17 +317,50 @@ function boardLayer() {
 const easeInOut = k => k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
 const easeOutBack = k => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
 
+/* Backdrop: the warm sky gradient, soft bokeh, the glossy board frame and the grass are baked into one offscreen
+   canvas per layout (one drawImage per frame); only a few twinkles are drawn live. */
+let BG = null;
+function backdropLayer() {
+  const key = [W, H, DPR, L.bx, L.by, L.bw, L.bh, L.slotY].join(',');
+  if (BG && BG.key === key) return BG.cv;
+  const P = 20, D = DPR, cv = document.createElement('canvas'); cv.width = Math.round((W + P * 2) * D); cv.height = Math.round((H + P * 2) * D);
+  const c = cv.getContext('2d'); c.setTransform(D, 0, 0, D, Math.round(P * D), Math.round(P * D));
+  const gy = L.slotY - 4, sky = c.createLinearGradient(0, -P, 0, gy);
+  sky.addColorStop(0, '#3a2690'); sky.addColorStop(0.35, '#6a43c4'); sky.addColorStop(0.72, '#b55fc0'); sky.addColorStop(1, '#ffa77a');
+  c.fillStyle = sky; c.fillRect(-P, -P, W + P * 2, H + P * 2);
+  const glow = c.createRadialGradient(W / 2, L.by + L.bh * 0.45, 10, W / 2, L.by + L.bh * 0.45, Math.max(W, L.bh) * 0.8);
+  glow.addColorStop(0, 'rgba(255,214,150,.30)'); glow.addColorStop(1, 'rgba(255,214,150,0)');
+  c.fillStyle = glow; c.fillRect(-P, -P, W + P * 2, H + P * 2);
+  for (let i = 0; i < 9; i++) {   // soft bokeh dots
+    const x = (i * 131 + 40) % W, y = (i * 89 + 20) % Math.max(60, gy - 20), r = 14 + (i % 3) * 10, g = c.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, 'rgba(255,240,255,.16)'); g.addColorStop(1, 'rgba(255,240,255,0)'); c.fillStyle = g; c.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  // grass hill with a glossy lip
+  c.beginPath(); c.moveTo(-P, gy); for (let x = -P; x <= W + P; x += 10) c.lineTo(x, gy + Math.sin(x * 0.05) * 4); c.lineTo(W + P, H + P); c.lineTo(-P, H + P); c.closePath();
+  const gg = c.createLinearGradient(0, gy - 4, 0, H); gg.addColorStop(0, '#6fd47a'); gg.addColorStop(0.12, '#4fb867'); gg.addColorStop(1, '#2f8a4e');
+  c.fillStyle = gg; c.fill();
+  c.beginPath(); for (let x = -P; x <= W + P; x += 10) c.lineTo(x, gy + 2 + Math.sin(x * 0.05) * 4); c.strokeStyle = 'rgba(220,255,200,.55)'; c.lineWidth = 2; c.stroke();
+  c.fillStyle = 'rgba(30,110,60,.55)'; for (let x = 6; x < W; x += 23) c.fillRect(x, L.slotY + 6 + ((x * 7) % 30), 3, 6);
+  // glossy board frame with a soft drop shadow
+  const bp = 6, fx = L.bx - bp, fy = L.by - bp, fw = L.bw + bp * 2, fh = L.bh + bp * 2;
+  c.save(); c.shadowColor = 'rgba(20,8,45,.55)'; c.shadowBlur = 18; c.shadowOffsetY = 6;
+  roundRect(c, fx, fy, fw, fh, 13); c.fillStyle = '#2a1f3d'; c.fill(); c.restore();
+  const fr = c.createLinearGradient(0, fy, 0, fy + fh); fr.addColorStop(0, '#8a78e6'); fr.addColorStop(0.5, '#5546a8'); fr.addColorStop(1, '#3b2f80');
+  roundRect(c, fx + 3, fy + 3, fw - 6, fh - 6, 11); c.fillStyle = fr; c.fill();
+  roundRect(c, fx + 4, fy + 4, fw - 8, fh - 8, 10); c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 1.5; c.stroke();
+  c.fillStyle = '#2a1f3d'; c.fillRect(L.bx - 1, L.by - 1, L.bw + 2, L.bh + 2);   // crisp dark well under the picture
+  BG = { key, cv };
+  return cv;
+}
 function drawBackdrop(t) {
-  const g = ctx.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, '#5a4bb0'); g.addColorStop(0.55, '#7b62d6'); g.addColorStop(1, '#3d8f5a');
-  ctx.fillStyle = g; ctx.fillRect(-20, -20, W + 40, H + 40);
-  ctx.fillStyle = 'rgba(255,255,255,.07)';
-  for (let i = 0; i < 14; i++) { const x = (i * 97 + t * 8) % (W + 60) - 30, y = (i * 61) % (H * 0.6); ctx.fillRect(x, y, 3, 3); }
-  if (G && L.slotY) {
-    ctx.fillStyle = '#4fae6a'; ctx.beginPath(); ctx.moveTo(0, L.slotY - 4);
-    for (let x = 0; x <= W; x += 20) ctx.lineTo(x, L.slotY - 4 + Math.sin(x * 0.05) * 4);
-    ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.fill();
-    ctx.fillStyle = '#3d9a58'; for (let x = 6; x < W; x += 23) ctx.fillRect(x, L.slotY + 6 + ((x * 7) % 30), 3, 6);
+  // baked at the exact device-pixel ratio and blitted 1:1 in device pixels (no resampling; the sky ignores screen shake)
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(backdropLayer(), -Math.round(20 * DPR), -Math.round(20 * DPR)); ctx.restore();
+  // twinkles (cheap: two thin rects each)
+  const gy = L.slotY ? L.slotY - 30 : H * 0.6;
+  for (let i = 0; i < 12; i++) {
+    const a = 0.5 + 0.5 * Math.sin(t * 2.2 + i * 1.7); if (a < 0.35) continue;
+    const x = (i * 97 + t * 6) % (W + 20) - 10, y = (i * 61 + 14) % Math.max(40, gy), r = 1.5 + a * 2.5;
+    ctx.fillStyle = `rgba(255,248,220,${(a * 0.55).toFixed(2)})`; ctx.fillRect(x - r, y - 0.75, r * 2, 1.5); ctx.fillRect(x - 0.75, y - r, 1.5, r * 2);
   }
 }
 function drawSlots(t) {
@@ -326,11 +368,14 @@ function drawSlots(t) {
   for (let k = 0; k < 5; k++) {
     const p = slotPos(k), w = L.slotW - 8, h = L.slotH - 6;
     const danger = full >= 4 && !G.won;
+    if (!L.slotGrad || L.slotGrad.y !== p.y) { const g = ctx.createLinearGradient(0, p.y - h / 2, 0, p.y + h / 2); g.addColorStop(0, 'rgba(255,255,255,.22)'); g.addColorStop(0.5, 'rgba(40,24,80,.22)'); g.addColorStop(1, 'rgba(20,12,50,.38)'); g.y = p.y; L.slotGrad = g; }
     roundRect(ctx, p.x - w / 2, p.y - h / 2, w, h, 14);
-    ctx.fillStyle = danger ? `rgba(255,77,94,${0.18 + 0.12 * Math.sin(t * 8)})` : 'rgba(30,20,60,.28)'; ctx.fill();
-    ctx.setLineDash([6, 5]); ctx.lineWidth = 2; ctx.strokeStyle = danger ? '#ff8a96' : 'rgba(255,255,255,.35)'; ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = danger ? `rgba(255,77,94,${0.18 + 0.12 * Math.sin(t * 8)})` : L.slotGrad; ctx.fill();
+    ctx.setLineDash([6, 5]); ctx.lineWidth = 2; ctx.strokeStyle = danger ? '#ff8a96' : 'rgba(255,255,255,.45)'; ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(255,255,255,.16)'; roundRect(ctx, p.x - w / 2 + 6, p.y - h / 2 + 4, w - 12, 5, 3); ctx.fill();   // inner top highlight
     // leash post
     ctx.fillStyle = '#8a5a33'; ctx.fillRect(p.x - 3, p.y + h / 2 - 20, 6, 14); ctx.fillStyle = '#ffd23f'; ctx.beginPath(); ctx.arc(p.x, p.y + h / 2 - 22, 5, 0, 7); ctx.fill();
+    ctx.fillStyle = '#fff6c0'; ctx.beginPath(); ctx.arc(p.x - 1.6, p.y + h / 2 - 23.6, 1.6, 0, 7); ctx.fill();   // glint on the post knob
   }
   if (G.denyT > 0) { ctx.save(); ctx.globalAlpha = G.denyT * 2; ctx.strokeStyle = '#ff4d5e'; ctx.lineWidth = 4; roundRect(ctx, L.pad, L.slotY, W - L.pad * 2, L.slotH, 14); ctx.stroke(); ctx.restore(); }
   for (const pv of G.packs) {
@@ -355,7 +400,8 @@ function drawLanes(t) {
     const lane = G.p.lanes[i], pos = G.s.pos[i], x = laneX(i);
     const shift = G.laneAnim[i];
     // lane tray
-    roundRect(ctx, x - L.laneW / 2 + 4, L.lanesY - 6, L.laneW - 8, H - L.lanesY - 2, 16); ctx.fillStyle = 'rgba(20,12,40,.22)'; ctx.fill();
+    if (!L.laneGrad || L.laneGrad.y !== L.lanesY) { const g = ctx.createLinearGradient(0, L.lanesY - 6, 0, H); g.addColorStop(0, 'rgba(255,255,255,.14)'); g.addColorStop(0.08, 'rgba(20,12,40,.16)'); g.addColorStop(1, 'rgba(20,12,40,.30)'); g.y = L.lanesY; L.laneGrad = g; }
+    roundRect(ctx, x - L.laneW / 2 + 4, L.lanesY - 6, L.laneW - 8, H - L.lanesY - 2, 16); ctx.fillStyle = L.laneGrad; ctx.fill();
     if (pos >= lane.length) { ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.font = '700 13px system-ui'; ctx.textAlign = 'center'; ctx.fillText('Tómt', x, L.lanesY + L.houseH * 0.5); continue; }
     const scales = [1, 0.74, 0.6], gaps = [0, L.houseH * 0.98, L.houseH * 1.66];
     for (let k = Math.min(2, lane.length - pos - 1); k >= 0; k--) {
@@ -382,7 +428,15 @@ function drawParts(arr) {
   for (const p of arr) {
     ctx.globalAlpha = Math.max(0, Math.min(1, p.life / (p.max * 0.5)));
     ctx.fillStyle = p.col;
-    if (p.conf) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2); ctx.restore(); }
+    if (p.spark) {
+      const k = p.life / p.max, sz = p.size * (0.4 + 0.6 * Math.sin(Math.min(1, k) * Math.PI));
+      ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, k * 1.6);
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.drawImage(sparkleImg(p.col), -sz / 2, -sz / 2, sz, sz); ctx.restore();
+      ctx.globalCompositeOperation = 'source-over';
+    } else if (p.ring) {
+      const k = 1 - p.life / p.max; ctx.globalAlpha = (1 - k) * 0.9; ctx.strokeStyle = p.col; ctx.lineWidth = Math.max(1.5, p.size * 0.18 * (1 - k));
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.size * (0.35 + k * 0.9), 0, 7); ctx.stroke();
+    } else if (p.conf) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2); ctx.restore(); }
     else ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
   }
   ctx.globalAlpha = 1;

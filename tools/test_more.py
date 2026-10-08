@@ -4,8 +4,8 @@ played partially (frame time with many packs), forced loss + undo on a very hard
 import base64, json, random, sys
 from playwright.sync_api import sync_playwright
 URL = sys.argv[1]
-OUT = "/workspace/pack-leader/screenshots/v2/"
-BOARDS = "/workspace/pack-leader/screenshots/v2_boards/"
+OUT = "/workspace/pack-leader/screenshots/v1_1/tests/"
+BOARDS = "/workspace/pack-leader/screenshots/v1_1/tests_boards/"
 UA = "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36"
 errors, fails = [], []
 def ok(cond, msg):
@@ -22,7 +22,7 @@ with sync_playwright() as p:
         album: ['snati','bangsi','lubbi','skotta','tinna','pila','tryggur','bosi','sami'], tips: {d: true, h: true}, daily: {}, mute: true, speed: 1, v: 2}))""")
     pg.reload(); pg.wait_for_timeout(600)
     alb = pg.evaluate("__pl.save().album")
-    ok(all(d in alb for d in ["lotta", "roxy", "rokkvi", "myrkvi", "snati", "bangsi", "lubbi", "skotta"]), f"old save migrated: cleared levels 1-4 hand over Lotta/Roxy/Rökkvi/Myrkvi, earlier dogs kept ({len(alb)} in album)")
+    ok(all(d in alb for d in ["lotta", "roxy", "rokkvi", "myrkvi", "jokull", "emil", "vargur", "snati", "bangsi", "lubbi", "skotta", "tinna", "pila", "tryggur"]), f"old save migrated: cleared levels 1-7 hand over the 7 family dogs, earlier dogs (incl. Tinna, Píla, Tryggur) kept ({len(alb)} in album)")
     # ---- board previews + contact sheet (rendered with the game's own block sprites) ----
     names = []
     for i in range(1, 21):
@@ -42,7 +42,7 @@ with sync_playwright() as p:
         }
         return c.toDataURL(); }""")
     open(OUT + "11_contact_sheet_20_boards.png", "wb").write(base64.b64decode(sheet.split(",")[1]))
-    ok(len(names) == 20, "20 board previews written to screenshots/v2_boards/ + contact sheet")
+    ok(len(names) == 20, "20 board previews written to screenshots/v1_1/tests_boards/ + contact sheet")
     # ---- level select with progress ----
     pg.tap("#hLevels", force=True); pg.wait_for_timeout(500)
     pg.screenshot(path=OUT + "12_level_select_tiers.png")
@@ -117,13 +117,30 @@ with sync_playwright() as p:
     pg.tap("#bBack", force=True); pg.wait_for_timeout(200); pg.tap("#bBack", force=True); pg.wait_for_timeout(200)
     pg.tap("#hAlbum", force=True); pg.wait_for_timeout(500); pg.screenshot(path=OUT + "16_album_progress.png")
     cards = pg.evaluate("[...document.querySelectorAll('#albumInner .card')].map(c => [c.querySelector('b').textContent, c.querySelector('small').textContent, c.className.includes('lock')])")
-    ok([c[0] for c in cards[:4]] == ["Lotta", "Roxy", "Rökkvi", "Myrkvi"] and not any(c[2] for c in cards[:4]), f"album shows Lotta, Roxy, Rökkvi, Myrkvi rescued at the top: {cards[:4]}")
+    ok([c[0] for c in cards[:7]] == ["Lotta", "Roxy", "Rökkvi", "Myrkvi", "Jökull", "Emil", "Vargur"] and not any(c[2] for c in cards[:7]), f"album shows the 7 family dogs rescued at the top: {cards[:7]}")
     dd = pg.evaluate("PL.DOGS.filter(d => !PL.LEVELS.some(l => l.dog === d.id)).map(d => d.id)")
-    ok(sorted(dd) == ["bangsi", "lubbi", "skotta", "snati"], f"dogs without a level (rescued via the daily puzzle): {dd}")
+    ok(sorted(dd) == ["bangsi", "lubbi", "pila", "skotta", "snati", "tinna", "tryggur"], f"dogs without a level (rescued via the daily puzzle): {dd}")
     pg.tap('#albumInner [data-dog="myrkvi"]', force=True); pg.wait_for_timeout(500); pg.screenshot(path=OUT + "18_album_myrkvi.png")
-    ok("Einn af hundunum okkar" in pg.inner_text("#modalCard"), "family dog card says 'Einn af hundunum okkar'")
+    ok("Einn af hundunum okkar" in pg.inner_text("#modalCard"), "family dog card (Myrkvi, hann) says 'Einn af hundunum okkar'")
     pg.tap('#modalCard [data-act="close"]', force=True); pg.wait_for_timeout(300)
     pg.tap('#albumInner [data-dog="lotta"]', force=True); pg.wait_for_timeout(600); pg.screenshot(path=OUT + "19_album_lotta.png")
+    ok("Ein af hundunum okkar" in pg.inner_text("#modalCard") and "Einn af" not in pg.inner_text("#modalCard"), "family dog card (Lotta, hún) says 'Ein af hundunum okkar'")
+    br = pg.evaluate("Object.fromEntries(PL.DOGS.filter(d => d.family || d.id === 'moli').map(d => [d.id, d.breed + '/' + d.g]))")
+    ok(br == {"lotta": "Border Collie/f", "roxy": "Border Collie/f", "rokkvi": "Border Collie/m", "myrkvi": "Border Collie/m", "jokull": "Border Collie/m", "emil": "Havanese/m", "vargur": "Brussels Griffon/m", "moli": "Pylsuhundur/m"}, f"breeds + genders: {br}")
+    ok(pg.evaluate("PL.LEVELS.find(l => l.id === 5).dog") == "jokull", "Jökull is the level-5 reward")
+    pg.tap('#modalCard [data-act="close"]', force=True); pg.wait_for_timeout(300)
+    pg.tap('#albumInner [data-dog="jokull"]', force=True); pg.wait_for_timeout(500); pg.screenshot(path=OUT + "19b_album_jokull.png")
+    jt = pg.inner_text("#modalCard")
+    ok("Jökull" in jt and "Einn af hundunum okkar" in jt and "Bjargað í borði 5" in jt, f"Jökull card: {jt[:90]!r}")
+    pg.tap('#modalCard [data-act="close"]', force=True); pg.wait_for_timeout(300)
+    pg.tap('#albumInner [data-dog="emil"]', force=True); pg.wait_for_timeout(500); pg.screenshot(path=OUT + "19c_album_emil.png")
+    et = pg.inner_text("#modalCard")
+    ok("Emil" in et and "Havanese" in et and "Einn af hundunum okkar" in et and "sveitahundur" in et and "Bjargað í borði 6" in et, f"Emil card: {et[:140]!r}")
+    pg.tap('#modalCard [data-act="close"]', force=True); pg.wait_for_timeout(300)
+    pg.tap('#albumInner [data-dog="vargur"]', force=True); pg.wait_for_timeout(500); pg.screenshot(path=OUT + "19d_album_vargur.png")
+    vt = pg.inner_text("#modalCard")
+    ok("Vargur" in vt and "Brussels Griffon" in vt and "Einn af hundunum okkar" in vt and "sveitahundur" in vt and "Bjargað í borði 7" in vt, f"Vargur card: {vt[:140]!r}")
+    ok("Greifingjahundur" not in pg.content(), "no 'Greifingjahundur' left in the page")
     pg.tap('#modalCard [data-act="close"]', force=True); pg.wait_for_timeout(300)
     # ---- closeup of the hand-drawn Lotta & Roxy portraits (from the user's photos) ----
     cp = b.new_page(viewport={"width": 860, "height": 520})

@@ -1,5 +1,6 @@
 /* ===== DOM screens, modals, fullscreen, persistence ===== */
 const $ = s => document.querySelector(s);
+const VERSION = '1.1';   // Betri Hundar 1.1 (shown on the home screen; bump sw.js CACHE together with this)
 const SAVE_KEY = 'packleader.v2';
 const save = loadSave();
 function loadSave() {
@@ -31,7 +32,8 @@ function dailyDog(def) {
   const wait = PL.DOGS.find(d => !levelOfDog(d.id) && !save.album.includes(d.id));
   return wait || PL.DOGS[def.dog % PL.DOGS.length];
 }
-function dogNote(d) { return d.family ? ' · Einn af hundunum okkar ❤️' : d.special ? ' · Sérstakur vinur! 🇮🇸' : ''; }
+/* gender agreement: Lotta & Roxy are 'hún' (Ein af… / Sérstök vinkona), Rökkvi & Myrkvi are 'hann' (Einn af… / Sérstakur vinur) */
+function dogNote(d) { const f = d.g === 'f'; return d.family ? (f ? ' · Ein af hundunum okkar ❤️' : ' · Einn af hundunum okkar ❤️') : d.special ? (f ? ' · Sérstök vinkona! 🇮🇸' : ' · Sérstakur vinur! 🇮🇸') : ''; }
 function whereRescued(d) { const l = levelOfDog(d.id); return l ? 'Bjargaðu í borði ' + l.id : 'Bjargaðu í daglegri þraut'; }
 /* difficulty tiers (sawtooth): only hard / very hard get a visible badge + coin bonus */
 const TIERS = {
@@ -49,24 +51,65 @@ function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save));
 let scr = 'home';
 function setScreen(n) {
   scr = n;
-  for (const id of ['home', 'levels', 'album']) $('#' + id).classList.toggle('on', id === n);
+  for (const id of ['home', 'levels', 'album', 'bye']) $('#' + id).classList.toggle('on', id === n);
   $('#ctrls').classList.toggle('on', n === 'game');
+  if (typeof updateTiltUI === 'function') updateTiltUI();
   $('#bBack').classList.toggle('hide', n === 'home' || n === 'finale');
-  $('#title').textContent = n === 'home' ? 'Betri Hundar' : n === 'levels' ? 'Borðaval' : n === 'album' ? 'Hundaalbúm' :
-    n === 'finale' ? 'Sæktu!' : (G && G.daily ? `Dagleg þraut · ${G.def.pic || ''}` : G ? `Borð ${G.def.id} · ${G.def.name}` : 'Betri Hundar');
-  const tl = $('#title'); tl.classList.toggle('long', tl.textContent.length > 15); tl.classList.toggle('xlong', tl.textContent.length > 20);
+  $('#bBack').classList.toggle('gone', n === 'bye');
+  $('#bHome').classList.toggle('gone', n === 'home');   // the main-menu button is on every screen except the menu itself
+  // in a level the title is two lines (number + name) so the extra menu button fits; textContent stays 'Borð 3 · Matarskál'
+  const two = (a, b) => `${a}<span class="sep"> · </span><small>${b}</small>`;
+  const tl = $('#title');
+  tl.innerHTML = n === 'home' ? 'Betri Hundar' : n === 'levels' ? 'Borðaval' : n === 'album' ? 'Hundaalbúm' : n === 'bye' ? 'Takk fyrir!' :
+    n === 'finale' ? 'Sæktu!' : (G && G.daily ? two('Dagleg þraut', G.def.pic || '') : G ? two(`Borð ${G.def.id}`, G.def.name) : 'Betri Hundar');
+  tl.classList.toggle('two', n === 'game');
+  tl.classList.toggle('long', n !== 'game' && tl.textContent.length > 15); tl.classList.toggle('xlong', n !== 'game' && tl.textContent.length > 20);
   if (n === 'levels') renderLevels();
   if (n === 'album') renderAlbum();
   if (n === 'home') renderHome();
+  if (n === 'bye') { const fam = PL.DOGS.filter(d => d.family && save.album.includes(d.id)); $('#byeDog').src = portraitURL(fam.length ? fam[(Math.random() * fam.length) | 0] : PL.DOGS[0]); }
   if (n !== 'game') hideHint();
   if (n !== 'finale') F = null;
   closeModal();
   updateCtrls();
 }
+/* ---- main menu button (every screen) ---- */
+// would leaving now lose anything? (a level in progress; a won level / finale is banked instead, see bankLevel)
+const midLevel = () => scr === 'game' && G && !G.won && !G.over && (G.undo.length > 0 || G.eaten > 0);
+function goHome() {
+  Snd.tap();
+  if (scr === 'home') return;
+  if (midLevel()) {
+    G.paused = true;
+    openModal(`<h2>Fara í aðalvalmynd?</h2><p>Ef þú hættir núna tapast framvindan í þessu borði.</p>
+      <div class="row"><button class="btn alt" data-act="home-yes">Já, hætta borðinu</button><button class="btn" data-act="close">Halda áfram</button></div>`,
+      () => { if (G) G.paused = false; });
+    return;
+  }
+  if ((scr === 'game' || scr === 'finale') && G && G.won && !G.banked) {   // the dog is already rescued: keep it, skip only the fetch bonus
+    openModal(`<h2>Fara í aðalvalmynd?</h2><p>${G.dog.name} er þegar ${G.dog.g === 'f' ? 'komin' : 'kominn'} heim og nammið er vistað – þú missir bara Sæktu-bónusinn.</p>
+      <div class="row"><button class="btn alt" data-act="home-bank">Já, í valmynd</button><button class="btn" data-act="close">Halda áfram</button></div>`);
+    return;
+  }
+  G = null; setScreen('home');
+}
+/* ---- quit: save, try to close, leave fullscreen, then a goodbye screen if the tab is still open ---- */
+function askQuit() {
+  Snd.tap();
+  openModal(`<h2>Hætta leik?</h2><p>Framvindan þín er vistuð. Þú getur haldið áfram næst.</p>
+    <div class="row"><button class="btn alt" data-act="quit-yes">Já, hætta</button><button class="btn" data-act="close">Nei, spila áfram</button></div>`);
+}
+async function quitGame() {
+  persist(); G = null; F = null;
+  fsWanted = false; autoFsArmed = false;
+  try { window.close(); } catch (e) {}                     // works in some installed-PWA / script-opened windows
+  try { if (fsEl()) await (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {}
+  setTimeout(() => { if (!window.closed) setScreen('bye'); }, 250);
+}
 function goBack() {
   Snd.tap();
   if (scr === 'game') { const d = G && G.daily; G = null; setScreen(d ? 'home' : 'levels'); }
-  else if (scr === 'levels' || scr === 'album') setScreen('home');
+  else if (scr === 'levels' || scr === 'album' || scr === 'bye') setScreen('home');
 }
 function updateCtrls() {
   if (!G) return;
@@ -100,7 +143,7 @@ function maybeBreedTip() {
   if (!G) return;
   const has = b => G.p.lanes.some(l => l.some(d => d.b === b));
   const tips = {
-    d: ['Nýr hundur: Greifingjahundur!', 'Hann grefur göng og nær nammi einu lagi innar en hinir hundarnir.'],
+    d: ['Nýr hundur: Pylsuhundur!', 'Hann grefur göng og nær nammi einu lagi innar en hinir hundarnir.'],
     h: ['Nýr hundur: Husky!', 'Um leið og hann fer út þeysist hann á sleða eftir neðstu röð síns litar og étur hana alla í einu.'],
   };
   for (const b of ['d', 'h']) {
@@ -134,6 +177,7 @@ function isUnlocked(id) { return id === 1 || !!save.stars[id - 1]; }
 function renderHome() {
   const n = nextLevelId();
   $('#hPlay').textContent = `▶ Spila – Borð ${n}`;
+  $('#hVer').textContent = 'v' + VERSION;
   $('#hTip').textContent = (!fsSupported() && !isStandalone() && isIOS()) ? 'Á iPhone: ýttu á Deila og veldu „Bæta við heimaskjá“ til að spila á fullum skjá.' : `${save.album.length} / ${PL.DOGS.length} hundum bjargað`;
 }
 function todayKey(d = new Date()) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
@@ -180,13 +224,14 @@ function renderAlbum() {
 }
 function showDog(id) {
   const d = dogById(id), got = save.album.includes(id), lvl = levelOfDog(id);
-  if (!got) { toast(lvl ? `Bjargaðu ${d.family ? d.name : 'þessum hundi'} í borði ${lvl.id}!` : 'Vinndu daglega þraut til að bjarga þessum hundi!'); return; }
+  if (!got) { toast(lvl ? `Bjargaðu ${d.family ? (d.dat || d.name) : 'þessum hundi'} í borði ${lvl.id}!` : 'Vinndu daglega þraut til að bjarga þessum hundi!'); return; }
   Snd.bark(1.2);
-  openModal(`<img class="bigport${d.family ? ' family' : ''}" src="${portraitURL(d)}" alt=""><h2>${d.name}</h2><p>${d.breed}${dogNote(d)}<br>${lvl ? `Bjargað í borði ${lvl.id}: ${lvl.name}` : 'Bjargað í daglegri þraut'}</p><div class="row"><button class="btn" data-act="close">Loka</button></div>`);
+  openModal(`<img class="bigport${d.family ? ' family' : ''}" src="${portraitURL(d)}" alt=""><h2>${d.name}</h2><p>${d.breed}${dogNote(d)}${d.line ? `<br><i class="dline">${d.line}</i>` : ''}<br>${lvl ? `Bjargað í borði ${lvl.id}: ${lvl.name}` : 'Bjargað í daglegri þraut'}</p><div class="row"><button class="btn" data-act="close">Loka</button></div>`);
 }
 
 /* ---- results ---- */
-function finishLevel(fetchBonus) {
+/* banks a won level (coins, stars, album) exactly once; used by the results screen and by the menu button in the finale */
+function bankLevel(fetchBonus) {
   const stars = G.undos === 0 ? 3 : G.undos <= 2 ? 2 : 1;
   const starBonus = [0, 0, 10, 30][stars];
   const T = TIERS[G.def.tier] || {}, tierBonus = Math.round(G.total * (T.bonus || 0));
@@ -197,11 +242,15 @@ function finishLevel(fetchBonus) {
   else save.stars[G.def.id] = Math.max(save.stars[G.def.id] || 0, stars);
   if (!save.album.includes(G.dog.id)) { save.album.push(G.dog.id); newDog = true; }
   persist();
+  return { stars, starBonus, T, tierBonus, earned, newDog, best };
+}
+function finishLevel(fetchBonus) {
+  const { stars, starBonus, T, tierBonus, earned, newDog, best } = bankLevel(fetchBonus);
   const d = G.dog, wl = d.g === 'f' ? 'Velkomin' : 'Velkominn';
   const nextDef = !G.daily && PL.LEVELS.find(l => l.id === G.def.id + 1);
   openModal(`<h2>${wl} heim, ${d.name}!</h2>
     <img class="bigport${d.family ? ' family' : ''}" src="${portraitURL(d)}" alt="">
-    <div style="font-weight:800;margin-top:6px">${d.breed}${dogNote(d)}</div>${T.cls ? `<div style="margin-top:6px">${tierBadge(G.def.tier)}</div>` : ''}
+    <div style="font-weight:800;margin-top:6px">${d.breed}${dogNote(d)}</div>${d.line ? `<div class="dline">${d.line}</div>` : ''}${T.cls ? `<div style="margin-top:6px">${tierBadge(G.def.tier)}</div>` : ''}
     <div class="stars"><span>★</span><span>★</span><span>★</span></div>
     <div class="sum"><div><span>Nammi étið</span><span>+${G.total}</span></div><div><span>Combo-bónus</span><span>+${G.comboBonus}</span></div>
     <div><span>Sækja-bónus</span><span>+${fetchBonus}</span></div><div><span>Stjörnubónus</span><span>+${starBonus}</span></div>
@@ -225,14 +274,35 @@ const fsEl = () => document.fullscreenElement || document.webkitFullscreenElemen
 const fsSupported = () => !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
 const isStandalone = () => (window.matchMedia && (matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches)) || navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+async function enterFS() {
+  const el = document.documentElement;
+  let ok = false;
+  try { if (el.requestFullscreen) { await el.requestFullscreen({ navigationUI: 'hide' }); ok = true; } else if (el.webkitRequestFullscreen) { el.webkitRequestFullscreen(); ok = true; } }
+  catch (e) { try { if (el.webkitRequestFullscreen) { el.webkitRequestFullscreen(); ok = !!fsEl(); } } catch (e2) {} }
+  if (ok || fsEl()) { fsWanted = true; autoFsArmed = false; }
+  try { if (window.screen && screen.orientation && screen.orientation.lock) await screen.orientation.lock('portrait'); } catch (e) { /* not allowed on this device – fine */ }
+  return ok;
+}
 async function toggleFS() {
   Snd.tap();
-  if (fsEl()) { try { await (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {} return; }
-  const el = document.documentElement;
+  autoFsArmed = false;                                      // an explicit choice wins over the automatic first-tap fullscreen
+  if (fsEl()) { fsWanted = false; try { await (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {} return; }
   if (!fsSupported()) { toast('Á iPhone: ýttu á Deila ⬆︎ og veldu „Bæta við heimaskjá“ – þá opnast leikurinn á fullum skjá.', 6000); return; }
-  try { if (el.requestFullscreen) await el.requestFullscreen({ navigationUI: 'hide' }); else el.webkitRequestFullscreen(); }
-  catch (e) { try { if (el.webkitRequestFullscreen) el.webkitRequestFullscreen(); } catch (e2) {} }
-  try { if (window.screen && screen.orientation && screen.orientation.lock) await screen.orientation.lock('portrait'); } catch (e) { /* not allowed on this device – fine */ }
+  await enterFS();
+}
+/* Automatic fullscreen: browsers only allow it inside a user gesture, so the FIRST tap/click anywhere enters it
+   (once per session; re-armed when coming back from a background tab with fullscreen lost). Installed PWAs already
+   run fullscreen/standalone and are skipped. A failed attempt (e.g. a touch pointerdown, which is not an
+   activating gesture on Android) stays armed so the touchend/click of the same tap tries again. */
+let autoFsArmed = true, fsWanted = false, fsPending = false;
+function autoFS(e) {
+  if (!autoFsArmed || fsPending || isStandalone() || fsEl() || !fsSupported()) return;
+  if (e && e.target && e.target.closest && e.target.closest('#bFS')) return;   // the toggle button handles itself
+  fsPending = true;
+  enterFS().finally(() => { fsPending = false; });
+}
+function onVisible() {
+  if (document.visibilityState === 'visible' && fsWanted && !fsEl() && !isStandalone()) autoFsArmed = true;
 }
 function updateFSIcon() {
   const b = $('#bFS');
@@ -252,7 +322,13 @@ function bindUI() {
   $('#bUndo').addEventListener('click', () => { Snd.tap(); doUndo(); });
   $('#bRestart').addEventListener('click', () => { Snd.tap(); restartLevel(); });
   $('#bSpeed').addEventListener('click', () => { save.speed = save.speed === 2 ? 1 : 2; persist(); Snd.tap(); updateCtrls(); });
-  $('#hPlay').addEventListener('click', () => { Snd.tap(); startLevel(PL.LEVELS.find(l => l.id === nextLevelId())); });
+  $('#hPlay').addEventListener('click', () => { Snd.tap(); if (!isStandalone() && !fsEl() && fsSupported() && !fsPending) enterFS(); startLevel(PL.LEVELS.find(l => l.id === nextLevelId())); });
+  $('#bHome').addEventListener('click', goHome);
+  $('#bTilt').addEventListener('click', () => { save.tilt = !(save.tilt !== false); persist(); Snd.tap(); updateTiltUI(); toast(save.tilt ? 'Hallastýring á' : 'Hallastýring af', 1200); });
+  $('#hQuit').addEventListener('click', askQuit);
+  $('#byeAgain').addEventListener('click', () => { Snd.tap(); if (!isStandalone() && !fsEl() && fsSupported()) enterFS(); setScreen('home'); });
+  for (const ev of ['pointerdown', 'touchend', 'click']) document.addEventListener(ev, autoFS, { capture: true, passive: true });
+  document.addEventListener('visibilitychange', onVisible);
   $('#hLevels').addEventListener('click', () => { Snd.tap(); setScreen('levels'); });
   $('#hDaily').addEventListener('click', startDaily);
   $('#hAlbum').addEventListener('click', () => { Snd.tap(); setScreen('album'); });
@@ -272,6 +348,9 @@ function bindUI() {
     else if (a === 'next') { const n = PL.LEVELS.find(l => l.id === G.def.id + 1); closeModal(); startLevel(n); }
     else if (a === 'levels') { G = null; setScreen('levels'); }
     else if (a === 'home') { G = null; setScreen('home'); }
+    else if (a === 'home-yes') { G = null; setScreen('home'); }
+    else if (a === 'home-bank') { if (G && !G.banked) bankLevel(0); G = null; setScreen('home'); }
+    else if (a === 'quit-yes') { closeModal(); quitGame(); }
     else if (a === 'album') { G = null; setScreen('album'); }
   });
   updateFSIcon(); updateMuteIcon();

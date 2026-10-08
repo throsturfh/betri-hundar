@@ -1,11 +1,11 @@
 """v2 end-to-end test: Android-Chrome emulation (390x844, touch). Plays level 1 to a win by taps (measuring frame
 time on the 24x24 board), fires the Fetch Finale with a touch drag, checks the album, toggles fullscreen on/off,
-starts the daily puzzle, and saves screenshots to screenshots/v2/.  Usage: python test_play.py http://127.0.0.1:PORT/index.html"""
+starts the daily puzzle, and saves screenshots to screenshots/v1_1/tests/.  Usage: python test_play.py http://127.0.0.1:PORT/index.html"""
 import json, sys, time
 from playwright.sync_api import sync_playwright
 
 URL = sys.argv[1]
-OUT = "/workspace/pack-leader/screenshots/v2/"
+OUT = "/workspace/pack-leader/screenshots/v1_1/tests/"
 UA = "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36"
 errors, logs, fails = [], [], []
 def ok(cond, msg):
@@ -96,11 +96,11 @@ with sync_playwright() as p:
     sv = pg.evaluate("__pl.save()")
     ok(sv["album"] == ["lotta"] and sv["stars"].get("1") == 3 and sv["coins"] > 500, "save after win: " + json.dumps({k: sv[k] for k in ("coins", "stars", "album")}, ensure_ascii=False))
     al = pg.evaluate("[...document.querySelectorAll('#albumInner .card')].map(c => c.querySelector('b').textContent)")
-    ok(len(al) == 24 and al[:4] == ["Lotta", "Roxy", "Rökkvi", "Myrkvi"], f"album lists {len(al)} dogs, family first: {al[:6]}")
+    ok(len(al) == 27 and al[:7] == ["Lotta", "Roxy", "Rökkvi", "Myrkvi", "Jökull", "Emil", "Vargur"], f"album lists {len(al)} dogs, family first: {al[:6]}")
     smalls = pg.evaluate("[...document.querySelectorAll('#albumInner .card small')].map(c => c.textContent)")
-    ok(smalls.count("Bjargaðu í daglegri þraut") == 4, f"4 extra dogs are rescued in the daily puzzle ({smalls.count('Bjargaðu í daglegri þraut')})")
+    ok(smalls.count("Bjargaðu í daglegri þraut") == 7, f"7 extra dogs are rescued in the daily puzzle ({smalls.count('Bjargaðu í daglegri þraut')})")
     fam = pg.evaluate("[...document.querySelectorAll('#albumInner .card.family')].map(c => c.className)")
-    ok(len(fam) == 4 and "lock" not in fam[0], f"4 family cards (Lotta rescued, others shown by name): {fam}")
+    ok(len(fam) == 7 and "lock" not in fam[0], f"7 family cards (Lotta rescued, others shown by name): {fam}")
 
     # ---- daily start (bigger board, random tier) + undo + in-game fullscreen ----
     pg.tap("#bBack", force=True); pg.wait_for_timeout(300); pg.tap("#hDaily", force=True); pg.wait_for_timeout(1500)

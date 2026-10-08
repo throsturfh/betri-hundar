@@ -8,14 +8,28 @@ function resize() {
   layoutGame();
 }
 const MENU_DOGS = [];
+let MENU_BG = null;   // warm sky + glow + grass, baked once per size (one drawImage per frame)
+function menuBgLayer() {
+  const key = W + 'x' + H + 'x' + DPR;
+  if (MENU_BG && MENU_BG.key === key) return MENU_BG.cv;
+  const D = DPR, cv = document.createElement('canvas'); cv.width = Math.round(W * D); cv.height = Math.round(H * D);
+  const c = cv.getContext('2d'); c.scale(D, D);
+  const gy = H - 70, g = c.createLinearGradient(0, 0, 0, gy);
+  g.addColorStop(0, '#3a2690'); g.addColorStop(0.4, '#6a43c4'); g.addColorStop(0.78, '#c064bc'); g.addColorStop(1, '#ffad7c');
+  c.fillStyle = g; c.fillRect(0, 0, W, H);
+  const r = c.createRadialGradient(W / 2, H * 0.36, 10, W / 2, H * 0.36, Math.max(W, H) * 0.6);
+  r.addColorStop(0, 'rgba(255,220,160,.35)'); r.addColorStop(1, 'rgba(255,220,160,0)'); c.fillStyle = r; c.fillRect(0, 0, W, H);
+  c.beginPath(); c.moveTo(0, gy); for (let x = 0; x <= W; x += 8) c.lineTo(x, gy + Math.sin(x * 0.04 + 1) * 6); c.lineTo(W, H); c.lineTo(0, H); c.closePath();
+  const gg = c.createLinearGradient(0, gy - 6, 0, H); gg.addColorStop(0, '#72d77c'); gg.addColorStop(0.2, '#4fb867'); gg.addColorStop(1, '#2f8a4e'); c.fillStyle = gg; c.fill();
+  c.beginPath(); for (let x = 0; x <= W; x += 8) c.lineTo(x, gy + 2.5 + Math.sin(x * 0.04 + 1) * 6); c.strokeStyle = 'rgba(220,255,200,.55)'; c.lineWidth = 2; c.stroke();
+  MENU_BG = { key, cv }; return cv;
+}
 function renderMenuBg(dt) {
-  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#4a3c9e'); g.addColorStop(0.7, '#7b62d6'); g.addColorStop(1, '#3d8f5a');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(menuBgLayer(), 0, 0); ctx.restore();
   ctx.globalAlpha = 0.13;
   for (let i = 0; i < 18; i++) drawBone(ctx, (i * 83 + T * 12) % (W + 40) - 20, (i * 137) % H, 16, '#ffffff', i + T * 0.3);
   ctx.globalAlpha = 1;
   const gy = H - 70;
-  ctx.fillStyle = '#4fae6a'; ctx.beginPath(); ctx.moveTo(0, gy); for (let x = 0; x <= W; x += 16) ctx.lineTo(x, gy + Math.sin(x * 0.04 + 1) * 6); ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.fill();
   if (!MENU_DOGS.length) { const cols = ['R', 'Y', 'C', 'K', 'G', 'O', 'P', 'W']; for (let i = 0; i < 8; i++) MENU_DOGS.push({ x: -40 - i * 52, c: cols[i], b: i === 3 ? 'd' : i === 6 ? 'h' : 'l', s: 120 + (i % 3) * 14 }); }
   ctx.imageSmoothingEnabled = false;
   for (const d of MENU_DOGS) {
@@ -61,7 +75,7 @@ try { history.replaceState({ pl: 0 }, ''); history.pushState({ pl: 1 }, ''); } c
 window.addEventListener('popstate', () => { if (scr !== 'home') { goBack(); try { history.pushState({ pl: 1 }, ''); } catch (e) {} } });
 if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
 // test/debug hook (read-only helpers)
-window.__pl = { screen: () => scr, game: () => G, finale: () => F, layout: () => L, laneX, slotPos, fview: () => fView(), launch: () => LAUNCH, save: () => save,
+window.__pl = { version: VERSION, screen: () => scr, fsState: () => ({ armed: autoFsArmed, wanted: fsWanted, on: !!fsEl() }), game: () => G, finale: () => F, layout: () => L, laneX, slotPos, fview: () => fView(), launch: () => LAUNCH, save: () => save,
   frames: () => ({ n: FS.n, avgWorkMs: FS.work / Math.max(1, FS.n), maxWorkMs: FS.maxWork, avgFrameMs: FS.gaps / Math.max(1, FS.n), maxFrameMs: FS.maxGap }), resetFrames: () => FS.reset(),
   // album portrait (or locked silhouette) of a dog as a data URL, for previews / tests
   portrait: (id, locked) => { const d = PL.DOGS.find(x => x.id === id); return d ? (locked ? silhouette(d) : portrait(d)).toDataURL() : null; },

@@ -22,10 +22,38 @@ function startFinale() {
     rings: [], dbl: false, fever: false,
     t: 0, state: 'intro', pegs, aim: Math.PI / 2, aiming: false, ball: null, pts: 0, hits: 0, bones: 0, slow: 1, zoom: 1, camX: FW / 2, camY: FH / 2,
     parts: [], texts: [], shake: 0, bowl: -1, endT: 0, stuckT: 0, trail: [], popI: 0, popT: 0, total: 0, slowT: 0, introT: 0,
-    pupCol: G.dog.fur, rot: 0,
+    pupCol: G.dog.fur, rot: 0, tilt0: null, tiltA: 0,
+    tiltHint: tiltOn() && (save.tiltHints || 0) < 3 && !!(window.matchMedia && matchMedia('(pointer: coarse)').matches),
   };
+  if (F.tiltHint) { save.tiltHints = (save.tiltHints || 0) + 1; persist(); }
   setScreen('finale');
   Snd.whoosh();
+}
+/* ---- tilt steering: gamma (left/right tilt) gives the falling ball a gentle, capped sideways push ----
+   neutral angle is calibrated when the shot is fired; 3° dead zone; smoothed; full strength at 25° past neutral.
+   Max push 220 px/s² (gravity is 760) and it never drives the ball faster than 200 px/s sideways, so pegs and
+   bounces still decide most of the path. No sensor events (desktop) -> nothing happens. Setting: save.tilt. */
+const TILT = { dead: 3, full: 25, acc: 220, vcap: 200, smooth: 7 };
+const tiltIn = { g: null, sm: null, t: -1, asked: false };
+window.addEventListener('deviceorientation', e => {
+  if (e.gamma == null) return;
+  tiltIn.g = e.gamma; tiltIn.sm = tiltIn.sm == null ? e.gamma : tiltIn.sm + (e.gamma - tiltIn.sm) * 0.35; tiltIn.t = performance.now();
+});
+const tiltOn = () => save.tilt !== false;
+const tiltLive = () => tiltIn.g != null && performance.now() - tiltIn.t < 1500;
+function askTiltPermission() {   // iOS 13+: must be called from a user gesture (the first finale shot)
+  if (tiltIn.asked || !tiltOn()) return; tiltIn.asked = true;
+  try { if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') DeviceOrientationEvent.requestPermission().catch(() => {}); } catch (e) {}
+}
+function tiltTarget() {   // desired sideways acceleration (px/s²) for the current tilt, relative to the calibrated neutral
+  if (!F || F.tilt0 == null || !tiltOn() || !tiltLive()) return 0;
+  const d = tiltIn.sm - F.tilt0, m = Math.max(0, Math.abs(d) - TILT.dead);
+  return Math.sign(d) * Math.min(1, m / (TILT.full - TILT.dead)) * TILT.acc;
+}
+function updateTiltUI() {
+  const b = document.getElementById('bTilt'); if (!b) return;
+  b.classList.toggle('on', scr === 'finale'); b.classList.toggle('off', !tiltOn());
+  b.querySelector('span').textContent = tiltOn() ? 'Halla: Á' : 'Halla: Af';
 }
 function fView() { const k = Math.min(W / FW, (H - 6) / FH); return { k, ox: (W - FW * k) / 2, oy: Math.max(0, (H - FH * k) / 2) }; }
 function toWorld(x, y) { const v = fView(); return { x: (x - v.ox) / v.k, y: (y - v.oy) / v.k }; }
@@ -42,6 +70,8 @@ function finaleUp(x, y) {
   if (!F || !F.aiming || F.state !== 'aim') return;
   F.aiming = false; aimFrom(x, y);
   F.ball = { x: LAUNCH.x + Math.cos(F.aim) * 26, y: LAUNCH.y + Math.sin(F.aim) * 26, vx: Math.cos(F.aim) * SHOT, vy: Math.sin(F.aim) * SHOT };
+  askTiltPermission();
+  F.tilt0 = tiltLive() ? tiltIn.sm : null; F.tiltA = 0;   // calibrate neutral to how the phone is held right now
   F.state = 'fly'; F.flyT = 0; Snd.launch(); Snd.bark(1.4, 0.05, 0.35); vibrate(15);
 }
 function physStep(b, h) {
@@ -70,8 +100,11 @@ function updateFinale(rdt) {
   const dt = rdt * F.slow;
   if (F.state === 'fly') {
     const b = F.ball; F.flyT += dt;
+    if (F.tilt0 == null && tiltLive()) F.tilt0 = tiltIn.sm;   // first sensor event arrived after the shot
+    F.tiltA += (tiltTarget() - F.tiltA) * Math.min(1, rdt * TILT.smooth);
     const sub = 6, h = dt / sub;
     for (let s = 0; s < sub; s++) {
+      if (F.tiltA && (Math.sign(F.tiltA) !== Math.sign(b.vx) || Math.abs(b.vx) < TILT.vcap)) b.vx += F.tiltA * h;
       physStep(b, h);
       for (const p of F.pegs) {
         if (p.pop) continue;
@@ -133,7 +166,7 @@ function fBurst(x, y, n, cols, conf) {
 function renderFinale() {
   if (!F) return;
   const v = fView(), t = F.t;
-  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#2d2360'); g.addColorStop(1, '#5b3d8f');
+  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#2d2370'); g.addColorStop(0.6, '#5b3d9f'); g.addColorStop(1, '#8a4f9e');
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   ctx.save();
   if (F.shake) ctx.translate((Math.random() - 0.5) * F.shake, (Math.random() - 0.5) * F.shake);
@@ -211,7 +244,18 @@ function renderFinale() {
   if (F.dbl) { ctx.textAlign = 'center'; ctx.strokeText('×2', W / 2, v.oy + 22); ctx.fillStyle = '#d9a6ff'; ctx.fillText('×2', W / 2, v.oy + 22); }
   ctx.textAlign = 'right'; ctx.strokeText(`✨ ${F.pts}`, v.ox + FW * v.k - 12, v.oy + 22); ctx.fillStyle = '#fff'; ctx.fillText(`✨ ${F.pts}`, v.ox + FW * v.k - 12, v.oy + 22);
   ctx.textAlign = 'center';
+  if (F.tiltHint && tiltOn() && (F.state === 'aim' || F.state === 'intro' || (F.state === 'fly' && F.flyT < 2.5))) drawTiltHint(t, F.state === 'fly' ? v.oy + 52 : ty + 62);
   if (F.slow < 0.6) { ctx.fillStyle = `rgba(255,255,255,${0.08})`; ctx.fillRect(0, 0, W, H); }
+}
+function drawTiltHint(t, y) {   // little phone rocking left/right + text
+  const a = Math.sin(t * 3) * 0.32, txt = 'Hallaðu símanum til að stýra boltanum';
+  ctx.font = '800 14px system-ui, Roboto, sans-serif';
+  const tw = ctx.measureText(txt).width, w = tw + 54, x0 = W / 2 - w / 2;
+  ctx.fillStyle = 'rgba(30,18,64,.72)'; roundRect(ctx, x0, y - 17, w, 34, 17); ctx.fill();
+  ctx.save(); ctx.translate(x0 + 22, y); ctx.rotate(a);
+  ctx.fillStyle = '#fff'; roundRect(ctx, -7, -12, 14, 24, 3); ctx.fill(); ctx.fillStyle = '#3cc8f4'; ctx.fillRect(-5, -9, 10, 16);
+  ctx.restore();
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff'; ctx.fillText(txt, x0 + 40, y + 1); ctx.textAlign = 'center';
 }
 function drawPartsF(arr) { drawParts(arr); }
 function drawTextsW(arr) { drawTexts(arr); }

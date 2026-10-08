@@ -22,26 +22,17 @@ button { font-family: inherit; touch-action: manipulation; cursor: pointer; }
 #app { position: fixed; inset: 0; display: flex; flex-direction: column;
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
 #topbar { flex: none; height: 54px; display: flex; align-items: center; gap: 6px; padding: 0 8px; z-index: 30;
-  background: linear-gradient(#5d4dbd, #3d3188 58%, #2f2665); box-shadow: inset 0 1px 0 rgba(255,255,255,.28), 0 3px 0 rgba(0,0,0,.25), 0 6px 14px rgba(20,8,50,.3); }
-.ib { flex: none; width: 46px; height: 46px; border: 0; border-radius: 14px; background: linear-gradient(#7767d2, #574aa6 55%, #4a3d98); color: #fff;
-  display: grid; place-items: center; box-shadow: inset 0 1.5px 0 rgba(255,255,255,.35), inset 0 -2px 0 rgba(0,0,0,.12), 0 4px 0 #231c4c, 0 7px 10px rgba(15,6,40,.3); padding: 0; }
-.ib:active { transform: translateY(3px); box-shadow: inset 0 1.5px 0 rgba(255,255,255,.3), 0 1px 0 #231c4c; }
-/* glossy cap: a soft white band over the top half, painted above the background but below the content */
-.ib, .btn, .daily, #ctrls button, #coins, .tile, .card { position: relative; isolation: isolate; }
-.ib::before, .btn::before, .daily::before, #ctrls button::before, #coins::before, .tile::before, .card::before {
-  content: ''; position: absolute; left: 6%; right: 6%; top: 2px; height: 46%; border-radius: 12px 12px 40% 40% / 12px 12px 60% 60%;
-  background: linear-gradient(rgba(255,255,255,.5), rgba(255,255,255,.06)); z-index: -1; pointer-events: none; }
-.tile::before, .card::before { height: 34%; opacity: .55; }
-.tile.locked::before, .card.lock::before { opacity: .25; }
-#coins::before { opacity: .45; border-radius: 20px 20px 50% 50%; }
+  background: linear-gradient(#43378a, #2f2665); box-shadow: 0 3px 0 rgba(0,0,0,.25); }
+.ib { flex: none; width: 46px; height: 46px; border: 0; border-radius: 14px; background: #574aa6; color: #fff;
+  display: grid; place-items: center; box-shadow: 0 4px 0 #231c4c; padding: 0; }
+.ib:active { transform: translateY(3px); box-shadow: 0 1px 0 #231c4c; }
 .ib svg { width: 26px; height: 26px; }
 .ib.hide { visibility: hidden; }
 .ib.gone { display: none; }
 #title { flex: 1; min-width: 0; font-weight: 900; font-size: 18px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: .3px; }
 #title.long { font-size: 15px; letter-spacing: 0; }
 #title.xlong { font-size: 13px; }
-#coins { flex: none; display: flex; align-items: center; gap: 4px; background: linear-gradient(#352a6e, #1d1742); border-radius: 20px; padding: 6px 10px 6px 7px; font-weight: 900; font-size: 15px;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.22), inset 0 -2px 4px rgba(0,0,0,.35), 0 0 0 1px rgba(255,210,63,.35), 0 3px 8px rgba(10,4,30,.3); text-shadow: 0 1px 0 rgba(0,0,0,.4); }
+#coins { flex: none; display: flex; align-items: center; gap: 4px; background: #231c4c; border-radius: 20px; padding: 6px 10px 6px 7px; font-weight: 900; font-size: 15px; }
 #coins svg { width: 22px; height: 22px; }
 #coins.bump { animation: bump .35s; }
 @keyframes bump { 40% { transform: scale(1.25); } }
@@ -49,30 +40,27 @@ button { font-family: inherit; touch-action: manipulation; cursor: pointer; }
 #cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
 #ctrls { position: absolute; top: 6px; left: 8px; right: 8px; display: none; gap: 8px; align-items: center; z-index: 10; pointer-events: none; }
 #ctrls.on { display: flex; }
-#ctrls button { pointer-events: auto; height: 42px; border: 0; border-radius: 14px; background: linear-gradient(rgba(84,66,150,.92), rgba(42,31,72,.88)); color: #fff;
-  font-weight: 900; font-size: 15px; display: flex; align-items: center; gap: 6px; padding: 0 12px;
-  box-shadow: inset 0 1.5px 0 rgba(255,255,255,.3), 0 3px 0 rgba(0,0,0,.35), 0 6px 12px rgba(15,6,40,.25); }
+#ctrls button { pointer-events: auto; height: 42px; border: 0; border-radius: 14px; background: rgba(42,31,61,.75); color: #fff;
+  font-weight: 900; font-size: 15px; display: flex; align-items: center; gap: 6px; padding: 0 12px; box-shadow: 0 3px 0 rgba(0,0,0,.35); }
 #ctrls button:active { transform: translateY(2px); }
 #ctrls button:disabled { opacity: .4; }
 #ctrls svg { width: 22px; height: 22px; }
 #ctrls .sp { flex: 1; }
-#bSpeed.fast { background: linear-gradient(#ffc46e, #ff9a2e 60%, #f2861a); color: var(--ink); }
+#bSpeed.fast { background: #ff9a2e; color: var(--ink); }
 #lvlStars { font-size: 16px; letter-spacing: 1px; color: var(--yellow); text-shadow: 0 2px 0 var(--ink); }
 #hint { position: absolute; left: 14px; right: 14px; top: 64px; z-index: 12; pointer-events: none; background: rgba(255,255,255,.96); color: var(--ink);
-  border-radius: 16px; padding: 12px 14px; font-weight: 800; font-size: 16px; line-height: 1.3; background: linear-gradient(#ffffff, #fff4e6);
-  box-shadow: inset 0 -2px 0 rgba(0,0,0,.06), 0 6px 0 rgba(0,0,0,.22), 0 10px 22px rgba(20,8,50,.3);
+  border-radius: 16px; padding: 12px 14px; font-weight: 800; font-size: 16px; line-height: 1.3; box-shadow: 0 6px 0 rgba(0,0,0,.25);
   opacity: 0; transform: translateY(-10px); transition: .3s; }
 #hint.on { opacity: 1; transform: none; }
 .screen { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; overflow: hidden; padding: 14px; z-index: 5; }
 .screen.on { display: flex; }
-.btn { --edge: #c99a00; min-height: 58px; border: 0; border-radius: 18px; font-weight: 900; font-size: 20px; color: var(--ink);
-  background: linear-gradient(#ffe680, #ffd23f 52%, #ffbe1a);
-  box-shadow: inset 0 2px 0 rgba(255,255,255,.7), inset 0 -3px 0 rgba(0,0,0,.08), 0 6px 0 var(--edge), 0 11px 18px rgba(25,8,55,.35);
-  padding: 0 22px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-shadow: 0 1px 0 rgba(255,255,255,.45); }
-.btn:active { transform: translateY(4px); box-shadow: inset 0 2px 0 rgba(255,255,255,.6), 0 2px 0 var(--edge), 0 4px 8px rgba(25,8,55,.3); }
-.btn.alt { --edge: #c94d86; background: linear-gradient(#ffaad3, #ff7eb9 52%, #ff63a8); }
-.btn.blue { --edge: #1f8db0; background: linear-gradient(#86e3ff, #3cc8f4 52%, #1fb2e3); }
-.btn.green { --edge: #1f9c57; background: linear-gradient(#86f0b6, #3ddc84 52%, #24c46e); }
+.btn { min-height: 58px; border: 0; border-radius: 18px; font-weight: 900; font-size: 20px; color: var(--ink); background: var(--yellow);
+  box-shadow: 0 6px 0 #c99a00; padding: 0 22px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #c99a00; }
+.btn.alt { background: #ff7eb9; box-shadow: 0 6px 0 #c94d86; }
+.btn.alt:active { box-shadow: 0 2px 0 #c94d86; }
+.btn.blue { background: #3cc8f4; box-shadow: 0 6px 0 #1f8db0; }
+.btn.green { background: #3ddc84; box-shadow: 0 6px 0 #1f9c57; }
 .btn.small { min-height: 48px; font-size: 17px; }
 /* home */
 #home { justify-content: center; gap: 14px; }
@@ -86,34 +74,33 @@ button { font-family: inherit; touch-action: manipulation; cursor: pointer; }
 /* level select */
 .scroll { width: 100%; max-width: 440px; flex: 1; overflow-y: auto; touch-action: pan-y; -webkit-overflow-scrolling: touch; padding-bottom: 20px; }
 .h { font-size: 24px; font-weight: 900; margin: 6px 0 12px; text-shadow: 0 3px 0 var(--ink); text-align: center; }
-.daily { width: 100%; display: flex; align-items: center; gap: 12px; background: linear-gradient(135deg,#ffb04e,#ff8a8a 55%,#ff6fb0); border-radius: 20px; padding: 12px 14px; color: var(--ink);
-  border: 0; box-shadow: inset 0 2px 0 rgba(255,255,255,.55), 0 6px 0 #b84a7c, 0 11px 18px rgba(25,8,55,.3); margin-bottom: 16px; text-align: left; }
+.daily { width: 100%; display: flex; align-items: center; gap: 12px; background: linear-gradient(135deg,#ff9a2e,#ff7eb9); border-radius: 20px; padding: 12px 14px; color: var(--ink);
+  border: 0; box-shadow: 0 6px 0 #b84a7c; margin-bottom: 16px; text-align: left; }
 .daily:active { transform: translateY(3px); }
 .daily b { font-size: 20px; display: block; }
 .daily span { font-weight: 700; font-size: 14px; }
 .daily .ico { font-size: 34px; }
 .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 10px; padding-top: 6px; }
 #albumInner .grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.tile { aspect-ratio: 1 / 1.12; border: 0; border-radius: 18px; background: linear-gradient(#7363cf, #574aa6 50%, #4b3f98); color: #fff;
-  box-shadow: inset 0 1.5px 0 rgba(255,255,255,.3), 0 6px 0 #231c4c, 0 10px 14px rgba(15,6,40,.25);
+.tile { aspect-ratio: 1 / 1.12; border: 0; border-radius: 18px; background: #574aa6; color: #fff; box-shadow: 0 6px 0 #231c4c;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 6px; position: relative; }
-.tile:active { transform: translateY(3px); box-shadow: inset 0 1.5px 0 rgba(255,255,255,.3), 0 3px 0 #231c4c; }
+.tile:active { transform: translateY(3px); box-shadow: 0 3px 0 #231c4c; }
 .tile .n { font-size: 26px; font-weight: 1000; text-shadow: 0 3px 0 var(--ink); }
 .tile .nm { font-size: 11px; font-weight: 800; opacity: .95; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tile .st { font-size: 13px; color: var(--yellow); letter-spacing: 1px; text-shadow: 0 2px 0 var(--ink); }
 .tile img { width: 62%; image-rendering: pixelated; border-radius: 8px; border: 3px solid var(--ink); }
-.tile.locked { background: linear-gradient(#463c84, #3a3170); opacity: .75; }
-.tile.next { background: linear-gradient(#ffbc66, #ff9a2e 55%, #f4851a); color: var(--ink); animation: pulse 1.2s infinite; }
+.tile.locked { background: #3a3170; opacity: .75; }
+.tile.next { background: #ff9a2e; color: var(--ink); animation: pulse 1.2s infinite; }
 .tile.next .n { text-shadow: none; }
-.tile.hard { background: linear-gradient(160deg, #ffa060, #ff8a3d 30%, #d9435a); box-shadow: inset 0 1.5px 0 rgba(255,255,255,.4), 0 6px 0 #7d1f35, 0 10px 14px rgba(15,6,40,.25); }
-.tile.vhard { background: linear-gradient(160deg, #7a3caf, #5b2a86 30%, #2b1240); box-shadow: 0 6px 0 #12081d, 0 0 0 2px #ff4d5e inset, 0 10px 14px rgba(15,6,40,.3); }
+.tile.hard { background: linear-gradient(160deg, #ff8a3d, #d9435a); box-shadow: 0 6px 0 #7d1f35; }
+.tile.vhard { background: linear-gradient(160deg, #5b2a86, #2b1240); box-shadow: 0 6px 0 #12081d, 0 0 0 2px #ff4d5e inset; }
 .tile.locked.hard, .tile.locked.vhard { opacity: .8; }
 .tile.next.hard, .tile.next.vhard { color: #fff; }
 .tile .tbadge { position: absolute; top: -7px; left: 50%; transform: translateX(-50%); white-space: nowrap; }
 .tile.hard .n, .tile.vhard .n { margin-top: 6px; }
 /* tier badges */
 .tbadge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px 3px 5px; border-radius: 999px; font-weight: 900; font-size: 14px;
-  color: #fff; border: 2px solid var(--ink); box-shadow: inset 0 1.5px 0 rgba(255,255,255,.45), 0 2px 0 var(--ink); line-height: 1; vertical-align: middle; white-space: nowrap; }
+  color: #fff; border: 2px solid var(--ink); box-shadow: 0 2px 0 var(--ink); line-height: 1; vertical-align: middle; white-space: nowrap; }
 .tbadge .ti { width: 20px; height: 20px; flex: none; }
 .tbadge.hard { background: linear-gradient(#ff9a2e, #ff4d5e); }
 .tbadge.vhard { background: linear-gradient(#7a2fb0, #2b1240); color: #ffd23f; }
@@ -137,16 +124,15 @@ button { font-family: inherit; touch-action: manipulation; cursor: pointer; }
 @keyframes throb { to { transform: scale(1.06) rotate(-2deg); } }
 @keyframes pulse { 50% { transform: scale(1.04); } }
 /* album */
-.card { border-radius: 18px; background: linear-gradient(#7363cf, #574aa6 50%, #4b3f98); box-shadow: inset 0 1.5px 0 rgba(255,255,255,.3), 0 6px 0 #231c4c, 0 10px 14px rgba(15,6,40,.25);
-  padding: 8px; text-align: center; border: 0; color: #fff; }
+.card { border-radius: 18px; background: #574aa6; box-shadow: 0 6px 0 #231c4c; padding: 8px; text-align: center; border: 0; color: #fff; }
 .card img { width: 100%; image-rendering: pixelated; border-radius: 10px; border: 3px solid var(--ink); display: block; }
 .card b { display: block; font-size: 15px; margin-top: 4px; }
 .card small { display: block; font-size: 11px; opacity: .85; font-weight: 700; min-height: 2.4em; }
-.card.special { background: linear-gradient(160deg,#ffe680,#ffd23f 35%,#ff9a2e); color: var(--ink); box-shadow: inset 0 1.5px 0 rgba(255,255,255,.6), 0 6px 0 #b86f00, 0 10px 14px rgba(15,6,40,.25); }
-.card.lock { background: linear-gradient(#463c84, #3a3170); color: #cfc6f5; }
+.card.special { background: linear-gradient(160deg,#ffd23f,#ff9a2e); color: var(--ink); box-shadow: 0 6px 0 #b86f00; }
+.card.lock { background: #3a3170; color: #cfc6f5; }
 .card { position: relative; }
-.card.family { background: linear-gradient(160deg,#ffb0d4,#ff8fc0 35%,#ff5f9a); box-shadow: inset 0 1.5px 0 rgba(255,255,255,.55), 0 6px 0 #b8336b, 0 10px 16px rgba(120,20,70,.3); }
-.card.family.lock { background: linear-gradient(160deg,#8a5a9c,#7a4a8c 35%,#5b3a7a); box-shadow: inset 0 1.5px 0 rgba(255,255,255,.25), 0 6px 0 #2e1d48; color: #ffd9ea; }
+.card.family { background: linear-gradient(160deg,#ff8fc0,#ff5f9a); box-shadow: 0 6px 0 #b8336b; }
+.card.family.lock { background: linear-gradient(160deg,#7a4a8c,#5b3a7a); box-shadow: 0 6px 0 #2e1d48; color: #ffd9ea; }
 .card.family img { border-color: #ffd23f; box-shadow: 0 0 0 3px #ff5f9a, 0 0 12px 2px rgba(255,210,63,.8); }
 .card.family.lock img { border-color: #8a5aa0; box-shadow: none; }
 .bigport.family { border-color: #ffd23f !important; box-shadow: 0 0 0 5px #ff5f9a, 0 0 22px 4px rgba(255,210,63,.85); }
@@ -155,8 +141,8 @@ button { font-family: inherit; touch-action: manipulation; cursor: pointer; }
 #modal { position: absolute; inset: 0; z-index: 40; display: none; align-items: center; justify-content: center; background: rgba(20,12,40,.6); padding: 16px; }
 #modal.on { display: flex; animation: fade .2s; }
 @keyframes fade { from { opacity: 0; } }
-#modalCard { width: min(380px, 100%); max-height: 100%; overflow-y: auto; background: linear-gradient(#fffdf7, #fff4e2); color: var(--ink); border-radius: 26px; padding: 20px 18px; text-align: center;
-  box-shadow: inset 0 2px 0 #fff, inset 0 -3px 0 rgba(120,80,30,.08), 0 10px 0 rgba(0,0,0,.28), 0 20px 40px rgba(15,5,40,.4); animation: pop .35s cubic-bezier(.3,1.6,.5,1); touch-action: pan-y; }
+#modalCard { width: min(380px, 100%); max-height: 100%; overflow-y: auto; background: #fff8ec; color: var(--ink); border-radius: 26px; padding: 20px 18px; text-align: center;
+  box-shadow: 0 10px 0 rgba(0,0,0,.3); animation: pop .35s cubic-bezier(.3,1.6,.5,1); touch-action: pan-y; }
 @keyframes pop { from { transform: scale(.6); opacity: 0; } }
 #modalCard h2 { margin: 0 0 8px; font-size: 28px; font-weight: 1000; }
 #modalCard p { font-weight: 700; font-size: 16px; line-height: 1.35; margin: 6px 0 12px; }
@@ -166,34 +152,13 @@ button { font-family: inherit; touch-action: manipulation; cursor: pointer; }
 .stars { font-size: 44px; letter-spacing: 4px; margin: 6px 0; }
 .stars span { display: inline-block; color: #d7cfe6; transform: scale(.4); transition: .3s cubic-bezier(.3,1.8,.5,1); text-shadow: 0 3px 0 var(--ink); }
 .stars span.on { color: var(--yellow); transform: scale(1); }
-.sum { text-align: left; background: linear-gradient(#ece0cb, #f4ead9); box-shadow: inset 0 2px 4px rgba(90,60,20,.15); border-radius: 14px; padding: 10px 14px; font-weight: 800; font-size: 15px; }
+.sum { text-align: left; background: #f1e6d3; border-radius: 14px; padding: 10px 14px; font-weight: 800; font-size: 15px; }
 .sum div { display: flex; justify-content: space-between; padding: 2px 0; }
 .sum .tot { border-top: 2px dashed #cbb99a; margin-top: 4px; padding-top: 6px; font-size: 18px; }
 .tipcv { width: 120px; height: 72px; image-rendering: pixelated; }
 #toast { position: absolute; left: 50%; bottom: 24px; transform: translate(-50%, 30px); background: #fff; color: var(--ink); font-weight: 800; padding: 12px 16px;
-  border-radius: 14px; z-index: 50; opacity: 0; transition: .3s; width: max-content; max-width: 90%; text-align: center; pointer-events: none; background: linear-gradient(#ffffff, #fff1e0);
-  box-shadow: inset 0 -2px 0 rgba(0,0,0,.06), 0 5px 0 rgba(0,0,0,.22), 0 10px 20px rgba(20,8,50,.3); }
+  border-radius: 14px; z-index: 50; opacity: 0; transition: .3s; width: max-content; max-width: 90%; text-align: center; pointer-events: none; box-shadow: 0 5px 0 rgba(0,0,0,.25); }
 #toast.on { opacity: 1; transform: translate(-50%, 0); }
-/* 1.1: main-menu button, two-line in-level title, quit + goodbye screen, version label */
-#title.two { font-size: 15px; line-height: 1.05; letter-spacing: 0; }
-#title.two .sep { display: none; }
-#title.two small { display: block; font-size: 12px; font-weight: 800; opacity: .85; overflow: hidden; text-overflow: ellipsis; }
-#topbar .ib { width: 44px; height: 44px; }
-#topbar { gap: 5px; }
-.btn.quit { --edge: #1b1440; background: linear-gradient(#5e5096, #3f3478 55%, #352b68); color: #fff; text-shadow: 0 1px 0 rgba(0,0,0,.35); min-height: 46px; font-size: 16px; }
-#home .btn.quit { width: min(200px, 60vw); margin-top: 2px; }
-.ver { position: absolute; right: 12px; bottom: 8px; font-size: 11px; font-weight: 800; opacity: .45; letter-spacing: .5px; pointer-events: none; }
-#bye { justify-content: center; gap: 10px; text-align: center; }
-#bye h2 { margin: 6px 0 0; font-size: 30px; font-weight: 1000; color: var(--yellow); text-shadow: 0 3px 0 var(--ink), 2px 2px 0 var(--ink), -2px 2px 0 var(--ink); }
-#bye p { margin: 0 0 10px; font-weight: 800; font-size: 17px; text-shadow: 0 2px 0 var(--ink); max-width: 300px; }
-#bye .btn { width: min(280px, 80vw); }
-.byedog { width: 150px; height: 150px; image-rendering: pixelated; border-radius: 22px; border: 5px solid #ffd23f; box-shadow: 0 0 0 5px #ff5f9a, 0 10px 24px rgba(15,5,40,.4); }
-#bTilt { position: absolute; right: 8px; bottom: 8px; z-index: 11; display: none; align-items: center; gap: 5px; height: 36px; padding: 0 11px 0 8px; border: 0; border-radius: 18px;
-  color: #fff; font-weight: 900; font-size: 13px; background: linear-gradient(rgba(84,66,150,.92), rgba(42,31,72,.88)); box-shadow: inset 0 1.5px 0 rgba(255,255,255,.3), 0 3px 0 rgba(0,0,0,.35); }
-#bTilt.on { display: flex; }
-#bTilt.off { opacity: .6; }
-#bTilt svg { width: 20px; height: 20px; }
-.dline { display: inline-block; margin-top: 4px; font-size: 14px; font-weight: 700; font-style: italic; color: #6b4a2a; }
 
 </style>
 </head>
@@ -201,7 +166,6 @@ button { font-family: inherit; touch-action: manipulation; cursor: pointer; }
 <div id="app">
   <div id="topbar">
     <button class="ib" id="bBack" aria-label="Til baka"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
-    <button class="ib gone" id="bHome" aria-label="Aðalvalmynd"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11.5L12 4l8.5 7.5"/><path d="M6 10v9.5h4.2v-5.5h3.6v5.5H18V10"/></svg></button>
     <div id="title">Betri Hundar</div>
     <div id="coins" aria-label="Nammi"><svg viewBox="0 0 24 24"><path d="M6 9a2.5 2.5 0 1 1 3-3l6 6a2.5 2.5 0 1 1 3 3 2.5 2.5 0 1 1-3 3l-6-6a2.5 2.5 0 1 1-3-3z" fill="#fff3d6" stroke="#2a1f3d" stroke-width="1.6" transform="rotate(0 12 12)"/></svg><span id="coinN">0</span></div>
     <button class="ib" id="bMute" aria-label="Hljóð"></button>
@@ -215,7 +179,6 @@ button { font-family: inherit; touch-action: manipulation; cursor: pointer; }
       <button id="bRestart" aria-label="Byrja aftur"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
       <button id="bSpeed" aria-label="Hraði">1×</button>
     </div>
-    <button id="bTilt" aria-label="Hallastýring"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"><rect x="8" y="3.5" width="8" height="15" rx="1.8" transform="rotate(-18 12 11)"/><path d="M3.5 17.5a9 9 0 0 0 5 3.2M20.5 17.5a9 9 0 0 1-5 3.2" stroke-linecap="round"/></svg><span>Halla: Á</span></button>
     <div id="hint"></div>
     <div id="tierIntro"></div>
     <section id="home" class="screen">
@@ -225,15 +188,7 @@ button { font-family: inherit; touch-action: manipulation; cursor: pointer; }
       <button class="btn blue" id="hLevels">Borðaval</button>
       <button class="btn alt" id="hDaily">☀ Dagleg þraut</button>
       <button class="btn green" id="hAlbum">📖 Hundaalbúm</button>
-      <button class="btn quit small" id="hQuit">⏻ Hætta leik</button>
       <div class="tipline" id="hTip"></div>
-      <div class="ver" id="hVer">v1.1</div>
-    </section>
-    <section id="bye" class="screen">
-      <img class="byedog" id="byeDog" alt="">
-      <h2>Takk fyrir að spila!</h2>
-      <p>Þú getur lokað glugganum núna.</p>
-      <button class="btn" id="byeAgain">▶ Spila aftur</button>
     </section>
     <section id="levels" class="screen"><div class="scroll" id="levelsInner"></div></section>
     <section id="album" class="screen"><div class="scroll" id="albumInner"></div></section>
@@ -245,7 +200,7 @@ button { font-family: inherit; touch-action: manipulation; cursor: pointer; }
 /* Betri Hundar levels – GENERATED by tools/make_levels.js from tools/levelspec.js (+ tools/art.js pictures,
    tools/tuned/*.json doghouse lanes). Edit those and re-run; verify with `node tools/solver.js --src`.
    grid: 24x24 rows separated by spaces. Colours: R O Y G C B P K W N D.
-   lanes: doghouse queues separated by '|'. Token = colour + count + breed (none=Labrador, d=pylsuhundur, h=husky).
+   lanes: doghouse queues separated by '|'. Token = colour + count + breed (none=Labrador, d=greifingjahundur, h=husky).
    tier: t/e = auðvelt, m = miðlungs, h = Erfitt, x = Mjög erfitt (sawtooth difficulty). */
 const LEVEL_DEFS = [
   { id: 1, name: 'Bein', tier: 't', dog: 'lotta', hint: 'Pikkaðu á hundakofa! Hundarnir hlaupa út og éta nammi í sama lit.',
@@ -352,7 +307,7 @@ const LEVEL_DEFS = [
            GGGGGGGGGGGGGGGGGGGGGGGG
            GGGGGGGGGGGGGGGGGGGGGGGG`,
     lanes: 'C26 G18 C22 C24 C27 C30 G28 C20 C29 C18 Y30 | W29d W12 Y17 Y22 Y28 O16 | G26d Y26 D26 C26 Y18 O21 G20 Y17' },
-  { id: 5, name: 'Hundakofi', tier: 'x', dog: 'jokull', hint: 'Mjög erfitt! Skoðaðu röðina áður en þú pikkar. Afturkalla er alltaf í boði.',
+  { id: 5, name: 'Hundakofi', tier: 'x', dog: 'tinna', hint: 'Mjög erfitt! Skoðaðu röðina áður en þú pikkar. Afturkalla er alltaf í boði.',
     grid: `CCCCCCCCCCCCCCCCCCCYYCCC
            CCCCCWWCCCCCCCCCCCYYYYCC
            CCWWWWWCCCCCCCCCCYYYYYYC
@@ -378,7 +333,7 @@ const LEVEL_DEFS = [
            GGGGGGGGGGGGGGGGGGGGKGGG
            GGGGGGGGGGGGGGGGGGGGGGGG`,
     lanes: 'C7 W16 N8 O10d D16d K1 R17d O11d G8 C17 D11 C11 D6 C14 C11 | Y17 P18 P9d Y13 O7d C13 C7 Y6 R6 C20 C7 | P9 G16 C18 P8 N20 D19 W8d O21 G16 G19 N15 C13 G18 C15 R17 N6 C11d C16 C12d C12' },
-  { id: 6, name: 'Ól', tier: 'e', dog: 'emil',
+  { id: 6, name: 'Ól', tier: 'e', dog: 'pila',
     grid: `KKKKKKKKKKKKKKKKKKKBBBKK
            KKKKKKKKKKKKKKKKKKKBKKBK
            KKKKKKKKKKKKKKKKKKKBBBBK
@@ -404,7 +359,7 @@ const LEVEL_DEFS = [
            KKKKKKKKYOYOYKKKKKKKKKKK
            KKKKKKKKKKYKKKKKKKKKKKKK`,
     lanes: 'P14d Y11d K16 B15 K27 K25d K26 K23 K9 | R21d R19 R15 K22 K14 K21 | Y25 O7 K25 K16 R27d B9 K24 K19 K25 K21 K20 K18 K26 K17 K19' },
-  { id: 7, name: 'Frisbí', tier: 'm', dog: 'vargur',
+  { id: 7, name: 'Frisbí', tier: 'm', dog: 'tryggur',
     grid: `CCCCCCCCCCCCCCCCCCCCCCCC
            CCCCCCCCCCCCCCCCCCCCCCCC
            CCCCCCCCCCCCCCCCCWWWWWWC
@@ -791,30 +746,20 @@ const DAILY_BANK = {"1":{"m":"W9d W13 W19 W10 C20 W11 C9 C9h C14h C8 C22h C15h C
   "19":{"m":"C13 N10h C19 N22 N15 C16 N20 C17 C19 R22d C20 C21 C20 C13 C19 C15 C11 | N14d K2 O15 R14 C18 R18 N13 C17d C19d C12 C7 | C10d C16 N15 N17 N14 N15d C19 C17 C12h","h":"C19 O15 C14 C10h K2 N9 N14h R16 C12 C19d N14d C9 C9d C10d C9 C19 C18 C9 C9 C19 C19d C9 C15 C13 C10 | R17 N9 N9 N14 C18 N16 N17 C16 C14 C12 C15 C10 C5 | R15 R6 N18h N13 N13 N9 C9","x":"N10 C20 O10 O5 C13 C16 C9 C13 C13 C14 C11 C19 | N17 N19 R8 R17d R10 C16 N16 N12 C13 N5 | R19 N8 C16 K2 C16 N20 C9 C8 N11 N20h N8d C12 N9 C19 C14 C9d C18 C9 C15 C15 C15 C14 C4"},
   "20":{"m":"O16 G18 O18d D10 P16h W11d W20 W19 W5h O11 C12 C11 O19 | N21 D6 N19 P18 K9 C17 C20 C19 C18 O22 | Y4 R11 W13h W13 R18 P14 C18 P12d P9 O19 C15 W19 C19 O20d O10 O7"}};
 
-/* Rescued dogs for the Hundaalbúm. g: 'm'/'f' (for "Velkominn/Velkomin heim", "Einn/Ein af hundunum okkar").
-   dat: dative form of the name where it differs (for "Bjargaðu Lottu í borði 1!"). line: optional fun card line (album/results).
+/* Rescued dogs for the Hundaalbúm. g: 'm'/'f' (for "Velkominn/Velkomin heim").
    Portrait params: fur, fur2 (muzzle/chest), ear ('flop'|'up'|'fold'), earCol, bg1/bg2, extras
    (tongue, fluffy, bow, blaze, patch, spots, mask, saddle, fringe, long, eyeCol, brows, eyeRing, sheen, sky, eclipse).
-   family: true = one of OUR dogs (heart tag + "Einn/Ein af hundunum okkar" in the album).
+   family: true = one of OUR dogs (heart tag + "Einn af hundunum okkar" in the album).
    HOW TO ADD A DOG: append a line below. A dog is rescued on the level that names it in tools/levelspec.js
    (dog: '<id>'); any dog without a level is rescued by winning a daily puzzle, so a new name never needs
    a new level. Album order = level order, then the daily-puzzle dogs in the order listed here. */
 const DOG_DEFS = [
-  // --- our family dogs (levels 1-7) ---
-  // All four are Border Collies: Lotta & Roxy (girls, hún) wear the Red Cross bandana, Rökkvi (blue merle) & Myrkvi
-  // (black & white) are boys (hann). Hand-drawn portraits in CUSTOM_PORTRAIT (gfx.js); colours below are for small sprites/silhouettes
-  { id: 'lotta', name: 'Lotta', dat: 'Lottu', g: 'f', breed: 'Border Collie', family: true, fur: '#1e1c26', fur2: '#f6f4ef', ear: 'up', earCol: '#1e1c26', bg1: '#ffd6ea', bg2: '#ffc0df' },
-  { id: 'roxy', name: 'Roxy', g: 'f', breed: 'Border Collie', family: true, fur: '#8a4527', fur2: '#fbf8f2', ear: 'up', earCol: '#8a4527', bg1: '#d2f1ff', bg2: '#b8e6ff' },
-  { id: 'rokkvi', name: 'Rökkvi', dat: 'Rökkva', g: 'm', breed: 'Border Collie', family: true, fur: '#8a96ab', fur2: '#f7f6f2', ear: 'up', earCol: '#2a2833', bg1: '#ffb36b', bg2: '#c86fae', sky: 'dusk' },
-  { id: 'myrkvi', name: 'Myrkvi', dat: 'Myrkva', g: 'm', breed: 'Border Collie', family: true, fur: '#1c1a24', fur2: '#f7f6f2', ear: 'up', earCol: '#1c1a24', bg1: '#2c3a78', bg2: '#25316a', sky: 'night', eclipse: true },
-  // Jökull (boy, hann): an all-white Border Collie (cream/ivory shading so he reads), glacier background; level 5
-  { id: 'jokull', name: 'Jökull', dat: 'Jökli', g: 'm', breed: 'Border Collie', family: true, fur: '#f4efe4', fur2: '#ffffff', ear: 'up', earCol: '#efe6d4', bg1: '#d8f1ff', bg2: '#b9e3f7', sky: 'ice' },
-  // Emil (boy, hann): white Havanese farm dog (sveitahundur) – fluffy, always smiling, always a little muddy; level 6
-  { id: 'emil', name: 'Emil', g: 'm', breed: 'Havanese', family: true, fur: '#f6efe0', fur2: '#ffffff', ear: 'flop', earCol: '#efe4cc', bg1: '#bfe8ff', bg2: '#9fd86f', sky: 'farm',
-    line: 'Sterkur sveitahundur sem brosir alltaf – og er alltaf pínulítið skítugur í loppunum!' },
-  // Vargur (boy, hann): Brussels Griffon farm dog, drawn from ref/vargur.jpg – dark rough brindle, scruffy beard; level 7
-  { id: 'vargur', name: 'Vargur', dat: 'Vargi', g: 'm', breed: 'Brussels Griffon', family: true, fur: '#4a3a30', fur2: '#9a5a2e', ear: 'fold', earCol: '#2a2422', bg1: '#efe2cc', bg2: '#e2d0b4', sky: 'blanket',
-    line: 'Lítill, úfinn og skeggjaður sveitahundur – en með risastórt sjálfstraust!' },
+  // --- our family dogs (levels 1-4) ---
+  // Lotta & Roxy: hand-drawn portraits from photos (CUSTOM_PORTRAIT in gfx.js); colours below are for the small sprites/silhouettes
+  { id: 'lotta', name: 'Lotta', g: 'f', breed: 'Border collie', family: true, fur: '#1e1c26', fur2: '#f6f4ef', ear: 'up', earCol: '#1e1c26', bg1: '#ffd6ea', bg2: '#ffc0df' },
+  { id: 'roxy', name: 'Roxy', g: 'f', breed: 'Ástralskur fjárhundur', family: true, fur: '#8a4527', fur2: '#fbf8f2', ear: 'up', earCol: '#8a4527', bg1: '#d2f1ff', bg2: '#b8e6ff' },
+  { id: 'rokkvi', name: 'Rökkvi', g: 'm', breed: 'Rökkurhundur', family: true, fur: '#3b3646', fur2: '#c9874a', ear: 'up', earCol: '#2f2a39', bg1: '#ffb36b', bg2: '#c86fae', sky: 'dusk', brows: '#d39552', eyeCol: '#f0a848', sheen: '#55506a', tongue: true },
+  { id: 'myrkvi', name: 'Myrkvi', g: 'm', breed: 'Myrkvahundur', family: true, fur: '#1f1d2b', fur2: '#4a4662', ear: 'flop', earCol: '#17151f', bg1: '#2c3a78', bg2: '#25316a', sky: 'night', eclipse: true, eyeCol: '#ffb52e', sheen: '#3c4a8c', fluffy: true },
   // --- rescued friends ---
   { id: 'kata', name: 'Kata', g: 'f', breed: 'Labrador', fur: '#e9b863', fur2: '#f8dca0', ear: 'flop', earCol: '#d29a45', bg1: '#ffd6e8', bg2: '#ffc2dc', tongue: true },
   { id: 'snati', name: 'Snati', g: 'm', breed: 'Border collie', fur: '#2b2b38', fur2: '#ffffff', ear: 'fold', earCol: '#2b2b38', bg1: '#c9f2ff', bg2: '#aee8fb', blaze: true, tongue: true },
@@ -822,7 +767,7 @@ const DOG_DEFS = [
   { id: 'lubbi', name: 'Lubbi', g: 'm', breed: 'Lubbahundur', fur: '#a9a9b8', fur2: '#dcdce6', ear: 'flop', earCol: '#8a8a9c', bg1: '#fff1b8', bg2: '#ffe68f', fluffy: true, fringe: true, tongue: true },
   { id: 'tinna', name: 'Tinna', g: 'f', breed: 'Svartur labrador', fur: '#34313d', fur2: '#4a4656', ear: 'flop', earCol: '#2a2731', bg1: '#e5d9ff', bg2: '#d4c4ff', tongue: true },
   { id: 'perla', name: 'Perla', g: 'f', breed: 'Púðluhundur', fur: '#fbf7f0', fur2: '#ffffff', ear: 'flop', earCol: '#eee4d6', bg1: '#ffd9c7', bg2: '#ffc6ad', fluffy: true, bow: true },
-  { id: 'moli', name: 'Moli', g: 'm', breed: 'Pylsuhundur', fur: '#7a3f22', fur2: '#a35d36', ear: 'flop', earCol: '#5a2c16', bg1: '#d2f4ee', bg2: '#b5ece2', long: true },
+  { id: 'moli', name: 'Moli', g: 'm', breed: 'Greifingjahundur', fur: '#7a3f22', fur2: '#a35d36', ear: 'flop', earCol: '#5a2c16', bg1: '#d2f4ee', bg2: '#b5ece2', long: true },
   { id: 'skotta', name: 'Skotta', g: 'f', breed: 'Jack Russell', fur: '#fbf6ee', fur2: '#ffffff', ear: 'fold', earCol: '#b06a35', bg1: '#ffe0e0', bg2: '#ffcaca', patch: '#b06a35', tongue: true },
   { id: 'tryggur', name: 'Tryggur', g: 'm', breed: 'Schäfer', fur: '#c98a45', fur2: '#e2b278', ear: 'up', earCol: '#2e2a2a', bg1: '#dbe8ff', bg2: '#c5d9ff', saddle: '#2e2a2a' },
   { id: 'depill', name: 'Depill', g: 'm', breed: 'Dalmatíuhundur', fur: '#ffffff', fur2: '#ffffff', ear: 'flop', earCol: '#2b2b33', bg1: '#ffeacc', bg2: '#ffdcaa', spots: '#2b2b33', tongue: true },
@@ -1157,7 +1102,6 @@ const PL = (function () {
 'use strict';
 /* ===== DOM screens, modals, fullscreen, persistence ===== */
 const $ = s => document.querySelector(s);
-const VERSION = '1.1';   // Betri Hundar 1.1 (shown on the home screen; bump sw.js CACHE together with this)
 const SAVE_KEY = 'packleader.v2';
 const save = loadSave();
 function loadSave() {
@@ -1189,8 +1133,7 @@ function dailyDog(def) {
   const wait = PL.DOGS.find(d => !levelOfDog(d.id) && !save.album.includes(d.id));
   return wait || PL.DOGS[def.dog % PL.DOGS.length];
 }
-/* gender agreement: Lotta & Roxy are 'hún' (Ein af… / Sérstök vinkona), Rökkvi & Myrkvi are 'hann' (Einn af… / Sérstakur vinur) */
-function dogNote(d) { const f = d.g === 'f'; return d.family ? (f ? ' · Ein af hundunum okkar ❤️' : ' · Einn af hundunum okkar ❤️') : d.special ? (f ? ' · Sérstök vinkona! 🇮🇸' : ' · Sérstakur vinur! 🇮🇸') : ''; }
+function dogNote(d) { return d.family ? ' · Einn af hundunum okkar ❤️' : d.special ? ' · Sérstakur vinur! 🇮🇸' : ''; }
 function whereRescued(d) { const l = levelOfDog(d.id); return l ? 'Bjargaðu í borði ' + l.id : 'Bjargaðu í daglegri þraut'; }
 /* difficulty tiers (sawtooth): only hard / very hard get a visible badge + coin bonus */
 const TIERS = {
@@ -1208,65 +1151,24 @@ function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save));
 let scr = 'home';
 function setScreen(n) {
   scr = n;
-  for (const id of ['home', 'levels', 'album', 'bye']) $('#' + id).classList.toggle('on', id === n);
+  for (const id of ['home', 'levels', 'album']) $('#' + id).classList.toggle('on', id === n);
   $('#ctrls').classList.toggle('on', n === 'game');
-  if (typeof updateTiltUI === 'function') updateTiltUI();
   $('#bBack').classList.toggle('hide', n === 'home' || n === 'finale');
-  $('#bBack').classList.toggle('gone', n === 'bye');
-  $('#bHome').classList.toggle('gone', n === 'home');   // the main-menu button is on every screen except the menu itself
-  // in a level the title is two lines (number + name) so the extra menu button fits; textContent stays 'Borð 3 · Matarskál'
-  const two = (a, b) => `${a}<span class="sep"> · </span><small>${b}</small>`;
-  const tl = $('#title');
-  tl.innerHTML = n === 'home' ? 'Betri Hundar' : n === 'levels' ? 'Borðaval' : n === 'album' ? 'Hundaalbúm' : n === 'bye' ? 'Takk fyrir!' :
-    n === 'finale' ? 'Sæktu!' : (G && G.daily ? two('Dagleg þraut', G.def.pic || '') : G ? two(`Borð ${G.def.id}`, G.def.name) : 'Betri Hundar');
-  tl.classList.toggle('two', n === 'game');
-  tl.classList.toggle('long', n !== 'game' && tl.textContent.length > 15); tl.classList.toggle('xlong', n !== 'game' && tl.textContent.length > 20);
+  $('#title').textContent = n === 'home' ? 'Betri Hundar' : n === 'levels' ? 'Borðaval' : n === 'album' ? 'Hundaalbúm' :
+    n === 'finale' ? 'Sæktu!' : (G && G.daily ? `Dagleg þraut · ${G.def.pic || ''}` : G ? `Borð ${G.def.id} · ${G.def.name}` : 'Betri Hundar');
+  const tl = $('#title'); tl.classList.toggle('long', tl.textContent.length > 15); tl.classList.toggle('xlong', tl.textContent.length > 20);
   if (n === 'levels') renderLevels();
   if (n === 'album') renderAlbum();
   if (n === 'home') renderHome();
-  if (n === 'bye') { const fam = PL.DOGS.filter(d => d.family && save.album.includes(d.id)); $('#byeDog').src = portraitURL(fam.length ? fam[(Math.random() * fam.length) | 0] : PL.DOGS[0]); }
   if (n !== 'game') hideHint();
   if (n !== 'finale') F = null;
   closeModal();
   updateCtrls();
 }
-/* ---- main menu button (every screen) ---- */
-// would leaving now lose anything? (a level in progress; a won level / finale is banked instead, see bankLevel)
-const midLevel = () => scr === 'game' && G && !G.won && !G.over && (G.undo.length > 0 || G.eaten > 0);
-function goHome() {
-  Snd.tap();
-  if (scr === 'home') return;
-  if (midLevel()) {
-    G.paused = true;
-    openModal(`<h2>Fara í aðalvalmynd?</h2><p>Ef þú hættir núna tapast framvindan í þessu borði.</p>
-      <div class="row"><button class="btn alt" data-act="home-yes">Já, hætta borðinu</button><button class="btn" data-act="close">Halda áfram</button></div>`,
-      () => { if (G) G.paused = false; });
-    return;
-  }
-  if ((scr === 'game' || scr === 'finale') && G && G.won && !G.banked) {   // the dog is already rescued: keep it, skip only the fetch bonus
-    openModal(`<h2>Fara í aðalvalmynd?</h2><p>${G.dog.name} er þegar ${G.dog.g === 'f' ? 'komin' : 'kominn'} heim og nammið er vistað – þú missir bara Sæktu-bónusinn.</p>
-      <div class="row"><button class="btn alt" data-act="home-bank">Já, í valmynd</button><button class="btn" data-act="close">Halda áfram</button></div>`);
-    return;
-  }
-  G = null; setScreen('home');
-}
-/* ---- quit: save, try to close, leave fullscreen, then a goodbye screen if the tab is still open ---- */
-function askQuit() {
-  Snd.tap();
-  openModal(`<h2>Hætta leik?</h2><p>Framvindan þín er vistuð. Þú getur haldið áfram næst.</p>
-    <div class="row"><button class="btn alt" data-act="quit-yes">Já, hætta</button><button class="btn" data-act="close">Nei, spila áfram</button></div>`);
-}
-async function quitGame() {
-  persist(); G = null; F = null;
-  fsWanted = false; autoFsArmed = false;
-  try { window.close(); } catch (e) {}                     // works in some installed-PWA / script-opened windows
-  try { if (fsEl()) await (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {}
-  setTimeout(() => { if (!window.closed) setScreen('bye'); }, 250);
-}
 function goBack() {
   Snd.tap();
   if (scr === 'game') { const d = G && G.daily; G = null; setScreen(d ? 'home' : 'levels'); }
-  else if (scr === 'levels' || scr === 'album' || scr === 'bye') setScreen('home');
+  else if (scr === 'levels' || scr === 'album') setScreen('home');
 }
 function updateCtrls() {
   if (!G) return;
@@ -1300,7 +1202,7 @@ function maybeBreedTip() {
   if (!G) return;
   const has = b => G.p.lanes.some(l => l.some(d => d.b === b));
   const tips = {
-    d: ['Nýr hundur: Pylsuhundur!', 'Hann grefur göng og nær nammi einu lagi innar en hinir hundarnir.'],
+    d: ['Nýr hundur: Greifingjahundur!', 'Hann grefur göng og nær nammi einu lagi innar en hinir hundarnir.'],
     h: ['Nýr hundur: Husky!', 'Um leið og hann fer út þeysist hann á sleða eftir neðstu röð síns litar og étur hana alla í einu.'],
   };
   for (const b of ['d', 'h']) {
@@ -1334,7 +1236,6 @@ function isUnlocked(id) { return id === 1 || !!save.stars[id - 1]; }
 function renderHome() {
   const n = nextLevelId();
   $('#hPlay').textContent = `▶ Spila – Borð ${n}`;
-  $('#hVer').textContent = 'v' + VERSION;
   $('#hTip').textContent = (!fsSupported() && !isStandalone() && isIOS()) ? 'Á iPhone: ýttu á Deila og veldu „Bæta við heimaskjá“ til að spila á fullum skjá.' : `${save.album.length} / ${PL.DOGS.length} hundum bjargað`;
 }
 function todayKey(d = new Date()) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
@@ -1381,14 +1282,13 @@ function renderAlbum() {
 }
 function showDog(id) {
   const d = dogById(id), got = save.album.includes(id), lvl = levelOfDog(id);
-  if (!got) { toast(lvl ? `Bjargaðu ${d.family ? (d.dat || d.name) : 'þessum hundi'} í borði ${lvl.id}!` : 'Vinndu daglega þraut til að bjarga þessum hundi!'); return; }
+  if (!got) { toast(lvl ? `Bjargaðu ${d.family ? d.name : 'þessum hundi'} í borði ${lvl.id}!` : 'Vinndu daglega þraut til að bjarga þessum hundi!'); return; }
   Snd.bark(1.2);
-  openModal(`<img class="bigport${d.family ? ' family' : ''}" src="${portraitURL(d)}" alt=""><h2>${d.name}</h2><p>${d.breed}${dogNote(d)}${d.line ? `<br><i class="dline">${d.line}</i>` : ''}<br>${lvl ? `Bjargað í borði ${lvl.id}: ${lvl.name}` : 'Bjargað í daglegri þraut'}</p><div class="row"><button class="btn" data-act="close">Loka</button></div>`);
+  openModal(`<img class="bigport${d.family ? ' family' : ''}" src="${portraitURL(d)}" alt=""><h2>${d.name}</h2><p>${d.breed}${dogNote(d)}<br>${lvl ? `Bjargað í borði ${lvl.id}: ${lvl.name}` : 'Bjargað í daglegri þraut'}</p><div class="row"><button class="btn" data-act="close">Loka</button></div>`);
 }
 
 /* ---- results ---- */
-/* banks a won level (coins, stars, album) exactly once; used by the results screen and by the menu button in the finale */
-function bankLevel(fetchBonus) {
+function finishLevel(fetchBonus) {
   const stars = G.undos === 0 ? 3 : G.undos <= 2 ? 2 : 1;
   const starBonus = [0, 0, 10, 30][stars];
   const T = TIERS[G.def.tier] || {}, tierBonus = Math.round(G.total * (T.bonus || 0));
@@ -1399,15 +1299,11 @@ function bankLevel(fetchBonus) {
   else save.stars[G.def.id] = Math.max(save.stars[G.def.id] || 0, stars);
   if (!save.album.includes(G.dog.id)) { save.album.push(G.dog.id); newDog = true; }
   persist();
-  return { stars, starBonus, T, tierBonus, earned, newDog, best };
-}
-function finishLevel(fetchBonus) {
-  const { stars, starBonus, T, tierBonus, earned, newDog, best } = bankLevel(fetchBonus);
   const d = G.dog, wl = d.g === 'f' ? 'Velkomin' : 'Velkominn';
   const nextDef = !G.daily && PL.LEVELS.find(l => l.id === G.def.id + 1);
   openModal(`<h2>${wl} heim, ${d.name}!</h2>
     <img class="bigport${d.family ? ' family' : ''}" src="${portraitURL(d)}" alt="">
-    <div style="font-weight:800;margin-top:6px">${d.breed}${dogNote(d)}</div>${d.line ? `<div class="dline">${d.line}</div>` : ''}${T.cls ? `<div style="margin-top:6px">${tierBadge(G.def.tier)}</div>` : ''}
+    <div style="font-weight:800;margin-top:6px">${d.breed}${dogNote(d)}</div>${T.cls ? `<div style="margin-top:6px">${tierBadge(G.def.tier)}</div>` : ''}
     <div class="stars"><span>★</span><span>★</span><span>★</span></div>
     <div class="sum"><div><span>Nammi étið</span><span>+${G.total}</span></div><div><span>Combo-bónus</span><span>+${G.comboBonus}</span></div>
     <div><span>Sækja-bónus</span><span>+${fetchBonus}</span></div><div><span>Stjörnubónus</span><span>+${starBonus}</span></div>
@@ -1431,35 +1327,14 @@ const fsEl = () => document.fullscreenElement || document.webkitFullscreenElemen
 const fsSupported = () => !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
 const isStandalone = () => (window.matchMedia && (matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches)) || navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-async function enterFS() {
-  const el = document.documentElement;
-  let ok = false;
-  try { if (el.requestFullscreen) { await el.requestFullscreen({ navigationUI: 'hide' }); ok = true; } else if (el.webkitRequestFullscreen) { el.webkitRequestFullscreen(); ok = true; } }
-  catch (e) { try { if (el.webkitRequestFullscreen) { el.webkitRequestFullscreen(); ok = !!fsEl(); } } catch (e2) {} }
-  if (ok || fsEl()) { fsWanted = true; autoFsArmed = false; }
-  try { if (window.screen && screen.orientation && screen.orientation.lock) await screen.orientation.lock('portrait'); } catch (e) { /* not allowed on this device – fine */ }
-  return ok;
-}
 async function toggleFS() {
   Snd.tap();
-  autoFsArmed = false;                                      // an explicit choice wins over the automatic first-tap fullscreen
-  if (fsEl()) { fsWanted = false; try { await (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {} return; }
+  if (fsEl()) { try { await (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {} return; }
+  const el = document.documentElement;
   if (!fsSupported()) { toast('Á iPhone: ýttu á Deila ⬆︎ og veldu „Bæta við heimaskjá“ – þá opnast leikurinn á fullum skjá.', 6000); return; }
-  await enterFS();
-}
-/* Automatic fullscreen: browsers only allow it inside a user gesture, so the FIRST tap/click anywhere enters it
-   (once per session; re-armed when coming back from a background tab with fullscreen lost). Installed PWAs already
-   run fullscreen/standalone and are skipped. A failed attempt (e.g. a touch pointerdown, which is not an
-   activating gesture on Android) stays armed so the touchend/click of the same tap tries again. */
-let autoFsArmed = true, fsWanted = false, fsPending = false;
-function autoFS(e) {
-  if (!autoFsArmed || fsPending || isStandalone() || fsEl() || !fsSupported()) return;
-  if (e && e.target && e.target.closest && e.target.closest('#bFS')) return;   // the toggle button handles itself
-  fsPending = true;
-  enterFS().finally(() => { fsPending = false; });
-}
-function onVisible() {
-  if (document.visibilityState === 'visible' && fsWanted && !fsEl() && !isStandalone()) autoFsArmed = true;
+  try { if (el.requestFullscreen) await el.requestFullscreen({ navigationUI: 'hide' }); else el.webkitRequestFullscreen(); }
+  catch (e) { try { if (el.webkitRequestFullscreen) el.webkitRequestFullscreen(); } catch (e2) {} }
+  try { if (window.screen && screen.orientation && screen.orientation.lock) await screen.orientation.lock('portrait'); } catch (e) { /* not allowed on this device – fine */ }
 }
 function updateFSIcon() {
   const b = $('#bFS');
@@ -1479,13 +1354,7 @@ function bindUI() {
   $('#bUndo').addEventListener('click', () => { Snd.tap(); doUndo(); });
   $('#bRestart').addEventListener('click', () => { Snd.tap(); restartLevel(); });
   $('#bSpeed').addEventListener('click', () => { save.speed = save.speed === 2 ? 1 : 2; persist(); Snd.tap(); updateCtrls(); });
-  $('#hPlay').addEventListener('click', () => { Snd.tap(); if (!isStandalone() && !fsEl() && fsSupported() && !fsPending) enterFS(); startLevel(PL.LEVELS.find(l => l.id === nextLevelId())); });
-  $('#bHome').addEventListener('click', goHome);
-  $('#bTilt').addEventListener('click', () => { save.tilt = !(save.tilt !== false); persist(); Snd.tap(); updateTiltUI(); toast(save.tilt ? 'Hallastýring á' : 'Hallastýring af', 1200); });
-  $('#hQuit').addEventListener('click', askQuit);
-  $('#byeAgain').addEventListener('click', () => { Snd.tap(); if (!isStandalone() && !fsEl() && fsSupported()) enterFS(); setScreen('home'); });
-  for (const ev of ['pointerdown', 'touchend', 'click']) document.addEventListener(ev, autoFS, { capture: true, passive: true });
-  document.addEventListener('visibilitychange', onVisible);
+  $('#hPlay').addEventListener('click', () => { Snd.tap(); startLevel(PL.LEVELS.find(l => l.id === nextLevelId())); });
   $('#hLevels').addEventListener('click', () => { Snd.tap(); setScreen('levels'); });
   $('#hDaily').addEventListener('click', startDaily);
   $('#hAlbum').addEventListener('click', () => { Snd.tap(); setScreen('album'); });
@@ -1505,9 +1374,6 @@ function bindUI() {
     else if (a === 'next') { const n = PL.LEVELS.find(l => l.id === G.def.id + 1); closeModal(); startLevel(n); }
     else if (a === 'levels') { G = null; setScreen('levels'); }
     else if (a === 'home') { G = null; setScreen('home'); }
-    else if (a === 'home-yes') { G = null; setScreen('home'); }
-    else if (a === 'home-bank') { if (G && !G.banked) bankLevel(0); G = null; setScreen('home'); }
-    else if (a === 'quit-yes') { closeModal(); quitGame(); }
     else if (a === 'album') { G = null; setScreen('album'); }
   });
   updateFSIcon(); updateMuteIcon();
@@ -1660,11 +1526,10 @@ function bandana({ set, ell, rect, tri }) {
   rect(15, 27, 16, 30, '#e02020'); rect(14, 28, 17, 29, '#e02020');                            // red cross
 }
 function dogEyes(set, rect, iris, rim) {
-  [11, 19].forEach((ex, k) => {                            // big round 2x3 eyes: dark pupil, coloured iris, white glint
-    const ir = Array.isArray(iris) ? iris[k] : iris;       // (an array gives each eye its own colour – merle odd eyes)
+  for (const ex of [11, 19]) {                             // big round 2x3 eyes: dark pupil, coloured iris, white glint
     if (rim) { set(ex - 1, 15, rim); set(ex + 2, 15, rim); }
-    rect(ex, 15, ex + 1, 17, '#1a0f0a'); set(ex + 1, 16, ir); set(ex + 1, 17, ir); set(ex, 17, ir); set(ex, 15, '#ffffff');
-  });
+    rect(ex, 15, ex + 1, 17, '#1a0f0a'); set(ex + 1, 16, iris); set(ex + 1, 17, iris); set(ex, 17, iris); set(ex, 15, '#ffffff');
+  }
 }
 const CUSTOM_PORTRAIT = {
   /* LOTTA: black border collie, semi-erect ears with tipped tips, narrow off-centre white blaze,
@@ -1692,7 +1557,7 @@ const CUSTOM_PORTRAIT = {
     rect(15, 23, 16, 24, '#ff6b8b'); set(16, 24, '#e04a6e');   // tongue peeking out
     bandana({ set, ell, rect, tri });
   },
-  /* ROXY: red & white Border Collie, tall feathered ears with tipped tips, narrow white blaze,
+  /* ROXY: red-brown & white Aussie/collie type, tall feathered ears with tipped tips, narrow white blaze,
      white muzzle, big fluffy white ruff, amber eyes, brown nose, red Red Cross bandana */
   roxy({ set, ell, rect, tri, rnd }) {
     const B = '#8a4527', B2 = '#a65c36', b = '#6a321b', T = '#c98a5c', W = '#fbf8f2', w = '#e2d9cc';
@@ -1716,146 +1581,6 @@ const CUSTOM_PORTRAIT = {
     set(14, 22, '#5a2c20'); set(15, 22, '#5a2c20'); set(17, 22, '#5a2c20'); set(18, 22, '#5a2c20');
     bandana({ set, ell, rect, tri });
   },
-  /* RÖKKVI (boy): blue merle Border Collie – silver/blue-grey coat marbled with black and dark-grey patches, tan points
-     (brows + cheeks), wide white collie blaze, white muzzle, white collar & chest, white front paws, one brown + one
-     blue eye (common in merles). No bandana. Dusk background. */
-  rokkvi({ set, ell, rect, tri }) {
-    const S = '#93a0b6', s2 = '#b8c3d4', s3 = '#7584a0', G = '#596276', K = '#23212c', W = '#f7f6f2', w = '#d9d8d3', T = '#c98a4a';
-    ell(16, 33, 12.8, 8, S, 0.3);                           // shoulders
-    ell(5.5, 29.5, 3.2, 2.6, K); ell(27, 30.5, 3, 2.4, G); set(25, 28, K); set(24, 29, K); set(4, 26, G); set(7, 27, s2); set(26, 27, s2);
-    ell(16, 29.2, 11, 2.9, W, 0.45); ell(16, 32, 6.4, 4.5, W, 0.3);   // white collar + chest
-    [[13, 29], [19, 30], [16, 31], [7, 28], [25, 28]].forEach(([x, y]) => set(x, y, w));
-    ell(6.2, 31.4, 2.4, 1.8, W); ell(25.8, 31.4, 2.4, 1.8, W);         // white front paws (with toe lines)
-    [[5, 31], [7, 31], [25, 31], [27, 31]].forEach(([x, y]) => set(x, y, '#b7b6b8'));
-    rect(9, 30, 10, 31, S); rect(21, 30, 22, 31, S); set(10, 29, G); set(21, 29, K);   // legs between paws and chest
-    ell(16, 26.1, 8, 1.6, s3);                              // shadow under the chin (keeps muzzle & collar apart)
-    tri(5.5, 3.5, 6, 15, 13, 9, G); tri(26.5, 3.5, 26, 15, 19, 9, K);         // ears: left dark-grey merle, right black
-    tri(5.5, 3.5, 1.8, 7.2, 7, 7, K); tri(26.5, 3.5, 30.2, 7.2, 25, 7, G);    // tipped tips
-    tri(7, 8, 7, 13, 10.5, 10.5, '#b88f9a'); tri(25, 8, 25, 13, 21.5, 10.5, '#9c7a88');
-    set(7, 6, S); set(6, 9, K);
-    ell(16, 17.5, 10.2, 9.3, S, 0.28);                      // head (silver-blue)
-    ell(21.8, 12.6, 4.4, 4.1, K); ell(9.6, 11.6, 3.3, 2.7, G); ell(23.8, 18.5, 1.8, 2.2, G);   // marbled patches
-    [[8, 15], [7, 17], [24, 21], [11, 8], [25, 15], [7, 20], [20, 8]].forEach(([x, y]) => set(x, y, K));
-    [[12, 12], [8, 19], [23, 22], [18, 9], [25, 12]].forEach(([x, y]) => set(x, y, G));
-    [[12, 9], [13, 10], [17, 10], [9, 16], [22, 16], [10, 21]].forEach(([x, y]) => set(x, y, s2));
-    [[11, 13], [8, 18], [24, 20], [21, 17]].forEach(([x, y]) => set(x, y, s3));
-    rect(11, 13, 12, 13, T); rect(19, 13, 20, 13, T);       // tan brow points
-    rect(9, 19, 10, 21, T); rect(21, 19, 22, 21, T); set(8, 20, T); set(23, 20, T);   // tan cheeks
-    rect(15, 6, 16, 9, W); rect(14, 10, 17, 16, W); set(14, 9, W);   // wide white collie blaze
-    [[9, 9], [10, 10], [26, 18], [25, 19], [6, 15], [12, 24], [21, 24]].forEach(([x, y]) => set(x, y, G));   // more marbling
-    [[22, 23], [9, 23]].forEach(([x, y]) => set(x, y, K));
-    ell(16, 21.8, 6.2, 4.1, W); rect(12, 19, 19, 19, W);    // white muzzle
-    rect(14, 25, 17, 25, W);
-    set(12, 21, w); set(19, 21, w);
-    dogEyes(set, rect, ['#8a4f22', '#7cc8f2'], null);       // odd eyes: brown + ice blue
-    rect(14, 18, 17, 19, '#121018'); set(14, 18, W); set(17, 18, W); set(15, 18, '#5c586e');   // nose
-    set(15, 20, '#121018'); set(16, 20, '#121018'); set(16, 21, '#121018');
-    set(14, 22, '#121018'); set(15, 22, '#121018'); set(17, 22, '#121018'); set(18, 22, '#121018');
-    rect(15, 23, 17, 24, '#ff6b8b'); set(16, 24, '#e04a6e'); set(16, 25, '#ff6b8b');   // happy tongue
-  },
-  /* MYRKVI (boy): black & white Border Collie, drawn like Lotta but told apart by: a centred blaze that widens into
-     the muzzle (hers is narrow and off-centre), ears folded further forward, a full white collar ruff all round the
-     neck, a clean white muzzle with no ticking, warm amber eyes. No bandana. Night sky + eclipse background. */
-  myrkvi({ set, ell, rect, tri }) {
-    const K = '#1c1a24', K2 = '#2a2735', k = '#3a3f5c', W = '#f7f6f2', w = '#d9d8d3';
-    ell(16, 33, 13, 8, K, 0.3);                             // shoulders
-    ell(16, 29.4, 12.6, 3.3, W, 0.55); ell(16, 32.5, 7.5, 4.5, W, 0.35);   // full white collar ruff all round + chest
-    [[6, 29], [26, 29], [10, 31], [22, 31], [16, 31], [12, 28], [20, 28]].forEach(([x, y]) => set(x, y, w));
-    ell(16, 26.3, 8.6, 1.7, K);                             // black neck under the chin (separates muzzle and ruff)
-    tri(6.5, 5.5, 6, 15, 13, 9, K); tri(25.5, 5.5, 26, 15, 19, 9, K);         // ears, folded well forward
-    tri(6.5, 5.5, 2.6, 10.6, 8.5, 9, K2); tri(25.5, 5.5, 29.4, 10.6, 23.5, 9, K2);
-    tri(8, 9.5, 8, 13, 11, 11, '#45384c'); tri(24, 9.5, 24, 13, 21, 11, '#45384c');
-    ell(16, 17.5, 10.2, 9.3, K, 0.28);                      // head
-    rect(11, 9, 13, 9, k); rect(19, 9, 21, 9, k); set(10, 10, k); set(22, 10, k); set(9, 13, k); set(23, 13, k);   // bluish night sheen
-    ell(16, 7.6, 1.5, 1.5, W); rect(15, 8, 16, 13, W); tri(12.2, 19.5, 19.8, 19.5, 16, 12, W);   // centred blaze widening down
-    ell(16, 21.8, 6.4, 4.1, W); rect(12, 19, 19, 19, W);    // clean white muzzle (no ticking)
-    rect(14, 25, 17, 25, W);
-    set(11, 22, w); set(20, 22, w);
-    dogEyes(set, rect, '#c9802c', null);
-    rect(14, 18, 17, 19, '#121018'); set(14, 18, W); set(17, 18, W); set(15, 18, '#5c586e');   // nose
-    set(15, 20, '#121018'); set(16, 20, '#121018'); set(16, 21, '#121018');
-    set(14, 22, '#121018'); set(15, 22, '#121018'); set(17, 22, '#121018'); set(18, 22, '#121018');
-    set(13, 21, '#121018'); set(19, 21, '#121018');         // little smile
-  },
-  /* JÖKULL (boy): all-white Border Collie – ivory coat; cream only at the coat edges / ruff folds so he reads on
-     the card, and on the face only faint under-eye bags (no rings), dark brown eyes, black nose, semi-erect tipped ears, fluffy ruff. No bandana.
-     Glacier background. */
-  jokull({ set, ell, rect, tri }) {
-    const W = '#fdfcf8', C = '#efe6d3', c = '#ddd0b6', P = '#f2c9c4';
-    ell(16, 33, 13, 8.2, C, 0.35);                          // shoulders (cream)
-    ell(16, 31.5, 10.5, 7, W, 0.45); ell(16, 27.3, 9.5, 3, W, 0.45);   // big fluffy white ruff
-    [[8, 30], [24, 30], [11, 28], [21, 28], [14, 31], [18, 31], [6, 32], [26, 32]].forEach(([x, y]) => set(x, y, c));   // ruff folds
-    tri(5.5, 3.5, 6, 15, 13, 9, C); tri(26.5, 3.5, 26, 15, 19, 9, C);         // ears
-    tri(5.5, 3.5, 1.8, 7.2, 7, 7, c); tri(26.5, 3.5, 30.2, 7.2, 25, 7, c);    // tipped tips (a shade darker)
-    tri(7, 8, 7, 13, 10.5, 10.5, P); tri(25, 8, 25, 13, 21.5, 10.5, P);       // pink inner ears
-    ell(16, 17.5, 10.2, 9.3, C, 0.28);                      // head: cream base ...
-    ell(15.4, 16.4, 8.9, 8.2, W);                           // ... ivory face, so the cream reads as soft shading at the edges
-    rect(12, 9, 14, 9, '#ffffff'); rect(17, 8, 19, 8, '#ffffff');                     // highlights
-    ell(16, 22, 6, 4.2, W); rect(13, 25, 18, 25, W);        // muzzle
-    dogEyes(set, rect, '#5a3418', null);
-    rect(11, 18, 12, 18, C); rect(19, 18, 20, 18, C);       // the ONLY face shading: small soft bags under the eyes (no rings)
-    rect(14, 18, 17, 19, '#121018'); set(14, 18, W); set(17, 18, W); set(15, 18, '#5c586e');   // black nose
-    set(15, 20, '#121018'); set(16, 20, '#121018'); set(16, 21, '#121018');
-    set(14, 22, '#121018'); set(15, 22, '#121018'); set(17, 22, '#121018'); set(18, 22, '#121018');
-    rect(15, 23, 16, 24, '#ff6b8b'); set(16, 24, '#e04a6e');   // tongue
-  },
-  /* EMIL (boy): white Havanese farm dog – round fluffy head, long silky drop ears, fringe, big dark eyes, wide open
-     smile with tongue, sturdy broad chest, and always a little muddy (smudges on paws, legs and belly + a stray straw).
-     No bandana. Farm background (field + red barn). */
-  emil({ set, ell, rect, tri }) {
-    const W = '#fffdf6', C = '#f0e6cf', c = '#ddcfae', M = '#8a6440', m = '#a8825a', S = '#f2cf5a';
-    ell(16, 34, 12.5, 8, C, 0.4);                           // broad, sturdy shoulders
-    ell(16, 31.5, 9.5, 6.5, W, 0.45);                       // fluffy chest
-    ell(8.5, 30.4, 2.9, 2.1, W); ell(23.5, 30.4, 2.9, 2.1, W);   // front paws ...
-    rect(6, 30, 10, 31, M); set(7, 29, m); set(9, 29, m); rect(22, 30, 25, 31, M); set(23, 29, m); set(25, 29, M); set(8, 31, m); set(23, 31, m);   // ... muddy
-    [[12, 30], [13, 31], [19, 31], [20, 30], [16, 31], [10, 28]].forEach(([x, y]) => set(x, y, c));   // fur folds
-    set(14, 29, m); set(15, 30, M); set(18, 29, m); set(21, 32, M); set(11, 32, m);                  // muddy belly smudges
-    ell(7.6, 20, 3.4, 7.8, C, 0.4); ell(24.4, 20, 3.4, 7.8, C, 0.4);   // long silky drop ears
-    [[7, 18], [7, 22], [25, 19], [24, 23], [6, 25], [26, 25]].forEach(([x, y]) => set(x, y, c));
-    ell(16, 16.8, 9, 8.6, W, 0.3);                          // round fluffy head
-    for (let x = 9; x <= 23; x += 2) set(x, 10, C); for (let x = 10; x <= 22; x += 2) set(x, 11, C);   // fringe
-    rect(11, 12, 12, 12, c); rect(19, 12, 20, 12, c);
-    ell(16, 22, 6, 4.2, W);                                 // muzzle
-    dogEyes(set, rect, '#3a2412', null);
-    rect(14, 18, 17, 19, '#121018'); set(14, 18, W); set(17, 18, W); set(15, 18, '#5c586e');   // nose
-    set(16, 20, '#121018');
-    set(11, 20, '#121018'); set(20, 20, '#121018');         // upturned corners ...
-    rect(12, 21, 19, 21, '#121018'); rect(13, 22, 18, 22, '#5a1a24'); rect(14, 23, 17, 23, '#5a1a24');   // ... big open smile
-    rect(14, 23, 17, 24, '#ff6b8b'); rect(15, 25, 16, 25, '#ff6b8b'); set(16, 24, '#e04a6e');                        // tongue out
-    set(10, 20, '#ffb3c0'); set(21, 20, '#ffb3c0');         // happy cheeks
-    set(22, 7, S); set(23, 6, S); set(24, 5, S); set(25, 4, S); set(23, 7, '#d9b03c');   // a stray straw in his hair
-  },
-  /* VARGUR (boy): Brussels Griffon from ref/vargur.jpg – small rough-coated dog, dark brindle (black + rusty red/tan
-     streaks), wiry scruffy face, short flat muzzle with a black nose, slightly undershot chin with a little beard,
-     big round glossy dark eyes, semi-folded fluffy ears flopping forward, tan brows/cheeks, rusty chest + leg.
-     No bandana. Background: the cream fluffy blanket from the photo. */
-  vargur({ set, ell, rect, tri }) {
-    const K = '#221c1a', B = '#4a3a30', b = '#3a2e28', R = '#9a5a2e', r = '#b8743e', T = '#c99258', G = '#5e5650', g = '#3c3532';
-    ell(16, 34, 13, 8.2, B, 0.4);                           // shoulders (brindle)
-    for (let y = 26; y < 32; y++) for (let x = 3; x < 30; x++) if ((x * 2 + y * 3) % 7 === 0) set(x, y, K); else if ((x + y * 2) % 9 === 0) set(x, y, R);
-    ell(21.5, 31, 5, 2.6, R, 0.3); [[19, 30], [22, 31], [24, 30], [20, 32]].forEach(([x, y]) => set(x, y, r));   // rusty leg across the chest
-    ell(13, 29.5, 3.4, 2.4, T, 0.3);                        // tan chest
-    ell(6, 13, 4, 5, K, 0.45); ell(26, 12.5, 4, 5, K, 0.45);           // semi-folded fluffy ears ...
-    tri(3, 10, 9, 9, 4.5, 18, b); tri(29, 9.5, 23, 8.5, 27.5, 17.5, b);  // ... tips flopping forward
-    set(25, 11, '#6a3a2a'); set(26, 12, '#6a3a2a');           // a hint of pink inside the right ear
-    ell(16, 17, 9.8, 9, B, 0.45);                           // big round scruffy head
-    for (let y = 9; y < 26; y++) for (let x = 7; x < 26; x++) if ((x * 3 + y * 5) % 11 === 0) set(x, y, K); else if ((x * 5 + y) % 13 === 0) set(x, y, R);   // wiry brindle
-    ell(16, 12.2, 1.6, 2.8, T); set(16, 9, r); set(15, 9, r);  // tan forehead between the eyes
-    set(10, 13, T); set(11, 13, T); set(20, 13, T); set(21, 13, T); set(9, 14, r); set(22, 14, r);   // tan brows (soft, outer)
-    rect(8, 18, 9, 21, R); rect(22, 18, 23, 21, R); set(10, 19, T); set(21, 19, T);     // rusty cheeks
-    ell(16, 20.5, 5.6, 4.6, g, 0.3);                        // dark grizzled muzzle
-    [[12, 19], [19, 18], [13, 22], [18, 22], [11, 21], [20, 21]].forEach(([x, y]) => set(x, y, G));   // grizzle
-    for (const ex of [10, 19]) {                            // big round glossy eyes (3x3)
-      rect(ex, 15, ex + 2, 17, '#120a06'); set(ex, 15, '#ffffff'); set(ex + 1, 15, '#8c8480'); set(ex + 2, 17, '#4a2a18');
-      set(ex - 1, 16, K); set(ex + 3, 16, K);
-    }
-    rect(15, 18, 16, 19, '#0e0a0a'); set(14, 19, '#0e0a0a'); set(17, 19, '#0e0a0a'); set(15, 18, '#6a6260');   // short flat muzzle, black nose
-    rect(14, 21, 17, 21, '#120d0c');                        // mouth line
-    rect(14, 22, 17, 22, '#2e2624'); set(13, 22, K); set(18, 22, K);   // slightly undershot chin ...
-    rect(13, 23, 18, 24, g); rect(14, 25, 17, 25, g); set(15, 26, G); set(17, 26, g); set(13, 25, G);   // ... with a little scruffy beard
-    [[14, 23], [16, 24], [18, 23], [15, 25], [13, 24]].forEach(([x, y]) => set(x, y, G));
-    [[10, 20], [21, 20], [22, 22], [9, 22], [12, 24], [19, 24]].forEach(([x, y]) => set(x, y, G));   // wiry whisker wisps
-  },
 };
 const PMASK = {};   // dog-pixel mask per portrait (for the album silhouettes)
 function portrait(dog, N = 32) {
@@ -1870,18 +1595,6 @@ function portrait(dog, N = 32) {
     const band = ['#3d2a6b', '#5b3a86', '#8a4c9c', '#c86fae', '#f28c8c', '#ffb36b', '#ffd38a'];
     for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) bg[y * N + x] = band[Math.min(band.length - 1, (y / 4.2) | 0)];
     for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if ((x - 26) ** 2 + (y - 25) ** 2 < 20) bg[y * N + x] = '#fff0a8';
-  } else if (dog.sky === 'ice') {      // jökull: icy sky with glacier peaks
-    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) bg[y * N + x] = y < 9 ? '#cfeeff' : y < 18 ? '#b7e2f8' : '#9fd3ef';
-    const peak = (px, py, hw, col) => { for (let y = py; y < N; y++) for (let x = 0; x < N; x++) if (Math.abs(x - px) <= (y - py) * hw) bg[y * N + x] = col; };
-    peak(4, 14, 0.8, '#e9f7ff'); peak(27, 12, 0.7, '#e9f7ff'); peak(4, 17, 0.8, '#c3e6f7'); peak(28, 15, 0.7, '#c3e6f7');
-    for (let y = 24; y < N; y++) for (let x = 0; x < N; x++) bg[y * N + x] = (x + y) % 7 ? '#f4fbff' : '#dff2fc';
-  } else if (dog.sky === 'farm') {     // emil: blue sky, green field, a red barn on the left
-    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) bg[y * N + x] = y < 19 ? (y < 8 ? '#a9dcff' : '#c6e9ff') : (y < 23 ? '#8fd16a' : (x + y) % 5 ? '#79c257' : '#6bb24c');
-    for (let y = 11; y < 21; y++) for (let x = 0; x < 6; x++) bg[y * N + x] = y < 14 && Math.abs(x - 2.5) > (y - 10) * 1.3 ? bg[y * N + x] : '#c8402f';   // barn
-    for (let y = 15; y < 21; y++) for (let x = 1; x < 4; x++) bg[y * N + x] = (x + y) % 2 ? '#f6efe0' : '#8a2a1f';
-    for (let x = 27; x < N; x++) for (let y = 15; y < 19; y++) bg[y * N + x] = y === 15 || y === 17 ? '#b58a55' : bg[y * N + x];   // fence
-  } else if (dog.sky === 'blanket') {  // vargur: the cream fluffy blanket from his photo
-    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const w = Math.sin(x * 0.9 + y * 0.5) + Math.sin(y * 1.3 - x * 0.4); bg[y * N + x] = y < 10 ? '#f1ebe2' : w > 1 ? '#f6ecda' : w < -1 ? '#d9c6a6' : '#e8d9be'; }
   } else if (dog.sky === 'night') {    // myrkvi: night sky with stars
     for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) bg[y * N + x] = y < 11 ? '#1b2250' : y < 22 ? '#25316a' : '#2c3a78';
   }
@@ -1955,7 +1668,6 @@ function portrait(dog, N = 32) {
     c.fillStyle = '#fff6d0'; [[2, 3], [9, 1], [29, 9], [3, 13], [30, 18], [24, 2], [1, 22]].forEach(([x, y]) => c.fillRect(x, y, 1, 1));
     c.fillStyle = '#ffffff'; [[2, 3], [29, 9]].forEach(([x, y]) => { c.fillRect(x - 1, y, 3, 1); c.fillRect(x, y - 1, 1, 3); });
   }
-  if (dog.sky === 'ice') { c.fillStyle = '#ffffff'; [[3, 3], [28, 6], [10, 1], [24, 1]].forEach(([x, y]) => { if (!out[y * N + x]) { c.fillRect(x - 1, y, 3, 1); c.fillRect(x, y - 1, 1, 3); } }); }
   if (dog.eclipse) {                   // myrkvi = eclipse: dark disc with a golden corona, top-right
     for (let y = 0; y < 10; y++) for (let x = 22; x < N; x++) {
       const r2 = (x + 0.5 - 27) ** 2 + (y + 0.5 - 4.5) ** 2;
@@ -1977,56 +1689,23 @@ function silhouette(dog) {
   c.putImageData(im, 0, 0); return cv;
 }
 
-/* --- treat blocks (pre-rendered per colour & size) ---
-   Glossy candy look, all baked once per colour/size into a small offscreen canvas (never per block per frame):
-   soft drop shadow, darker bevel lip at the bottom, top-light vertical gradient on the face, a thin bright rim at
-   the top and a top-left specular "bubble" + glint. The centre of every block stays its true colour so the
-   picture the blocks form reads exactly as before. */
+/* --- treat blocks (pre-rendered per colour & size) --- */
 const BLK = {};
 function blockImg(c, s, locked) {
   const key = c + s + (locked ? 'L' : '');
   if (BLK[key]) return BLK[key];
   const cv = document.createElement('canvas'); cv.width = cv.height = s;
-  const x = cv.getContext('2d'), base = colHex(c);
-  const m = Math.max(1, Math.round(s * 0.05)), r = Math.max(2, s * 0.22), w = s - 2 * m, h = s - 2 * m;
-  const lip = Math.max(1, Math.round(s * 0.09)), drop = Math.max(1, Math.round(s * 0.04));
-  const rr = (a, b, ww, hh, rad) => { x.beginPath(); x.roundRect ? x.roundRect(a, b, ww, hh, rad) : x.rect(a, b, ww, hh); };
-  // 1) soft drop shadow + bevel lip (darker body underneath the face)
-  x.save(); x.shadowColor = 'rgba(16,6,36,.34)'; x.shadowBlur = Math.max(1, s * 0.06); x.shadowOffsetY = drop;
-  rr(m, m, w, h - drop, r); x.fillStyle = shade(base, -0.3); x.fill(); x.restore();
-  // 2) face with a gentle top-light gradient (bevel)
-  const fh = h - drop - lip, g = x.createLinearGradient(0, m, 0, m + fh);
-  g.addColorStop(0, shade(base, 0.24)); g.addColorStop(0.45, base); g.addColorStop(1, shade(base, -0.1));
-  rr(m, m, w, fh, r); x.fillStyle = g; x.fill();
-  if (s >= 10) {
-    // 3) thin bright rim along the top edge
-    const rg = x.createLinearGradient(0, m, 0, m + fh * 0.6);
-    rg.addColorStop(0, 'rgba(255,255,255,.55)'); rg.addColorStop(1, 'rgba(255,255,255,0)');
-    const lw = Math.max(1, s * 0.05); rr(m + lw / 2, m + lw / 2, w - lw, fh - lw, Math.max(1, r - lw / 2)); x.lineWidth = lw; x.strokeStyle = rg; x.stroke();
-    // 4) top-left specular bubble + bright glint
-    const bx = m + w * 0.14, by = m + fh * 0.1, bw = w * 0.5, bh = fh * 0.3, sg = x.createLinearGradient(0, by, 0, by + bh);
-    sg.addColorStop(0, `rgba(255,255,255,${locked ? 0.35 : 0.72})`); sg.addColorStop(1, 'rgba(255,255,255,.04)');
-    rr(bx, by, bw, bh, bh / 2); x.fillStyle = sg; x.fill();
-    x.fillStyle = `rgba(255,255,255,${locked ? 0.5 : 0.95})`; x.beginPath(); x.arc(m + w * 0.24, m + fh * 0.24, Math.max(0.8, s * 0.06), 0, 7); x.fill();
-    // 5) a faint warm bounce-light at the bottom of the face
-    x.fillStyle = 'rgba(255,255,255,.10)'; rr(m + w * 0.22, m + fh - Math.max(1, s * 0.09), w * 0.56, Math.max(1, s * 0.05), s * 0.03); x.fill();
-  } else { x.fillStyle = 'rgba(255,255,255,.55)'; x.fillRect(m + 1, m + 1, Math.max(1, w * 0.35), 1); }
-  if (locked) { rr(m, m, w, h - drop, r); x.fillStyle = 'rgba(40,20,70,.22)'; x.fill(); }
+  const x = cv.getContext('2d'), base = colHex(c), r = Math.max(2, s * 0.2), m = Math.max(1, Math.round(s * 0.04));
+  const rr = (a, b, w, h, rad) => { x.beginPath(); x.roundRect ? x.roundRect(a, b, w, h, rad) : x.rect(a, b, w, h); };
+  rr(m, m, s - 2 * m, s - 2 * m, r); x.fillStyle = shade(base, -0.35); x.fill();
+  rr(m, m, s - 2 * m, s - 2 * m - Math.max(2, s * 0.1), r); x.fillStyle = base; x.fill();
+  if (!locked) { rr(m + s * 0.12, m + s * 0.1, s * 0.45, s * 0.16, s * 0.08); x.fillStyle = 'rgba(255,255,255,.5)'; x.fill(); }
+  x.fillStyle = locked ? 'rgba(255,255,255,0)' : 'rgba(255,255,255,.6)'; x.fillRect(Math.round(s * 0.66), Math.round(s * 0.2), Math.max(1, s * 0.09), Math.max(1, s * 0.09));
+  x.fillStyle = shade(base, -0.18); // tiny kibble pattern
+  x.fillRect(Math.round(s * 0.3), Math.round(s * 0.55), Math.max(1, s * 0.1), Math.max(1, s * 0.1));
+  x.fillRect(Math.round(s * 0.6), Math.round(s * 0.62), Math.max(1, s * 0.1), Math.max(1, s * 0.1));
+  if (locked) { rr(m, m, s - 2 * m, s - 2 * m, r); x.fillStyle = 'rgba(40,20,70,.2)'; x.fill(); }
   return (BLK[key] = cv);
-}
-/* --- sparkle sprite (soft glow + 4-point star), one per colour, drawn with 'lighter' for the eat burst --- */
-const SPK = {};
-function sparkleImg(col) {
-  if (SPK[col]) return SPK[col];
-  const S = 48, cv = document.createElement('canvas'); cv.width = cv.height = S;
-  const x = cv.getContext('2d'), c = S / 2, rgb = hexRgb(col).join(',');
-  const g = x.createRadialGradient(c, c, 0, c, c, c);
-  g.addColorStop(0, 'rgba(255,255,255,.95)'); g.addColorStop(0.18, `rgba(${rgb},.75)`); g.addColorStop(0.5, `rgba(${rgb},.18)`); g.addColorStop(1, `rgba(${rgb},0)`);
-  x.fillStyle = g; x.fillRect(0, 0, S, S);
-  x.fillStyle = '#ffffff'; x.beginPath();
-  for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4, rad = i % 2 ? S * 0.07 : S * 0.46; x.lineTo(c + Math.cos(a) * rad, c + Math.sin(a) * rad); }
-  x.closePath(); x.fill();
-  return (SPK[col] = cv);
 }
 
 /* --- doghouse --- */
@@ -2040,14 +1719,9 @@ function drawHouse(ctx, x, y, w, h, c, n, breed, o = {}) {
   ctx.lineWidth = lw; ctx.strokeStyle = OUTLINE; ctx.lineJoin = 'round';
   roundRect(ctx, x + w * 0.1, y + h * 0.36, w * 0.8, h * 0.6, w * 0.06); ctx.fillStyle = shade(base, 0.3); ctx.fill(); ctx.stroke();
   ctx.fillStyle = 'rgba(0,0,0,.08)'; for (let i = 1; i < 4; i++) ctx.fillRect(x + w * 0.1 + lw, y + h * (0.36 + i * 0.15), w * 0.8 - 2 * lw, Math.max(1, h * 0.015));
-  ctx.fillStyle = 'rgba(255,255,255,.28)'; ctx.fillRect(x + w * 0.1 + lw, y + h * 0.36 + lw, w * 0.8 - 2 * lw, h * 0.07);   // glossy wall top
-  ctx.fillStyle = 'rgba(40,20,70,.14)'; ctx.fillRect(x + w * 0.1 + lw, y + h * 0.86, w * 0.8 - 2 * lw, h * 0.1 - lw);        // shaded wall foot
   ctx.beginPath(); ctx.moveTo(x - w * 0.02, y + h * 0.44); ctx.lineTo(x + w / 2, y + h * 0.02); ctx.lineTo(x + w * 1.02, y + h * 0.44); ctx.closePath();
   ctx.fillStyle = shade(base, -0.12); ctx.fill(); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(x + w * 0.1, y + h * 0.38); ctx.lineTo(x + w / 2, y + h * 0.08); ctx.lineTo(x + w * 0.9, y + h * 0.38); ctx.closePath(); ctx.fillStyle = base; ctx.fill();
-  ctx.beginPath(); ctx.moveTo(x + w * 0.13, y + h * 0.355); ctx.lineTo(x + w / 2, y + h * 0.1); ctx.lineTo(x + w * 0.54, y + h * 0.15); ctx.lineTo(x + w * 0.24, y + h * 0.355); ctx.closePath();
-  ctx.fillStyle = 'rgba(255,255,255,.38)'; ctx.fill();                                                            // glossy roof highlight
-  ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.beginPath(); ctx.arc(x + w * 0.4, y + h * 0.17, Math.max(1, w * 0.022), 0, 7); ctx.fill();   // glint
   const dw = w * 0.3, dh = h * 0.36, dx = x + w * 0.5 - dw / 2, dy = y + h * 0.96 - dh;
   ctx.beginPath(); ctx.moveTo(dx, dy + dh); ctx.lineTo(dx, dy + dw / 2); ctx.arc(dx + dw / 2, dy + dw / 2, dw / 2, Math.PI, 0); ctx.lineTo(dx + dw, dy + dh); ctx.closePath();
   ctx.fillStyle = '#2a1f3d'; ctx.fill();
@@ -2210,12 +1884,7 @@ function eatVisual(cell, c, pid) {
   G.chain++; G.chainT = 0.7;
   Snd.crunch(G.chain);
   const base = colHex(c);
-  for (let k = 0; k < 6; k++) G.parts.push({ x: cp.x, y: cp.y, vx: (Math.random() - 0.5) * 220, vy: -Math.random() * 220 - 40, life: 0.5 + Math.random() * 0.3, max: 0.8, col: k < 4 ? base : '#fff', size: L.cell * (0.12 + Math.random() * 0.14), g: 700 });
-  // sparkle burst: a quick colour ring + a few glowing 4-point stars (cached sprite, additive)
-  G.parts.push({ ring: true, x: cp.x, y: cp.y, life: 0.32, max: 0.32, col: shade(base, 0.5), size: L.cell * 1.1 });
-  const ns = G.sleds.length ? 1 : 3;   // husky sleds eat a whole row at once: keep it light
-  for (let k = 0; k < ns; k++) { const a = Math.random() * 6.28, sp = 30 + Math.random() * 70;
-    G.parts.push({ spark: true, x: cp.x, y: cp.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 30, life: 0.38 + Math.random() * 0.22, max: 0.6, col: base, size: L.cell * (1.5 + Math.random() * 1.0), g: 60, rot: Math.random() * 1.6, vr: (Math.random() - 0.5) * 6 }); }
+  for (let k = 0; k < 7; k++) G.parts.push({ x: cp.x, y: cp.y, vx: (Math.random() - 0.5) * 220, vy: -Math.random() * 220 - 40, life: 0.5 + Math.random() * 0.3, max: 0.8, col: k < 5 ? base : '#fff', size: L.cell * (0.12 + Math.random() * 0.14), g: 700 });
   const pv = packById(pid); if (pv) pv.shown = Math.max(0, pv.shown - 1);
   if (G.s.rem[c] === 0 && !G.clearedShown[c] && ![...G.pending.values()].includes(c)) colourCleared(c);
 }
@@ -2325,7 +1994,11 @@ function renderGame() {
   const t = G.time;
   ctx.save();
   if (G.shake > 0) ctx.translate((Math.random() - 0.5) * G.shake, (Math.random() - 0.5) * G.shake);
-  drawBackdrop(t);   // (also contains the glossy board frame, baked into the cached backdrop layer)
+  drawBackdrop(t);
+  // board panel
+  const bp = 6;
+  roundRect(ctx, L.bx - bp, L.by - bp, L.bw + bp * 2, L.bh + bp * 2, 12); ctx.fillStyle = '#2a1f3d'; ctx.fill();
+  roundRect(ctx, L.bx - bp + 3, L.by - bp + 3, L.bw + bp * 2 - 6, L.bh + bp * 2 - 6, 11); ctx.fillStyle = '#4b3f8f'; ctx.fill();
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(portrait(G.dog), L.bx, L.by, L.bw, L.bh);
   // blocks: static ones come from a cached layer (redrawn only when the board changes); blocks a runner is
@@ -2339,14 +2012,6 @@ function renderGame() {
       const x = L.bx + (i % s.w) * cs, y = L.by + ((i / s.w) | 0) * cs, k = 1 + Math.sin(t * 40 + i) * 0.08;
       ctx.drawImage(blockImg(c, pxs, false), x + cs * (1 - k) / 2, y + cs * (1 - k) / 2, cs * k, cs * k);
     }
-  }
-  // idle shimmer: a faint diagonal shine glides over the board every ~7s (one gradient, only while it is visible)
-  const sh = (t % 7) / 0.9;
-  if (!G.won && sh < 1) {
-    ctx.save(); ctx.beginPath(); ctx.rect(L.bx, L.by, L.bw, L.bh); ctx.clip();
-    const sx = L.bx - L.bw * 0.6 + sh * L.bw * 2.2, gr = ctx.createLinearGradient(sx, L.by, sx + L.bw * 0.35, L.by + L.bh * 0.5);
-    gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(0.5, 'rgba(255,255,255,.13)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = gr; ctx.fillRect(L.bx, L.by, L.bw, L.bh); ctx.restore();
   }
   if (G.flash > 0) { ctx.globalAlpha = G.flash * 0.5; ctx.strokeStyle = G.flashCol; ctx.lineWidth = 8; roundRect(ctx, L.bx - 4, L.by - 4, L.bw + 8, L.bh + 8, 10); ctx.stroke(); ctx.globalAlpha = 1; }
   if (G.won) { // shine sweep over the revealed portrait
@@ -2400,50 +2065,17 @@ function boardLayer() {
 const easeInOut = k => k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
 const easeOutBack = k => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
 
-/* Backdrop: the warm sky gradient, soft bokeh, the glossy board frame and the grass are baked into one offscreen
-   canvas per layout (one drawImage per frame); only a few twinkles are drawn live. */
-let BG = null;
-function backdropLayer() {
-  const key = [W, H, DPR, L.bx, L.by, L.bw, L.bh, L.slotY].join(',');
-  if (BG && BG.key === key) return BG.cv;
-  const P = 20, D = DPR, cv = document.createElement('canvas'); cv.width = Math.round((W + P * 2) * D); cv.height = Math.round((H + P * 2) * D);
-  const c = cv.getContext('2d'); c.setTransform(D, 0, 0, D, Math.round(P * D), Math.round(P * D));
-  const gy = L.slotY - 4, sky = c.createLinearGradient(0, -P, 0, gy);
-  sky.addColorStop(0, '#3a2690'); sky.addColorStop(0.35, '#6a43c4'); sky.addColorStop(0.72, '#b55fc0'); sky.addColorStop(1, '#ffa77a');
-  c.fillStyle = sky; c.fillRect(-P, -P, W + P * 2, H + P * 2);
-  const glow = c.createRadialGradient(W / 2, L.by + L.bh * 0.45, 10, W / 2, L.by + L.bh * 0.45, Math.max(W, L.bh) * 0.8);
-  glow.addColorStop(0, 'rgba(255,214,150,.30)'); glow.addColorStop(1, 'rgba(255,214,150,0)');
-  c.fillStyle = glow; c.fillRect(-P, -P, W + P * 2, H + P * 2);
-  for (let i = 0; i < 9; i++) {   // soft bokeh dots
-    const x = (i * 131 + 40) % W, y = (i * 89 + 20) % Math.max(60, gy - 20), r = 14 + (i % 3) * 10, g = c.createRadialGradient(x, y, 0, x, y, r);
-    g.addColorStop(0, 'rgba(255,240,255,.16)'); g.addColorStop(1, 'rgba(255,240,255,0)'); c.fillStyle = g; c.fillRect(x - r, y - r, r * 2, r * 2);
-  }
-  // grass hill with a glossy lip
-  c.beginPath(); c.moveTo(-P, gy); for (let x = -P; x <= W + P; x += 10) c.lineTo(x, gy + Math.sin(x * 0.05) * 4); c.lineTo(W + P, H + P); c.lineTo(-P, H + P); c.closePath();
-  const gg = c.createLinearGradient(0, gy - 4, 0, H); gg.addColorStop(0, '#6fd47a'); gg.addColorStop(0.12, '#4fb867'); gg.addColorStop(1, '#2f8a4e');
-  c.fillStyle = gg; c.fill();
-  c.beginPath(); for (let x = -P; x <= W + P; x += 10) c.lineTo(x, gy + 2 + Math.sin(x * 0.05) * 4); c.strokeStyle = 'rgba(220,255,200,.55)'; c.lineWidth = 2; c.stroke();
-  c.fillStyle = 'rgba(30,110,60,.55)'; for (let x = 6; x < W; x += 23) c.fillRect(x, L.slotY + 6 + ((x * 7) % 30), 3, 6);
-  // glossy board frame with a soft drop shadow
-  const bp = 6, fx = L.bx - bp, fy = L.by - bp, fw = L.bw + bp * 2, fh = L.bh + bp * 2;
-  c.save(); c.shadowColor = 'rgba(20,8,45,.55)'; c.shadowBlur = 18; c.shadowOffsetY = 6;
-  roundRect(c, fx, fy, fw, fh, 13); c.fillStyle = '#2a1f3d'; c.fill(); c.restore();
-  const fr = c.createLinearGradient(0, fy, 0, fy + fh); fr.addColorStop(0, '#8a78e6'); fr.addColorStop(0.5, '#5546a8'); fr.addColorStop(1, '#3b2f80');
-  roundRect(c, fx + 3, fy + 3, fw - 6, fh - 6, 11); c.fillStyle = fr; c.fill();
-  roundRect(c, fx + 4, fy + 4, fw - 8, fh - 8, 10); c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 1.5; c.stroke();
-  c.fillStyle = '#2a1f3d'; c.fillRect(L.bx - 1, L.by - 1, L.bw + 2, L.bh + 2);   // crisp dark well under the picture
-  BG = { key, cv };
-  return cv;
-}
 function drawBackdrop(t) {
-  // baked at the exact device-pixel ratio and blitted 1:1 in device pixels (no resampling; the sky ignores screen shake)
-  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(backdropLayer(), -Math.round(20 * DPR), -Math.round(20 * DPR)); ctx.restore();
-  // twinkles (cheap: two thin rects each)
-  const gy = L.slotY ? L.slotY - 30 : H * 0.6;
-  for (let i = 0; i < 12; i++) {
-    const a = 0.5 + 0.5 * Math.sin(t * 2.2 + i * 1.7); if (a < 0.35) continue;
-    const x = (i * 97 + t * 6) % (W + 20) - 10, y = (i * 61 + 14) % Math.max(40, gy), r = 1.5 + a * 2.5;
-    ctx.fillStyle = `rgba(255,248,220,${(a * 0.55).toFixed(2)})`; ctx.fillRect(x - r, y - 0.75, r * 2, 1.5); ctx.fillRect(x - 0.75, y - r, 1.5, r * 2);
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#5a4bb0'); g.addColorStop(0.55, '#7b62d6'); g.addColorStop(1, '#3d8f5a');
+  ctx.fillStyle = g; ctx.fillRect(-20, -20, W + 40, H + 40);
+  ctx.fillStyle = 'rgba(255,255,255,.07)';
+  for (let i = 0; i < 14; i++) { const x = (i * 97 + t * 8) % (W + 60) - 30, y = (i * 61) % (H * 0.6); ctx.fillRect(x, y, 3, 3); }
+  if (G && L.slotY) {
+    ctx.fillStyle = '#4fae6a'; ctx.beginPath(); ctx.moveTo(0, L.slotY - 4);
+    for (let x = 0; x <= W; x += 20) ctx.lineTo(x, L.slotY - 4 + Math.sin(x * 0.05) * 4);
+    ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.fill();
+    ctx.fillStyle = '#3d9a58'; for (let x = 6; x < W; x += 23) ctx.fillRect(x, L.slotY + 6 + ((x * 7) % 30), 3, 6);
   }
 }
 function drawSlots(t) {
@@ -2451,14 +2083,11 @@ function drawSlots(t) {
   for (let k = 0; k < 5; k++) {
     const p = slotPos(k), w = L.slotW - 8, h = L.slotH - 6;
     const danger = full >= 4 && !G.won;
-    if (!L.slotGrad || L.slotGrad.y !== p.y) { const g = ctx.createLinearGradient(0, p.y - h / 2, 0, p.y + h / 2); g.addColorStop(0, 'rgba(255,255,255,.22)'); g.addColorStop(0.5, 'rgba(40,24,80,.22)'); g.addColorStop(1, 'rgba(20,12,50,.38)'); g.y = p.y; L.slotGrad = g; }
     roundRect(ctx, p.x - w / 2, p.y - h / 2, w, h, 14);
-    ctx.fillStyle = danger ? `rgba(255,77,94,${0.18 + 0.12 * Math.sin(t * 8)})` : L.slotGrad; ctx.fill();
-    ctx.setLineDash([6, 5]); ctx.lineWidth = 2; ctx.strokeStyle = danger ? '#ff8a96' : 'rgba(255,255,255,.45)'; ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle = 'rgba(255,255,255,.16)'; roundRect(ctx, p.x - w / 2 + 6, p.y - h / 2 + 4, w - 12, 5, 3); ctx.fill();   // inner top highlight
+    ctx.fillStyle = danger ? `rgba(255,77,94,${0.18 + 0.12 * Math.sin(t * 8)})` : 'rgba(30,20,60,.28)'; ctx.fill();
+    ctx.setLineDash([6, 5]); ctx.lineWidth = 2; ctx.strokeStyle = danger ? '#ff8a96' : 'rgba(255,255,255,.35)'; ctx.stroke(); ctx.setLineDash([]);
     // leash post
     ctx.fillStyle = '#8a5a33'; ctx.fillRect(p.x - 3, p.y + h / 2 - 20, 6, 14); ctx.fillStyle = '#ffd23f'; ctx.beginPath(); ctx.arc(p.x, p.y + h / 2 - 22, 5, 0, 7); ctx.fill();
-    ctx.fillStyle = '#fff6c0'; ctx.beginPath(); ctx.arc(p.x - 1.6, p.y + h / 2 - 23.6, 1.6, 0, 7); ctx.fill();   // glint on the post knob
   }
   if (G.denyT > 0) { ctx.save(); ctx.globalAlpha = G.denyT * 2; ctx.strokeStyle = '#ff4d5e'; ctx.lineWidth = 4; roundRect(ctx, L.pad, L.slotY, W - L.pad * 2, L.slotH, 14); ctx.stroke(); ctx.restore(); }
   for (const pv of G.packs) {
@@ -2483,8 +2112,7 @@ function drawLanes(t) {
     const lane = G.p.lanes[i], pos = G.s.pos[i], x = laneX(i);
     const shift = G.laneAnim[i];
     // lane tray
-    if (!L.laneGrad || L.laneGrad.y !== L.lanesY) { const g = ctx.createLinearGradient(0, L.lanesY - 6, 0, H); g.addColorStop(0, 'rgba(255,255,255,.14)'); g.addColorStop(0.08, 'rgba(20,12,40,.16)'); g.addColorStop(1, 'rgba(20,12,40,.30)'); g.y = L.lanesY; L.laneGrad = g; }
-    roundRect(ctx, x - L.laneW / 2 + 4, L.lanesY - 6, L.laneW - 8, H - L.lanesY - 2, 16); ctx.fillStyle = L.laneGrad; ctx.fill();
+    roundRect(ctx, x - L.laneW / 2 + 4, L.lanesY - 6, L.laneW - 8, H - L.lanesY - 2, 16); ctx.fillStyle = 'rgba(20,12,40,.22)'; ctx.fill();
     if (pos >= lane.length) { ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.font = '700 13px system-ui'; ctx.textAlign = 'center'; ctx.fillText('Tómt', x, L.lanesY + L.houseH * 0.5); continue; }
     const scales = [1, 0.74, 0.6], gaps = [0, L.houseH * 0.98, L.houseH * 1.66];
     for (let k = Math.min(2, lane.length - pos - 1); k >= 0; k--) {
@@ -2511,15 +2139,7 @@ function drawParts(arr) {
   for (const p of arr) {
     ctx.globalAlpha = Math.max(0, Math.min(1, p.life / (p.max * 0.5)));
     ctx.fillStyle = p.col;
-    if (p.spark) {
-      const k = p.life / p.max, sz = p.size * (0.4 + 0.6 * Math.sin(Math.min(1, k) * Math.PI));
-      ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, k * 1.6);
-      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.drawImage(sparkleImg(p.col), -sz / 2, -sz / 2, sz, sz); ctx.restore();
-      ctx.globalCompositeOperation = 'source-over';
-    } else if (p.ring) {
-      const k = 1 - p.life / p.max; ctx.globalAlpha = (1 - k) * 0.9; ctx.strokeStyle = p.col; ctx.lineWidth = Math.max(1.5, p.size * 0.18 * (1 - k));
-      ctx.beginPath(); ctx.arc(p.x, p.y, p.size * (0.35 + k * 0.9), 0, 7); ctx.stroke();
-    } else if (p.conf) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2); ctx.restore(); }
+    if (p.conf) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2); ctx.restore(); }
     else ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
   }
   ctx.globalAlpha = 1;
@@ -2572,38 +2192,10 @@ function startFinale() {
     rings: [], dbl: false, fever: false,
     t: 0, state: 'intro', pegs, aim: Math.PI / 2, aiming: false, ball: null, pts: 0, hits: 0, bones: 0, slow: 1, zoom: 1, camX: FW / 2, camY: FH / 2,
     parts: [], texts: [], shake: 0, bowl: -1, endT: 0, stuckT: 0, trail: [], popI: 0, popT: 0, total: 0, slowT: 0, introT: 0,
-    pupCol: G.dog.fur, rot: 0, tilt0: null, tiltA: 0,
-    tiltHint: tiltOn() && (save.tiltHints || 0) < 3 && !!(window.matchMedia && matchMedia('(pointer: coarse)').matches),
+    pupCol: G.dog.fur, rot: 0,
   };
-  if (F.tiltHint) { save.tiltHints = (save.tiltHints || 0) + 1; persist(); }
   setScreen('finale');
   Snd.whoosh();
-}
-/* ---- tilt steering: gamma (left/right tilt) gives the falling ball a gentle, capped sideways push ----
-   neutral angle is calibrated when the shot is fired; 3° dead zone; smoothed; full strength at 25° past neutral.
-   Max push 220 px/s² (gravity is 760) and it never drives the ball faster than 200 px/s sideways, so pegs and
-   bounces still decide most of the path. No sensor events (desktop) -> nothing happens. Setting: save.tilt. */
-const TILT = { dead: 3, full: 25, acc: 220, vcap: 200, smooth: 7 };
-const tiltIn = { g: null, sm: null, t: -1, asked: false };
-window.addEventListener('deviceorientation', e => {
-  if (e.gamma == null) return;
-  tiltIn.g = e.gamma; tiltIn.sm = tiltIn.sm == null ? e.gamma : tiltIn.sm + (e.gamma - tiltIn.sm) * 0.35; tiltIn.t = performance.now();
-});
-const tiltOn = () => save.tilt !== false;
-const tiltLive = () => tiltIn.g != null && performance.now() - tiltIn.t < 1500;
-function askTiltPermission() {   // iOS 13+: must be called from a user gesture (the first finale shot)
-  if (tiltIn.asked || !tiltOn()) return; tiltIn.asked = true;
-  try { if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') DeviceOrientationEvent.requestPermission().catch(() => {}); } catch (e) {}
-}
-function tiltTarget() {   // desired sideways acceleration (px/s²) for the current tilt, relative to the calibrated neutral
-  if (!F || F.tilt0 == null || !tiltOn() || !tiltLive()) return 0;
-  const d = tiltIn.sm - F.tilt0, m = Math.max(0, Math.abs(d) - TILT.dead);
-  return Math.sign(d) * Math.min(1, m / (TILT.full - TILT.dead)) * TILT.acc;
-}
-function updateTiltUI() {
-  const b = document.getElementById('bTilt'); if (!b) return;
-  b.classList.toggle('on', scr === 'finale'); b.classList.toggle('off', !tiltOn());
-  b.querySelector('span').textContent = tiltOn() ? 'Halla: Á' : 'Halla: Af';
 }
 function fView() { const k = Math.min(W / FW, (H - 6) / FH); return { k, ox: (W - FW * k) / 2, oy: Math.max(0, (H - FH * k) / 2) }; }
 function toWorld(x, y) { const v = fView(); return { x: (x - v.ox) / v.k, y: (y - v.oy) / v.k }; }
@@ -2620,8 +2212,6 @@ function finaleUp(x, y) {
   if (!F || !F.aiming || F.state !== 'aim') return;
   F.aiming = false; aimFrom(x, y);
   F.ball = { x: LAUNCH.x + Math.cos(F.aim) * 26, y: LAUNCH.y + Math.sin(F.aim) * 26, vx: Math.cos(F.aim) * SHOT, vy: Math.sin(F.aim) * SHOT };
-  askTiltPermission();
-  F.tilt0 = tiltLive() ? tiltIn.sm : null; F.tiltA = 0;   // calibrate neutral to how the phone is held right now
   F.state = 'fly'; F.flyT = 0; Snd.launch(); Snd.bark(1.4, 0.05, 0.35); vibrate(15);
 }
 function physStep(b, h) {
@@ -2650,11 +2240,8 @@ function updateFinale(rdt) {
   const dt = rdt * F.slow;
   if (F.state === 'fly') {
     const b = F.ball; F.flyT += dt;
-    if (F.tilt0 == null && tiltLive()) F.tilt0 = tiltIn.sm;   // first sensor event arrived after the shot
-    F.tiltA += (tiltTarget() - F.tiltA) * Math.min(1, rdt * TILT.smooth);
     const sub = 6, h = dt / sub;
     for (let s = 0; s < sub; s++) {
-      if (F.tiltA && (Math.sign(F.tiltA) !== Math.sign(b.vx) || Math.abs(b.vx) < TILT.vcap)) b.vx += F.tiltA * h;
       physStep(b, h);
       for (const p of F.pegs) {
         if (p.pop) continue;
@@ -2716,7 +2303,7 @@ function fBurst(x, y, n, cols, conf) {
 function renderFinale() {
   if (!F) return;
   const v = fView(), t = F.t;
-  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#2d2370'); g.addColorStop(0.6, '#5b3d9f'); g.addColorStop(1, '#8a4f9e');
+  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#2d2360'); g.addColorStop(1, '#5b3d8f');
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   ctx.save();
   if (F.shake) ctx.translate((Math.random() - 0.5) * F.shake, (Math.random() - 0.5) * F.shake);
@@ -2794,18 +2381,7 @@ function renderFinale() {
   if (F.dbl) { ctx.textAlign = 'center'; ctx.strokeText('×2', W / 2, v.oy + 22); ctx.fillStyle = '#d9a6ff'; ctx.fillText('×2', W / 2, v.oy + 22); }
   ctx.textAlign = 'right'; ctx.strokeText(`✨ ${F.pts}`, v.ox + FW * v.k - 12, v.oy + 22); ctx.fillStyle = '#fff'; ctx.fillText(`✨ ${F.pts}`, v.ox + FW * v.k - 12, v.oy + 22);
   ctx.textAlign = 'center';
-  if (F.tiltHint && tiltOn() && (F.state === 'aim' || F.state === 'intro' || (F.state === 'fly' && F.flyT < 2.5))) drawTiltHint(t, F.state === 'fly' ? v.oy + 52 : ty + 62);
   if (F.slow < 0.6) { ctx.fillStyle = `rgba(255,255,255,${0.08})`; ctx.fillRect(0, 0, W, H); }
-}
-function drawTiltHint(t, y) {   // little phone rocking left/right + text
-  const a = Math.sin(t * 3) * 0.32, txt = 'Hallaðu símanum til að stýra boltanum';
-  ctx.font = '800 14px system-ui, Roboto, sans-serif';
-  const tw = ctx.measureText(txt).width, w = tw + 54, x0 = W / 2 - w / 2;
-  ctx.fillStyle = 'rgba(30,18,64,.72)'; roundRect(ctx, x0, y - 17, w, 34, 17); ctx.fill();
-  ctx.save(); ctx.translate(x0 + 22, y); ctx.rotate(a);
-  ctx.fillStyle = '#fff'; roundRect(ctx, -7, -12, 14, 24, 3); ctx.fill(); ctx.fillStyle = '#3cc8f4'; ctx.fillRect(-5, -9, 10, 16);
-  ctx.restore();
-  ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff'; ctx.fillText(txt, x0 + 40, y + 1); ctx.textAlign = 'center';
 }
 function drawPartsF(arr) { drawParts(arr); }
 function drawTextsW(arr) { drawTexts(arr); }
@@ -2820,28 +2396,14 @@ function resize() {
   layoutGame();
 }
 const MENU_DOGS = [];
-let MENU_BG = null;   // warm sky + glow + grass, baked once per size (one drawImage per frame)
-function menuBgLayer() {
-  const key = W + 'x' + H + 'x' + DPR;
-  if (MENU_BG && MENU_BG.key === key) return MENU_BG.cv;
-  const D = DPR, cv = document.createElement('canvas'); cv.width = Math.round(W * D); cv.height = Math.round(H * D);
-  const c = cv.getContext('2d'); c.scale(D, D);
-  const gy = H - 70, g = c.createLinearGradient(0, 0, 0, gy);
-  g.addColorStop(0, '#3a2690'); g.addColorStop(0.4, '#6a43c4'); g.addColorStop(0.78, '#c064bc'); g.addColorStop(1, '#ffad7c');
-  c.fillStyle = g; c.fillRect(0, 0, W, H);
-  const r = c.createRadialGradient(W / 2, H * 0.36, 10, W / 2, H * 0.36, Math.max(W, H) * 0.6);
-  r.addColorStop(0, 'rgba(255,220,160,.35)'); r.addColorStop(1, 'rgba(255,220,160,0)'); c.fillStyle = r; c.fillRect(0, 0, W, H);
-  c.beginPath(); c.moveTo(0, gy); for (let x = 0; x <= W; x += 8) c.lineTo(x, gy + Math.sin(x * 0.04 + 1) * 6); c.lineTo(W, H); c.lineTo(0, H); c.closePath();
-  const gg = c.createLinearGradient(0, gy - 6, 0, H); gg.addColorStop(0, '#72d77c'); gg.addColorStop(0.2, '#4fb867'); gg.addColorStop(1, '#2f8a4e'); c.fillStyle = gg; c.fill();
-  c.beginPath(); for (let x = 0; x <= W; x += 8) c.lineTo(x, gy + 2.5 + Math.sin(x * 0.04 + 1) * 6); c.strokeStyle = 'rgba(220,255,200,.55)'; c.lineWidth = 2; c.stroke();
-  MENU_BG = { key, cv }; return cv;
-}
 function renderMenuBg(dt) {
-  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(menuBgLayer(), 0, 0); ctx.restore();
+  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#4a3c9e'); g.addColorStop(0.7, '#7b62d6'); g.addColorStop(1, '#3d8f5a');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   ctx.globalAlpha = 0.13;
   for (let i = 0; i < 18; i++) drawBone(ctx, (i * 83 + T * 12) % (W + 40) - 20, (i * 137) % H, 16, '#ffffff', i + T * 0.3);
   ctx.globalAlpha = 1;
   const gy = H - 70;
+  ctx.fillStyle = '#4fae6a'; ctx.beginPath(); ctx.moveTo(0, gy); for (let x = 0; x <= W; x += 16) ctx.lineTo(x, gy + Math.sin(x * 0.04 + 1) * 6); ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.fill();
   if (!MENU_DOGS.length) { const cols = ['R', 'Y', 'C', 'K', 'G', 'O', 'P', 'W']; for (let i = 0; i < 8; i++) MENU_DOGS.push({ x: -40 - i * 52, c: cols[i], b: i === 3 ? 'd' : i === 6 ? 'h' : 'l', s: 120 + (i % 3) * 14 }); }
   ctx.imageSmoothingEnabled = false;
   for (const d of MENU_DOGS) {
@@ -2887,7 +2449,7 @@ try { history.replaceState({ pl: 0 }, ''); history.pushState({ pl: 1 }, ''); } c
 window.addEventListener('popstate', () => { if (scr !== 'home') { goBack(); try { history.pushState({ pl: 1 }, ''); } catch (e) {} } });
 if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
 // test/debug hook (read-only helpers)
-window.__pl = { version: VERSION, screen: () => scr, fsState: () => ({ armed: autoFsArmed, wanted: fsWanted, on: !!fsEl() }), game: () => G, finale: () => F, layout: () => L, laneX, slotPos, fview: () => fView(), launch: () => LAUNCH, save: () => save,
+window.__pl = { screen: () => scr, game: () => G, finale: () => F, layout: () => L, laneX, slotPos, fview: () => fView(), launch: () => LAUNCH, save: () => save,
   frames: () => ({ n: FS.n, avgWorkMs: FS.work / Math.max(1, FS.n), maxWorkMs: FS.maxWork, avgFrameMs: FS.gaps / Math.max(1, FS.n), maxFrameMs: FS.maxGap }), resetFrames: () => FS.reset(),
   // album portrait (or locked silhouette) of a dog as a data URL, for previews / tests
   portrait: (id, locked) => { const d = PL.DOGS.find(x => x.id === id); return d ? (locked ? silhouette(d) : portrait(d)).toDataURL() : null; },

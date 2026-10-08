@@ -1,0 +1,5 @@
+Ld-beagle-h try 1: quick g=0.40 r=0.09 | exact g=0.552 r=0.080 houses=45 
+Ld-beagle-h polish g=0.552 r=0.080
+Ld-beagle-h polish g=0.552 r=0.080
+Ld-beagle-h polish g=0.502 r=0.095
+DONE Ld-beagle-h tier=h g=0.502 r=0.095 band=false houses=45 102s

@@ -1,0 +1,10 @@
+{
+ "id": "d-loppa-h",
+ "tier": "h",
+ "g": 0.575,
+ "r": 0.2575,
+ "inBand": true,
+ "houses": 41,
+ "lanes": "O10 Y16 N12 N20 Y18 Y19 Y17 Y15d Y10h Y15 | N10 N9 Y19 Y16 O11 N11 N9 Y12 N12 Y11d Y19 Y19h Y14 N10 Y11 N12d Y20 Y19 Y9 | Y16 N15 N12 Y14 N14d N15 Y11 N18d Y10 Y17d Y16h Y13",
+ "secs": 71
+}

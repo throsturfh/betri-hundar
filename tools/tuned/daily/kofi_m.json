@@ -1,0 +1,10 @@
+{
+ "id": "d-kofi-m",
+ "tier": "m",
+ "g": 0.6725,
+ "r": 0.2625,
+ "inBand": true,
+ "houses": 39,
+ "lanes": "N10 C16 G11 R17h P23 Y19 G10d N19h W16 G18 C16 D7 C19 C20 C12h | D19 N15 P21 K1 Y17 N5 W8 R10 R13d C11 C17 C13 C22 | G16 G22 C20 O18 D15 O18 D11 O13 C13 C10 C15",
+ "secs": 33
+}

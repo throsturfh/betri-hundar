@@ -1,0 +1,3 @@
+Ld-dalmatia-h try 1: quick g=0.46 r=0.19 | exact g=0.527 r=0.255 houses=47 
+Ld-dalmatia-h try 2: quick g=0.38 r=0.09 | exact g=0.350 r=0.090 houses=41 IN BAND
+DONE Ld-dalmatia-h tier=h g=0.350 r=0.090 band=true houses=41 64s

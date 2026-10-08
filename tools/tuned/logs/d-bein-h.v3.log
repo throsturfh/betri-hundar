@@ -1,0 +1,7 @@
+Ld-bein-h try 1: quick g=1.00 r=0.63 | exact g=1.000 r=0.670 houses=38 
+Ld-bein-h try 2: quick g=0.71 r=0.66 | exact g=0.830 r=0.705 houses=47 
+Ld-bein-h polish g=0.830 r=0.705
+Ld-bein-h polish g=0.830 r=0.705
+Ld-bein-h polish g=0.830 r=0.705
+Ld-bein-h polish g=0.792 r=0.682
+DONE Ld-bein-h tier=h g=0.792 r=0.682 band=false houses=47 186s

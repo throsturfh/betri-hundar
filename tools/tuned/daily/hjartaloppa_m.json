@@ -1,0 +1,10 @@
+{
+ "id": "d-hjartaloppa-m",
+ "tier": "m",
+ "g": 0.6875,
+ "r": 0.1725,
+ "inBand": true,
+ "houses": 37,
+ "lanes": "C13 N10h C19 N22 N15 C16 N20 C17 C19 R22d C20 C21 C20 C13 C19 C15 C11 | N14d K2 O15 R14 C18 R18 N13 C17d C19d C12 C7 | C10d C16 N15 N17 N14 N15d C19 C17 C12h",
+ "secs": 90
+}

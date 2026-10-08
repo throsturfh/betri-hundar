@@ -1,0 +1,2 @@
+Ld-pylsa-h try 1: quick g=0.38 r=0.09 | exact g=0.318 r=0.050 houses=46 IN BAND
+DONE Ld-pylsa-h tier=h g=0.318 r=0.050 band=true houses=46 35s

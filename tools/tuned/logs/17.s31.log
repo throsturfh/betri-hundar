@@ -1,0 +1,4 @@
+L17 try 1: quick g=0.65 r=0.38 | exact g=0.775 r=0.440 houses=43 
+L17 try 2: quick g=0.52 r=0.22 | exact g=0.588 r=0.085 houses=41 
+L17 try 3: quick g=0.52 r=0.19 | exact g=0.517 r=0.242 houses=42 IN BAND
+DONE L17 tier=h g=0.517 r=0.242 band=true houses=42 162s

@@ -1,0 +1,8 @@
+L17 try 1: quick g=0.40 r=0.13 | exact g=0.470 r=0.135 houses=48 
+L17 try 2: quick g=0.38 r=0.06 | exact g=0.415 r=0.225 houses=52 
+L17 polish g=0.470 r=0.135
+L17 polish g=0.470 r=0.135
+L17 polish g=0.470 r=0.135
+L17 polish g=0.470 r=0.135
+L17 polish g=0.403 r=0.072 IN BAND
+DONE L17 tier=h g=0.403 r=0.072 band=true houses=48 133s

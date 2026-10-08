@@ -1,0 +1,2 @@
+Ld-beagle-h try 1: quick g=0.58 r=0.25 | exact g=0.568 r=0.225 houses=40 IN BAND
+DONE Ld-beagle-h tier=h g=0.568 r=0.225 band=true houses=40 18s

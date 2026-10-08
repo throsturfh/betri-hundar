@@ -1,0 +1,4 @@
+Ld-hjartaloppa-h try 1: quick g=0.42 r=0.06 | exact g=0.568 r=0.150 houses=44 
+Ld-hjartaloppa-h try 2: quick g=0.42 r=0.06 | exact g=0.415 r=0.315 houses=43 
+Ld-hjartaloppa-h try 3: quick g=0.38 r=0.09 | exact g=0.300 r=0.113 houses=50 IN BAND
+DONE Ld-hjartaloppa-h tier=h g=0.300 r=0.113 band=true houses=50 191s

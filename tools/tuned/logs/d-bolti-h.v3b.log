@@ -1,0 +1,9 @@
+Ld-bolti-h try 1: quick g=1.00 r=0.88 | exact g=1.000 r=0.917 houses=40 
+Ld-bolti-h try 2: quick g=0.75 r=0.28 | exact g=0.838 r=0.278 houses=43 
+Ld-bolti-h polish g=0.838 r=0.278
+Ld-bolti-h polish g=0.838 r=0.278
+Ld-bolti-h polish g=0.820 r=0.278
+Ld-bolti-h polish g=0.820 r=0.278
+Ld-bolti-h polish g=0.790 r=0.278
+Ld-bolti-h polish g=0.790 r=0.278
+DONE Ld-bolti-h tier=h g=0.790 r=0.278 band=false houses=43 243s

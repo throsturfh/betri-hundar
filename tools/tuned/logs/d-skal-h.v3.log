@@ -1,0 +1,3 @@
+Ld-skal-h try 1: quick g=0.65 r=0.22 | exact g=0.725 r=0.175 houses=43 
+Ld-skal-h try 2: quick g=0.60 r=0.25 | exact g=0.632 r=0.185 houses=41 IN BAND
+DONE Ld-skal-h tier=h g=0.632 r=0.185 band=true houses=41 148s

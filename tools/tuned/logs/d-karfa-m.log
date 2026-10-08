@@ -1,0 +1,4 @@
+Ld-karfa-m try 1: quick g=0.96 r=0.72 | exact g=0.968 r=0.853 houses=38 
+Ld-karfa-m polish g=0.968 r=0.853
+Ld-karfa-m polish g=0.953 r=0.838
+DONE Ld-karfa-m tier=m g=0.953 r=0.838 band=false houses=38 102s

@@ -1,0 +1,3 @@
+Ld-labrador-m try 1: quick g=0.71 r=0.69 | exact g=0.870 r=0.802 houses=39 
+Ld-labrador-m try 2: quick g=0.69 r=0.28 | exact g=0.677 r=0.292 houses=32 IN BAND
+DONE Ld-labrador-m tier=m g=0.677 r=0.292 band=true houses=32 112s

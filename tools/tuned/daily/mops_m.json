@@ -1,0 +1,10 @@
+{
+ "id": "d-mops-m",
+ "tier": "m",
+ "g": 0.74,
+ "r": 0.24,
+ "inBand": true,
+ "houses": 40,
+ "lanes": "D18 K19 K11h K19 K18 B17d Y21 D11 K12 K17 K13 K11 Y10h Y20 Y14 Y14 Y16 D8 Y20 | O17 B13d N2 W10 K15d K20 Y12h Y15 Y12 | O14 Y14 R2d D15 K21 K19 D20 Y18 Y16 Y13 Y12 Y7",
+ "secs": 68
+}

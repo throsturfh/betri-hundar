@@ -1,0 +1,4 @@
+Ld-bolti-x try 1: quick g=0.15 r=0.03 | exact g=0.165 r=0.095 houses=52 
+Ld-bolti-x try 2: quick g=0.15 r=0.00 | exact g=0.117 r=0.110 houses=49 
+Ld-bolti-x try 3: quick g=0.15 r=0.06 | exact g=0.147 r=0.033 houses=46 IN BAND
+DONE Ld-bolti-x tier=x g=0.147 r=0.033 band=true houses=46 78s

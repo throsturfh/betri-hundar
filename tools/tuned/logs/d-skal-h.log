@@ -1,0 +1,10 @@
+Ld-skal-h try 1: quick g=0.38 r=0.09 | exact g=0.527 r=0.035 houses=48 
+Ld-skal-h try 2: quick g=0.38 r=0.00 | exact g=0.507 r=0.000 houses=51 
+Ld-skal-h polish g=0.507 r=0.000
+Ld-skal-h polish g=0.507 r=0.000
+Ld-skal-h polish g=0.507 r=0.000
+Ld-skal-h polish g=0.507 r=0.000
+Ld-skal-h polish g=0.507 r=0.000
+Ld-skal-h polish g=0.507 r=0.000
+Ld-skal-h polish g=0.440 r=0.007 IN BAND
+DONE Ld-skal-h tier=h g=0.440 r=0.007 band=true houses=51 99s

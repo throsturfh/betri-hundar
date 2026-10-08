@@ -1,0 +1,10 @@
+{
+ "id": "d-karfa-m",
+ "tier": "m",
+ "g": 0.6025,
+ "r": 0.37,
+ "inBand": true,
+ "houses": 39,
+ "lanes": "C13 G15d C17 C11 Y21d C20 C13 D10 G19 G24 W10 N12 O5 | W17 N22d O21d Y15 G14h W20 N10 O15 G16d O11 C9 O13 N22 O14 N15 | G21 G19h C21 G19 W11 K2d W6 N19 N14 N14 N6",
+ "secs": 72
+}

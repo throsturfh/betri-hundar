@@ -1,0 +1,10 @@
+Ld-bruni-m try 1: quick g=1.00 r=0.38 | exact g=1.000 r=0.625 houses=38 
+Ld-bruni-m try 2: quick g=1.00 r=0.25 | exact g=0.993 r=0.333 houses=39 
+Ld-bruni-m polish g=0.993 r=0.333
+Ld-bruni-m polish g=0.993 r=0.333
+Ld-bruni-m polish g=0.993 r=0.333
+Ld-bruni-m polish g=0.993 r=0.333
+Ld-bruni-m polish g=0.993 r=0.333
+Ld-bruni-m polish g=0.993 r=0.333
+Ld-bruni-m polish g=0.993 r=0.333
+DONE Ld-bruni-m tier=m g=0.993 r=0.333 band=false houses=39 242s

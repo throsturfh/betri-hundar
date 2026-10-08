@@ -1,0 +1,4 @@
+Ld-mops-x try 1: quick g=0.33 r=0.09 | exact g=0.453 r=0.098 houses=50 
+Ld-mops-x try 2: quick g=0.33 r=0.06 | exact g=0.330 r=0.020 houses=46 
+Ld-mops-x try 3: quick g=0.31 r=0.09 | exact g=0.380 r=0.098 houses=53 IN BAND
+DONE Ld-mops-x tier=x g=0.380 r=0.098 band=true houses=53 140s

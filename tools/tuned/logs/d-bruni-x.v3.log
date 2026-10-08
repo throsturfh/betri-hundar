@@ -1,0 +1,6 @@
+Ld-bruni-x try 1: quick g=0.31 r=0.09 | exact g=0.443 r=0.063 houses=47 
+Ld-bruni-x polish g=0.443 r=0.063
+Ld-bruni-x polish g=0.427 r=0.063
+Ld-bruni-x polish g=0.410 r=0.070
+Ld-bruni-x polish g=0.400 r=0.070 IN BAND
+DONE Ld-bruni-x tier=x g=0.400 r=0.070 band=true houses=47 159s

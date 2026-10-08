@@ -1,0 +1,10 @@
+{
+ "id": "d-bruni-x",
+ "tier": "x",
+ "g": 0.4,
+ "r": 0.07,
+ "inBand": true,
+ "houses": 47,
+ "lanes": "O2 Y14 Y6 D15 R8 C18 C11 D16 C16h G17 P14 R13 G11 R16 R15 C12h C13 C15 | K7 P17 P11 G12 D11 G13 P13 P8 G8 C15 C8 C13 | D12 P15 R9h C8 C8h R14 R16 C10 C14h P4 G9 C18 C16 C15 C14 C16 C10",
+ "secs": 159
+}

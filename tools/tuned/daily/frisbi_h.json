@@ -1,0 +1,10 @@
+{
+ "id": "d-frisbi-h",
+ "tier": "h",
+ "g": 0.6125,
+ "r": 0.275,
+ "inBand": true,
+ "houses": 40,
+ "lanes": "C16 P13 C9 C18 K19d C15 C14 P8 C13 C14h C19d C16 C17 C12d C19 C18 C12 C9 C11 C17 C18 C9h | K14 G24h P19h W13 G19 W17 G20 K14d G20 G9 K20d K14h C9 C10 C12 | Y2 W15d P9d",
+ "secs": 95
+}

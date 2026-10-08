@@ -1,0 +1,4 @@
+Ld-karfa-h try 1: quick g=0.38 r=0.09 | exact g=0.292 r=0.100 houses=47 
+Ld-karfa-h try 2: quick g=0.40 r=0.03 | exact g=0.487 r=0.040 houses=50 
+Ld-karfa-h try 3: quick g=0.38 r=0.09 | exact g=0.360 r=0.107 houses=42 IN BAND
+DONE Ld-karfa-h tier=h g=0.360 r=0.107 band=true houses=42 55s

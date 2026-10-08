@@ -1,0 +1,3 @@
+Ld-ol-h try 1: quick g=0.65 r=0.16 | exact g=0.698 r=0.225 houses=43 
+Ld-ol-h try 2: quick g=0.60 r=0.22 | exact g=0.618 r=0.217 houses=43 IN BAND
+DONE Ld-ol-h tier=h g=0.618 r=0.217 band=true houses=43 185s

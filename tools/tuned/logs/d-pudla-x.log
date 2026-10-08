@@ -1,0 +1,4 @@
+Ld-pudla-x try 1: quick g=0.40 r=0.00 | exact g=0.520 r=0.035 houses=51 
+Ld-pudla-x try 2: quick g=0.15 r=0.00 | exact g=0.212 r=0.003 houses=46 
+Ld-pudla-x polish g=0.193 r=0.003 IN BAND
+DONE Ld-pudla-x tier=x g=0.193 r=0.003 band=true houses=46 82s

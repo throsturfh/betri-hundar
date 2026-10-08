@@ -1,0 +1,10 @@
+{
+ "id": "d-bolti-x",
+ "tier": "x",
+ "g": 0.3425,
+ "r": 0.215,
+ "inBand": false,
+ "houses": 57,
+ "lanes": "W8 D13 C14 D9 D4 Y10 C12 C8 C14 O15 O7 G11d Y12 G14 G11 C7 Y12 C7h Y10d Y10 Y8 C8h Y7 C10h C8 C12 C8 C7 | O10 W10 Y10h G11 Y8 Y13d Y15 C10 C8 C8 C13h C14h C8 C9 | Y10 W11 O5 Y11 W12 G11 C9h G15 G15 Y13 G4 C7 Y9 C12 C9",
+ "secs": 242
+}

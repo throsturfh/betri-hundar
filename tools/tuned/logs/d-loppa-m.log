@@ -1,0 +1,4 @@
+Ld-loppa-m try 1: quick g=0.81 r=0.25 | exact g=0.925 r=0.253 houses=38 
+Ld-loppa-m polish g=0.917 r=0.163
+Ld-loppa-m polish g=0.917 r=0.168
+DONE Ld-loppa-m tier=m g=0.917 r=0.168 band=false houses=38 102s

@@ -1,0 +1,7 @@
+L20 try 1: quick g=0.81 r=0.53 | exact g=0.902 r=0.590 houses=51 
+L20 try 2: quick g=0.92 r=0.31 | exact g=0.932 r=0.365 houses=47 
+L20 polish g=0.932 r=0.347
+L20 polish g=0.838 r=0.223
+L20 polish g=0.838 r=0.223
+L20 polish g=0.838 r=0.223
+DONE L20 tier=x g=0.838 r=0.223 band=false houses=47 154s

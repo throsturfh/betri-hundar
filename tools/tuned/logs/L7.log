@@ -1,0 +1,4 @@
+L7 try 1: quick g=0.71 r=0.25 | exact g=0.863 r=0.223 houses=40 
+L7 try 2: quick g=0.67 r=0.22 | exact g=0.573 r=0.220 houses=33 
+L7 try 3: quick g=0.75 r=0.34 | exact g=0.743 r=0.275 houses=35 IN BAND
+DONE L7 tier=m g=0.743 r=0.275 band=true houses=35 125s

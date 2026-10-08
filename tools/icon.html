@@ -1,0 +1,750 @@
+<!doctype html><html><body style="margin:0;background:#000">
+<canvas id="a" width="512" height="512"></canvas><canvas id="m" width="512" height="512"></canvas>
+<script>/* Levels: grid rows separated by spaces ('.' = empty). Colours: R O Y G C B P K W N D.
+   lanes: doghouse queues separated by '|'. Token = colour + count + breed (none=Labrador, d=greifingjahundur, h=husky).
+   Add a level by appending an object; run `node tools/solver.js` to verify it. */
+const LEVEL_DEFS = [
+  { id: 1, name: 'Hjarta', dog: 'kata', hint: 'Pikkaðu á hundakofa! Hundarnir hlaupa út og éta nammi í sama lit.',
+    grid: `CCCCCCCCCCCC
+           CCRRCCCCRRCC
+           CRRRRCCRRRRC
+           CRRRRRRRRRRC
+           CRRRRRRRRRRC
+           CRRRRRRRRRRC
+           CCRRRRRRRRCC
+           CCCRRRRRRCCC
+           CCCCRRRRCCCC
+           CCCCCRRCCCCC
+           CCCCCCCCCCCC
+           CCCCCCCCCCCC`,
+    lanes: 'C15 R20 C11 | C21 R21 C15 C20 R21' },
+  { id: 2, name: 'Loppa', dog: 'snati', hint: 'Hundar ná bara í nammi við brúnina. Innra nammið losnar þegar ytra lagið er étið.',
+    grid: `YYYYYYYYYYYY
+           YYYNNYYNNYYY
+           YYYNNYYNNYYY
+           YNNYYYYYYNNY
+           YNNYYYYYYNNY
+           YYYYNNNNYYYY
+           YYYNNNNNNYYY
+           YYNNNNNNNNYY
+           YYNNNNNNNNYY
+           YYYNNNNNNYYY
+           YYYYYYYYYYYY
+           YYYYYYYYYYYY`,
+    lanes: 'N14 Y10 N12 Y13 | Y12 Y10 Y16 Y15 N13 N9 Y12 Y8' },
+  { id: 3, name: 'Fiskur', dog: 'bangsi', hint: 'Þú hefur 5 tauma. Ef allir eru fullir og enginn hundur kemst að nammi – þá taparðu!',
+    grid: `BBBBBBBBBBBB
+           BBBBBBBBBBBB
+           BBBBOOOOBBBB
+           BBBOOOOOOBOB
+           BBOOBOOOOOOB
+           BOOOOOOOOOBB
+           BOOOOOOOOOBB
+           BBOOOOOOOOOB
+           BBBOOOOOOBOB
+           BBBBOOOOBBBB
+           BBBBBBBBBBBB
+           BBBBBBBBBBBB`,
+    lanes: 'B8 B15 O13 O11 O9 B9 B9 B4 | O9 B10 B11 O15 B13 B8' },
+  { id: 4, name: 'Sól', dog: 'lubbi',
+    grid: `CCCCCOOCCCCC
+           COCCCCCCCCOC
+           CCOCYYYYCOCC
+           CCCYYYYYYCCC
+           CCYYYOOYYYCC
+           OCYYOYYOYYCO
+           OCYYOYYOYYCO
+           CCYYYOOYYYCC
+           CCCYYYYYYCCC
+           CCOCYYYYCOCC
+           COCCCCCCCCOC
+           CCCCCOOCCCCC`,
+    lanes: 'Y9 Y8 Y10 C7 C14 C11 | O14 C8 C11 | Y6 O10d Y11d C11 C14' },
+  { id: 5, name: 'Hús', dog: 'tinna',
+    grid: `CCCCCCCCCCCC
+           CCCCCRRCCCCC
+           CCCCRRRRCCCC
+           CCCRRRRRRCCC
+           CCRRRRRRRRCC
+           CRRRRRRRRRRC
+           CCWWWWWWWWCC
+           CCWYYWWWWWCC
+           CCWYYWWNNWCC
+           CCWWWWWNNWCC
+           GGGGGGGNNGGG
+           GGGGGGGGGGGG`,
+    lanes: 'N6 R4 W2d G8 G10d | W8 R8 W6 C5 C8 C7d G4 C7 C4 | W8 R7d C6 R8 C7 R3 Y4 C5d C9' },
+  { id: 6, name: 'Ís', dog: 'perla',
+    grid: `KKKKKKNKKKKK
+           KKKKKRRKKKKK
+           KKKWWRRWWKKK
+           KKWWWWWWWWKK
+           KWWWWWWWWWWK
+           KWWWWWWWWWWK
+           KOOOOOOOOOOK
+           KKONOONOONKK
+           KKOOOOOOOOKK
+           KKKONOONOKKK
+           KKKKOOOOKKKK
+           KKKKKOOKKKKK`,
+    lanes: 'N6 W7 O8 W11 K6 | W6 O6 K5 K9d K6d | W8 O5 O5 R4 K9d O9 K11 K8 K6 K9' },
+  { id: 7, name: 'Fjall', dog: 'moli',
+    grid: `CCCCCCCCCCCYYC
+           CCCCCCCCCCYYYY
+           CCCCCCWCCCCYYC
+           CCCCCWWWCCCCCC
+           CCCCWWDWWCCCCC
+           CCCWWDDDWWCCCC
+           CCCWDDDDDWCCWC
+           CCDDDDDDDDCWWW
+           CDDDDDDDDDDWDD
+           DDDDDDDDDDDDDD
+           GGGGGGGGGGGGGG
+           GGGGNGGGGGGNGG
+           GGGNNNGGGGNNNG
+           GGGGGGGGGGGGGG`,
+    lanes: 'G14h C20 W9 D15 N4 | C20 Y8 D14 G14h | G10 C15 W10 D14 C15 N4 G10' },
+  { id: 8, name: 'Bolti', dog: 'skotta',
+    grid: `BBBBBBBBBBBBBB
+           BBBBBWWWWBBBBB
+           BBBRRWWWWYYBBB
+           BBRRRWWWWYYYBB
+           BRRRRWWWWYYYYB
+           BRRRRWWWWYYYYB
+           BRRRRWKKWYYYYB
+           BRRRRWKKWYYYYB
+           BRRRRWWWWYYYYB
+           BRRRRWWWWYYYYB
+           BBRRRWWWWYYYBB
+           BBBRRWWWWYYBBB
+           BBBBBWWWWBBBBB
+           OOOOOOOOOOOOOO`,
+    lanes: 'O14h B20 R12 W14 K4 | B22 W10d Y12 R10 W10 | B24 Y10 R12 Y12 W10' },
+  { id: 9, name: 'Hvalur', dog: 'tryggur',
+    grid: `CCCCCWCWCCCCCC
+           CCCCCCWCCCCCCC
+           CCCCCCWCCCCCCC
+           CCCCPPPPPCCCCC
+           CCPPPPPPPPPCCC
+           CPPPPPPPPPPPCP
+           CPPDPPPPPPPPPP
+           PPPPPPPPPPPPPC
+           PWWWWWWPPPPPCC
+           CPWWWWWWPPPPPC
+           CCPWWWWPPPCCPP
+           CCCPPPPPCCCCCP
+           BBCCBBBCCBBBCC
+           BBBBBBBBBBBBBB`,
+    lanes: 'C20 P20 W10 C18 D1 | B11h B11h P20 C20 W10 | C20 P15d P20' },
+  { id: 10, name: 'Norðurljós', dog: 'depill',
+    grid: `NNNNNNNNNNNNNN
+           NDWDDDDDDDWDDN
+           NDDDDGGGDDDDDN
+           NDDGGGGGGGDDWN
+           NGGGPPPGGGGGDN
+           NGPPPPPPPGGGGN
+           NPPDDDDPPPPGGN
+           NPDDWDDDDPPPPN
+           NDDDDDDDWDDDPN
+           NDDNDDDDDDDDDN
+           NDNNNDDDDNDDDN
+           NNNNNNDDNNNDDN
+           NNNNNNNNNNNNNN
+           NNNNNNNNNNNNNN`,
+    lanes: 'N1' },
+  { id: 11, name: 'Lundi', dog: 'pila',
+    grid: `CCCCCCCCCCCCCCCC
+           CCCCCDDDDDCCCCCC
+           CCCCDDDDDDDCCCCC
+           CCCDDWWWWDDDCCCC
+           CCCDWWDWWWDDCCCC
+           CCCDWWWWWWORCCCC
+           CCCDWWWWWORROCCC
+           CCCDDWWWWWOOCCCC
+           CCDDDDWWWWDCCCCC
+           CCDDDWWWWWWDCCCC
+           CDDDWWWWWWWDCCCC
+           CDDDWWWWWWWDCCCC
+           CCDDDWWWWWDDCCCC
+           CCCDDDDDDDDCCCCC
+           CCCCOOCCOOCCCCCC
+           GGGGGGGGGGGGGGGG`,
+    lanes: 'C25 D15 W14 O5 C20 | G16h C25 D20 W20 R3 | C24 O4 D20d W20 C25' },
+  { id: 12, name: 'Eldfjall', dog: 'kolur',
+    grid: `PPPPPWWWWWPPPPPP
+           PPPPWWWWWWWPPPPP
+           PPPPPWWWWWPPPPPP
+           PPPPPPYOYPPPPPPP
+           PPPPPPRORPPPPPPP
+           PPPPPNRORNPPPPPP
+           PPPPNNNRNNNPPPPP
+           PPPPNNNRNNNNPPPP
+           PPPNNNNORNNNPPPP
+           PPPNNNNNONNNNPPP
+           PPNNNNNNRNNNNPPP
+           PPNNNNNNNONNNNPP
+           PNNNNNNNNRNNNNPP
+           PNNNNNNNNNNNNNNP
+           DDDDDDDDDDDDDDDD
+           DDDDDDDDDDDDDDDD`,
+    lanes: 'D16h P28 N20 R5 O3 P28 | P28 W17 N20 Y2 N18 | D16h P28 N20 O3 R4' },
+  { id: 13, name: 'Kaka', dog: 'freyja',
+    grid: `KKKKKKKKKKKKKKKK
+           KKKKOKKKOKKKOKKK
+           KKKKYKKKYKKKYKKK
+           KKKKBKKKBKKKBKKK
+           KKKKBKKKBKKKBKKK
+           KKWWWWWWWWWWWWKK
+           KKWRWWRWWRWWRWKK
+           KKNNNNNNNNNNNNKK
+           KKNNNNNNNNNNNNKK
+           KKWWWWWWWWWWWWKK
+           KKRRRRRRRRRRRRKK
+           KKRRRRRRRRRRRRKK
+           KKWWWWWWWWWWWWKK
+           KKNNNNNNNNNNNNKK
+           KDDDDDDDDDDDDDDK
+           KKKKKKKKKKKKKKKK`,
+    lanes: 'K30 O3 Y3 W12 N12 K30 | D14h K31 B6 R14 W10 N12 | K31 W12 R14 N12 W10' },
+  { id: 14, name: 'Regnbogi', dog: 'loki',
+    grid: `CCCCCCCCCCCCCCCC
+           CCCCCRRRRRRCCCCC
+           CCCRROOOOOORRCCC
+           CCROOYYYYYYOORCC
+           CROYYGGGGGGYYORC
+           CROYGGBBBBGGYORC
+           ROYGBBPPPPBBGYOR
+           ROYGBPCCCCPBGYOR
+           ROYGBPCCCCPBGYOR
+           ROYGBPCCCCPBGYOR
+           WWWWBPCCCCPBWWWW
+           WWWWWWCCCCWWWWWW
+           CWWWWCCCCCCWWWWC
+           GGGGGGGGGGGGGGGG
+           GGKGGGGGGGGKGGGG
+           GGGGGGGGGGGGGGGG`,
+    lanes: 'C30 R12 O11 Y10 G14 B8 P6 C8 | G16h W14 R12 O11 Y10 G16 K2 | G16h C30 W14 G2 B8 P6' },
+  { id: 15, name: 'Kindin', dog: 'vaskur',
+    grid: `CCCCCCCCCCCCCYYC
+           CCCCCCCCCCCCYYYY
+           CCCCWWWWCCCCCYYC
+           CCCWWWWWWWCCCCCC
+           CCWWWWWWWWWWCCCC
+           CWWWWWWWWWWWDDCC
+           CWWWWWWWWWWDDDDC
+           CWWWWWWWWWWDWDDC
+           CWWWWWWWWWWDDDDC
+           CCWWWWWWWWWWDDCC
+           CCCWWWWWWWWWCCCC
+           NNNNDNNNNDNNNNNN
+           GGGGDGGGGDGGGGGG
+           GGKGDGGGGDGGGKGG
+           GGGGGGGKGGGGGGGG
+           GGGGGGGGGGGGGGGG`,
+    lanes: 'G16h C24 W20 D7 W20 K3 | C24 Y8 N14h W21 D7 G25 | G16h C23 W21 D7' },
+];
+
+/* Rescued dogs for the Hundaalbúm. g: 'm'/'f' (for "Velkominn/Velkomin heim").
+   Portrait params: fur, fur2 (muzzle/chest), ear ('flop'|'up'|'fold'), earCol, bg1/bg2, extras. */
+const DOG_DEFS = [
+  { id: 'kata', name: 'Kata', g: 'f', breed: 'Labrador', fur: '#e9b863', fur2: '#f8dca0', ear: 'flop', earCol: '#d29a45', bg1: '#ffd6e8', bg2: '#ffc2dc', tongue: true },
+  { id: 'snati', name: 'Snati', g: 'm', breed: 'Border collie', fur: '#2b2b38', fur2: '#ffffff', ear: 'fold', earCol: '#2b2b38', bg1: '#c9f2ff', bg2: '#aee8fb', blaze: true, tongue: true },
+  { id: 'bangsi', name: 'Bangsí', g: 'm', breed: 'Bangsahundur', fur: '#8a5a33', fur2: '#c8955f', ear: 'flop', earCol: '#6e4423', bg1: '#d8f7c9', bg2: '#c3efb0', fluffy: true },
+  { id: 'lubbi', name: 'Lubbi', g: 'm', breed: 'Lubbahundur', fur: '#a9a9b8', fur2: '#dcdce6', ear: 'flop', earCol: '#8a8a9c', bg1: '#fff1b8', bg2: '#ffe68f', fluffy: true, fringe: true, tongue: true },
+  { id: 'tinna', name: 'Tinna', g: 'f', breed: 'Svartur labrador', fur: '#34313d', fur2: '#4a4656', ear: 'flop', earCol: '#2a2731', bg1: '#e5d9ff', bg2: '#d4c4ff', tongue: true },
+  { id: 'perla', name: 'Perla', g: 'f', breed: 'Púðluhundur', fur: '#fbf7f0', fur2: '#ffffff', ear: 'flop', earCol: '#eee4d6', bg1: '#ffd9c7', bg2: '#ffc6ad', fluffy: true, bow: true },
+  { id: 'moli', name: 'Moli', g: 'm', breed: 'Greifingjahundur', fur: '#7a3f22', fur2: '#a35d36', ear: 'flop', earCol: '#5a2c16', bg1: '#d2f4ee', bg2: '#b5ece2', long: true },
+  { id: 'skotta', name: 'Skotta', g: 'f', breed: 'Jack Russell', fur: '#fbf6ee', fur2: '#ffffff', ear: 'fold', earCol: '#b06a35', bg1: '#ffe0e0', bg2: '#ffcaca', patch: '#b06a35', tongue: true },
+  { id: 'tryggur', name: 'Tryggur', g: 'm', breed: 'Schäfer', fur: '#c98a45', fur2: '#e2b278', ear: 'up', earCol: '#2e2a2a', bg1: '#dbe8ff', bg2: '#c5d9ff', saddle: '#2e2a2a' },
+  { id: 'depill', name: 'Depill', g: 'm', breed: 'Dalmatíuhundur', fur: '#ffffff', fur2: '#ffffff', ear: 'flop', earCol: '#2b2b33', bg1: '#ffeacc', bg2: '#ffdcaa', spots: '#2b2b33', tongue: true },
+  { id: 'pila', name: 'Píla', g: 'f', breed: 'Mjóhundur', fur: '#9aa3b5', fur2: '#cfd5e0', ear: 'fold', earCol: '#7d8698', bg1: '#e0ffe9', bg2: '#c8f7d6', long: true },
+  { id: 'kolur', name: 'Kolur', g: 'm', breed: 'Husky', fur: '#5a6273', fur2: '#ffffff', ear: 'up', earCol: '#5a6273', bg1: '#d6f1ff', bg2: '#bde6ff', mask: true, eyeCol: '#4fb3ff', tongue: true },
+  { id: 'freyja', name: 'Freyja', g: 'f', breed: 'Corgi', fur: '#f08d3c', fur2: '#ffffff', ear: 'up', earCol: '#e07a2a', bg1: '#fff0d6', bg2: '#ffe2b0', blaze: true, tongue: true },
+  { id: 'loki', name: 'Loki', g: 'm', breed: 'Beagle', fur: '#c2793b', fur2: '#ffffff', ear: 'flop', earCol: '#8a4f22', bg1: '#e9ffd0', bg2: '#d8f9b3', blaze: true, saddle: '#3a3030' },
+  { id: 'vaskur', name: 'Vaskur', g: 'm', breed: 'Íslenskur fjárhundur', special: true, fur: '#e2a55e', fur2: '#fffaf0', ear: 'up', earCol: '#cf8c45', bg1: '#ffe9a8', bg2: '#ffd86b', blaze: true, fluffy: true, tongue: true },
+];
+
+/* ===== Pack Leader – shared rules engine (used by the game AND tools/solver.js) ===== */
+const PL = (function () {
+  'use strict';
+  const COLORS = {
+    R: { hex: '#ff4d5e', name: 'rauða' },
+    O: { hex: '#ff9a2e', name: 'appelsínugula' },
+    Y: { hex: '#ffd23f', name: 'gula' },
+    G: { hex: '#3ddc84', name: 'græna' },
+    C: { hex: '#3cc8f4', name: 'ljósbláa' },
+    B: { hex: '#3f6df2', name: 'bláa' },
+    P: { hex: '#9b5de5', name: 'fjólubláa' },
+    K: { hex: '#ff7eb9', name: 'bleika' },
+    W: { hex: '#f7efdc', name: 'hvíta' },
+    N: { hex: '#a8693f', name: 'brúna' },
+    D: { hex: '#4a4e6e', name: 'dökka' },
+  };
+  const SLOTS = 5;
+
+  function parseLevel(def) {
+    const rows = def.grid.trim().split(/\s+/);
+    const h = rows.length, w = rows[0].length;
+    const cells = [];
+    rows.forEach((r, y) => {
+      if (r.length !== w) throw new Error('Row ' + y + ' width ' + r.length + ' != ' + w + ' in ' + (def.name || def.id));
+      for (const ch of r) {
+        if (ch === '.') cells.push(null);
+        else if (COLORS[ch]) cells.push(ch);
+        else throw new Error('Unknown colour ' + ch);
+      }
+    });
+    const lanes = def.lanes.split('|').map(l => l.trim().split(/\s+/).filter(Boolean).map(tok => {
+      const m = /^([A-Z])(\d+)([ldh]?)$/.exec(tok);
+      if (!m || !COLORS[m[1]]) throw new Error('Bad doghouse token ' + tok);
+      return { c: m[1], n: +m[2], b: m[3] || 'l' };
+    }));
+    return { w, h, cells, lanes };
+  }
+
+  function colourCounts(cells) {
+    const m = {};
+    for (const c of cells) if (c) m[c] = (m[c] || 0) + 1;
+    return m;
+  }
+  function houseCounts(lanes) {
+    const m = {};
+    for (const l of lanes) for (const d of l) m[d.c] = (m[d.c] || 0) + d.n;
+    return m;
+  }
+
+  function newState(p) {
+    return {
+      w: p.w, h: p.h, cells: p.cells.slice(), lanes: p.lanes, pos: p.lanes.map(() => 0),
+      slots: new Array(SLOTS).fill(null), rem: colourCounts(p.cells),
+      left: p.cells.filter(Boolean).length, uid: 0, taps: 0,
+    };
+  }
+  function clone(s) {
+    return Object.assign({}, s, {
+      cells: s.cells.slice(), pos: s.pos.slice(), rem: Object.assign({}, s.rem),
+      slots: s.slots.map(p => p && Object.assign({}, p)),
+    });
+  }
+
+  /* depth map: D[i] = number of blocks crossed to reach cell i from outside (incl. itself).
+     A block is "exposed" when D==1 (touches outside through empty cells). */
+  function depths(w, h, cells) {
+    const N = w * h, D = new Int16Array(N).fill(9999), buckets = [];
+    const push = (i, d) => { if (d < D[i]) { D[i] = d; (buckets[d] || (buckets[d] = [])).push(i); } };
+    for (let x = 0; x < w; x++) { push(x, cells[x] ? 1 : 0); const j = (h - 1) * w + x; push(j, cells[j] ? 1 : 0); }
+    for (let y = 0; y < h; y++) { const a = y * w, b = y * w + w - 1; push(a, cells[a] ? 1 : 0); push(b, cells[b] ? 1 : 0); }
+    for (let d = 0; d < buckets.length; d++) {
+      const bk = buckets[d]; if (!bk) continue;
+      for (let k = 0; k < bk.length; k++) {
+        const i = bk[k]; if (D[i] !== d) continue;
+        const x = i % w, y = (i / w) | 0;
+        if (x > 0) push(i - 1, d + (cells[i - 1] ? 1 : 0));
+        if (x < w - 1) push(i + 1, d + (cells[i + 1] ? 1 : 0));
+        if (y > 0) push(i - w, d + (cells[i - w] ? 1 : 0));
+        if (y < h - 1) push(i + w, d + (cells[i + w] ? 1 : 0));
+      }
+    }
+    return D;
+  }
+  const reach = b => (b === 'd' ? 2 : 1); // dachshund tunnels one layer deeper
+
+  function target(s, p, D) {
+    const { w, h, cells } = s, md = reach(p.b);
+    let best = -1, bs = 1e9;
+    for (let i = 0; i < cells.length; i++) {
+      if (cells[i] !== p.c || D[i] > md) continue;
+      const x = i % w, y = (i / w) | 0;
+      const sc = D[i] * 10000 + (h - 1 - y) * 100 + Math.abs(x * 2 - (w - 1));
+      if (sc < bs) { bs = sc; best = i; }
+    }
+    return best;
+  }
+
+  function eatCell(s, i, ev, k, p, kind) {
+    const c = s.cells[i];
+    s.cells[i] = null; s.left--; s.rem[c]--; p.n--;
+    if (ev) ev.push({ t: kind || 'eat', slot: k, cell: i, c, b: p.b, id: p.id });
+    if (s.rem[c] === 0 && ev) ev.push({ t: 'clear', c });
+  }
+
+  /* one logic tick: every occupied slot (in slot order) eats at most one block */
+  function tick(s, ev) {
+    let any = false;
+    for (let k = 0; k < SLOTS; k++) {
+      const p = s.slots[k]; if (!p) continue;
+      const D = depths(s.w, s.h, s.cells);
+      const t = target(s, p, D);
+      if (t < 0) { p.wait = true; continue; }
+      p.wait = false; any = true;
+      eatCell(s, t, ev, k, p);
+      if (p.n <= 0) { s.slots[k] = null; if (ev) ev.push({ t: 'home', slot: k, id: p.id, c: p.c, b: p.b }); }
+    }
+    return any;
+  }
+
+  function sledRun(s, c) {
+    // bottom-most row containing colour c; longest horizontal run of c in that row (leftmost on tie)
+    for (let y = s.h - 1; y >= 0; y--) {
+      let best = null, cur = null;
+      for (let x = 0; x <= s.w; x++) {
+        const on = x < s.w && s.cells[y * s.w + x] === c;
+        if (on) { if (!cur) cur = [x, x]; else cur[1] = x; }
+        else if (cur) { if (!best || cur[1] - cur[0] > best[1] - best[0]) best = cur; cur = null; }
+      }
+      if (best) { const r = []; for (let x = best[0]; x <= best[1]; x++) r.push(y * s.w + x); return { y, cells: r }; }
+    }
+    return null;
+  }
+
+  /* tap a lane: the front doghouse moves into the first free leash slot.
+     returns slot index, -1 = lane empty, -2 = no free slot */
+  function place(s, lane, ev) {
+    const L = s.lanes[lane];
+    if (!L || s.pos[lane] >= L.length) return -1;
+    const k = s.slots.indexOf(null);
+    if (k < 0) return -2;
+    const src = L[s.pos[lane]++];
+    const p = { c: src.c, n: src.n, b: src.b, id: ++s.uid, wait: false, lane };
+    s.slots[k] = p; s.taps++;
+    if (ev) ev.push({ t: 'place', lane, slot: k, p: Object.assign({}, p) });
+    if (p.b === 'h') {
+      const run = sledRun(s, p.c);
+      if (run) {
+        const eaten = [];
+        for (const i of run.cells) { if (p.n <= 0) break; eatCell(s, i, null, k, p); eaten.push(i); }
+        if (ev) { ev.push({ t: 'sled', slot: k, row: run.y, cells: eaten, c: p.c, id: p.id }); if (s.rem[p.c] === 0) ev.push({ t: 'clear', c: p.c }); }
+      }
+      if (p.n <= 0) { s.slots[k] = null; if (ev) ev.push({ t: 'home', slot: k, id: p.id, c: p.c, b: p.b }); }
+    }
+    return k;
+  }
+
+  function settle(s, ev) { let g = 0; while (tick(s, ev) && ++g < 100000); return s; }
+  function canAnyEat(s) {
+    const D = depths(s.w, s.h, s.cells);
+    return s.slots.some(p => p && target(s, p, D) >= 0);
+  }
+  function isWon(s) { return s.left === 0; }
+  function isStuck(s) { return s.slots.every(Boolean) && !canAnyEat(s); }
+  function lanesLeft(s) { return s.lanes.reduce((a, l, i) => a + l.length - s.pos[i], 0); }
+
+  /* ---------- seeded RNG + daily puzzle generator ---------- */
+  function rng(seed) {
+    let a = seed >>> 0;
+    return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  }
+  /* Builds a doghouse sequence by forward play with the real rules (so a solution always exists).
+     waitBias > 0 sometimes sends packs whose colour is still locked (they must wait) -> tension. */
+  function genSequence(w, h, cells, r, o) {
+    o = Object.assign({ minN: 5, maxN: 12, waitBias: 0.25, dachs: 0, husky: 0, maxWait: 3 }, o || {});
+    const lane = [], s = newState({ w, h, cells, lanes: [lane] });
+    const un = colourCounts(cells); const seq = [];
+    settle(s);
+    let guard = 0;
+    while (Object.values(un).some(v => v > 0)) {
+      if (++guard > 400) return null;
+      const D = depths(s.w, s.h, s.cells);
+      const waiting = s.slots.filter(Boolean).length;
+      const opts = [];
+      for (const c of Object.keys(un)) {
+        if (un[c] <= 0) continue;
+        const now = target(s, { c, b: 'l' }, D) >= 0;
+        opts.push({ c, b: 'l', now, w: now ? 1 : 0 });
+        if (o.dachs && target(s, { c, b: 'd' }, D) >= 0 && !now) opts.push({ c, b: 'd', now: true, w: o.dachs * 4 });
+        else if (o.dachs && now) opts.push({ c, b: 'd', now: true, w: o.dachs });
+        if (o.husky) { const run = sledRun(s, c); if (run && run.cells.length >= 4) opts.push({ c, b: 'h', now: true, w: o.husky * 3, run: run.cells.length }); }
+      }
+      let pool = opts.filter(x => x.now);
+      const locked = opts.filter(x => !x.now);
+      if (locked.length && waiting < o.maxWait && (r() < o.waitBias || !pool.length)) pool = locked.map(x => Object.assign(x, { w: 1 }));
+      if (!pool.length) return null;
+      let tot = pool.reduce((a, x) => a + x.w, 0), pick = r() * tot, ch = pool[0];
+      for (const x of pool) { pick -= x.w; if (pick <= 0) { ch = x; break; } }
+      let n = o.minN + ((r() * (o.maxN - o.minN + 1)) | 0);
+      if (ch.b === 'h') n = Math.max(n, ch.run);
+      n = Math.min(n, un[ch.c]);
+      if (un[ch.c] - n < Math.ceil(o.minN / 2)) n = un[ch.c];
+      const snap = clone(s);
+      lane.push({ c: ch.c, n, b: ch.b });
+      place(s, 0, null); settle(s);
+      if (isStuck(s) && !isWon(s)) { lane.pop(); Object.assign(s, snap); continue; }
+      un[ch.c] -= n; seq.push({ c: ch.c, n, b: ch.b });
+    }
+    settle(s);
+    return isWon(s) ? seq : null;
+  }
+  function distribute(seq, r, nl, cluster = 0) {
+    // cluster > 0 keeps colours together in "their" lane (harder: inner colours queue up behind each other)
+    const lanes = Array.from({ length: nl }, () => []), home = {};
+    let next = 0;
+    seq.forEach((d, i) => {
+      if (home[d.c] == null) home[d.c] = (next++) % nl;
+      const k = r() < cluster ? home[d.c] : (r() * nl) | 0;
+      lanes[k].push(d);
+    });
+    for (let k = 0; k < nl; k++) if (!lanes[k].length) { const src = lanes.reduce((a, l, j) => l.length > lanes[a].length ? j : a, 0); lanes[k].push(lanes[src].pop()); }
+    return lanes.map(l => l.map(d => d.c + d.n + (d.b === 'l' ? '' : d.b)).join(' ')).join(' | ');
+  }
+  function genDaily(seed) {
+    const r = rng(seed);
+    const W = r() < 0.5 ? 12 : 14, H = W;
+    const pool = ['R', 'O', 'Y', 'G', 'C', 'B', 'P', 'K', 'W', 'N'];
+    for (let i = pool.length - 1; i > 0; i--) { const j = (r() * (i + 1)) | 0; [pool[i], pool[j]] = [pool[j], pool[i]]; }
+    const nc = r() < 0.5 ? 3 : 4, pal = pool.slice(0, nc);
+    const hw = Math.ceil(W / 2);
+    let g = [];
+    for (let i = 0; i < hw * H; i++) g.push(r() < 0.4 ? 0 : 1 + ((r() * (nc - 1)) | 0));
+    for (let it = 0; it < 3; it++) {
+      const ng = g.slice();
+      for (let y = 0; y < H; y++) for (let x = 0; x < hw; x++) {
+        const cnt = new Array(nc).fill(0);
+        for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+          let xx = x + dx; const yy = y + dy; if (yy < 0 || yy >= H || xx < 0) continue; if (xx >= hw) xx = W - 1 - xx; if (xx >= hw || xx < 0) continue;
+          cnt[g[yy * hw + xx]]++;
+        }
+        let bi = g[y * hw + x];
+        for (let k = 0; k < nc; k++) if (cnt[k] > cnt[bi]) bi = k;
+        ng[y * hw + x] = bi;
+      }
+      g = ng;
+    }
+    const cells = [];
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const xx = x < hw ? x : W - 1 - x; cells.push(pal[g[y * hw + xx]]); }
+    let seq = null;
+    for (let t = 0; t < 30 && !seq; t++) seq = genSequence(W, H, cells, r, { minN: 5, maxN: 12, waitBias: 0.3, dachs: 0.15, husky: 0.1 });
+    if (!seq) seq = genSequence(W, H, cells, r, { waitBias: 0 });
+    const grid = []; for (let y = 0; y < H; y++) grid.push(cells.slice(y * W, y * W + W).join(''));
+    return { id: 'daily', name: 'Dagleg þraut', grid: grid.join(' '), lanes: distribute(seq, r, 3), dog: seed % 14 };
+  }
+
+  const api = { COLORS, SLOTS, DOGS: typeof DOG_DEFS !== 'undefined' ? DOG_DEFS : [], LEVELS: typeof LEVEL_DEFS !== 'undefined' ? LEVEL_DEFS : [],
+    parseLevel, colourCounts, houseCounts, newState, clone, depths, reach, target, tick, place, settle, canAnyEat,
+    isWon, isStuck, lanesLeft, rng, genDaily, genSequence, distribute, sledRun };
+  if (typeof module !== 'undefined') module.exports = api;
+  return api;
+})();
+
+</script><script>/* ===== Pixel art: colour helpers, dog sprites, portraits, blocks, doghouses ===== */
+const OUTLINE = '#2a1f3d';
+function hexRgb(h) { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+function rgbHex(r, g, b) { return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1); }
+function mix(a, b, t) { const A = hexRgb(a), B = hexRgb(b); return rgbHex(...A.map((v, i) => Math.round(v + (B[i] - v) * t))); }
+const shade = (c, t) => t < 0 ? mix(c, '#140c24', -t) : mix(c, '#ffffff', t);
+const colHex = c => PL.COLORS[c].hex;
+
+/* --- pack dog sprites, built procedurally on a pixel grid then auto-outlined --- */
+const SPR = {};
+function dogGrid(breed, frame) {
+  const W = (breed === 'd' ? 21 : 19) + 2, H = 14 + 2;
+  const g = Array.from({ length: H }, () => Array(W).fill('.'));
+  const R = (x0, y0, x1, y1, ch) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) { const X = x + 1, Y = y + 3; if (Y >= 0 && Y < H && X >= 0 && X < W) g[Y][X] = ch; } };
+  const P = (x, y, ch) => R(x, y, x, y, ch);
+  if (breed === 'd') {           // Dachshund: long & low
+    if (frame) { P(0, 4, 'b'); P(1, 5, 'b'); } else { P(0, 6, 'b'); P(1, 6, 'b'); }
+    R(2, 5, 15, 8, 'b'); R(4, 8, 13, 8, 'w');
+    R(14, 2, 17, 6, 'b'); R(17, 4, 19, 6, 'b'); R(17, 6, 19, 6, 'w'); P(19, 4, 'n'); P(16, 3, 'e');
+    R(14, 3, 15, 7, 'd'); R(14, 7, 15, 7, 'c');
+    if (frame) { R(2, 9, 3, 9, 'b'); R(13, 9, 14, 9, 'b'); P(1, 10, 'b'); P(15, 10, 'b'); }
+    else { R(4, 9, 5, 10, 'b'); R(11, 9, 12, 10, 'b'); P(18, 7, 't'); }
+  } else {
+    const husky = breed === 'h';
+    if (husky) { R(0, 1, 1, 2, 'b'); P(1, 3, 'w'); P(2, 4, 'b'); }
+    else if (frame) { P(0, 1, 'b'); P(1, 2, 'b'); P(2, 3, 'b'); } else { P(0, 4, 'b'); P(1, 4, 'b'); P(2, 4, 'b'); }
+    R(2, 4, 11, 8, 'b'); R(4, 8, 10, 8, 'w');
+    R(10, 2, 12, 7, 'b');
+    R(11, 0, 15, 4, 'b'); R(15, 2, 17, 4, 'b'); R(15, 4, 17, 4, 'w'); P(17, 2, 'n'); P(13, 1, 'e');
+    if (husky) { R(13, 3, 15, 4, 'w'); P(12, -1, 'd'); P(12, -2, 'd'); P(14, -1, 'd'); P(14, -2, 'd'); P(11, 0, 'd'); R(9, 6, 12, 7, 'w'); }
+    else R(11, 1, 12, 4, 'd');
+    R(10, 5, 12, 5, 'c');
+    if (frame) { R(1, 9, 2, 11, 'b'); R(12, 9, 13, 11, 'b'); } else { R(3, 9, 4, 11, 'b'); R(9, 9, 10, 11, 'b'); P(16, 5, 't'); }
+  }
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    if (g[y][x] !== '.') continue;
+    const n = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => { const v = g[y + dy] && g[y + dy][x + dx]; return v && v !== '.' && v !== 'o'; });
+    if (n) g[y][x] = 'o';
+  }
+  return g;
+}
+function dogSprite(breed, col, frame) {
+  const key = breed + col + frame;
+  if (SPR[key]) return SPR[key];
+  const g = dogGrid(breed, frame), H = g.length, W = g[0].length;
+  const base = col.length === 1 ? colHex(col) : col;
+  const pal = { b: base, d: shade(base, -0.3), w: shade(base, 0.55), o: OUTLINE, e: '#1c1428', n: '#1c1428', t: '#ff6b8b', c: col === 'R' ? '#ffd23f' : '#ff3355' };
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const x = cv.getContext('2d');
+  for (let y = 0; y < H; y++) for (let i = 0; i < W; i++) { const ch = g[y][i]; if (ch !== '.') { x.fillStyle = pal[ch]; x.fillRect(i, y, 1, 1); } }
+  return (SPR[key] = cv);
+}
+function drawDog(ctx, breed, col, frame, cx, by, unit, flip, rot = 0) {
+  const s = dogSprite(breed, col, frame);
+  ctx.save(); ctx.translate(cx, by); if (rot) ctx.rotate(rot); if (flip) ctx.scale(-1, 1);
+  ctx.drawImage(s, -s.width * unit / 2, -s.height * unit, s.width * unit, s.height * unit);
+  ctx.restore();
+}
+
+/* --- 32x32 rescued-dog portraits --- */
+const PORTRAITS = {};
+function portrait(dog, N = 32) {
+  if (PORTRAITS[dog.id]) return PORTRAITS[dog.id];
+  let seed = 7; for (const ch of dog.id) seed = seed * 31 + ch.charCodeAt(0) >>> 0;
+  const rnd = PL.rng(seed);
+  const bg = new Array(N * N), d = new Array(N * N).fill(null);
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const a = Math.atan2(y - 18, x - 16); bg[y * N + x] = (Math.floor((a + Math.PI) / (Math.PI / 7)) % 2) ? dog.bg1 : dog.bg2;
+  }
+  const set = (x, y, c) => { if (x >= 0 && y >= 0 && x < N && y < N) d[y * N + x] = c; };
+  const ell = (cx, cy, rx, ry, c, fuzz = 0) => {
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+      const v = ((x + 0.5 - cx) / rx) ** 2 + ((y + 0.5 - cy) / ry) ** 2;
+      if (v <= 1 || (fuzz && v <= 1 + fuzz && rnd() < 0.5)) set(x, y, c);
+    }
+  };
+  const rect = (x0, y0, x1, y1, c) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) set(x, y, c); };
+  const tri = (ax, ay, bx, by, cx, cy, c) => {
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+      const px = x + 0.5, py = y + 0.5;
+      const s1 = (bx - ax) * (py - ay) - (by - ay) * (px - ax), s2 = (cx - bx) * (py - by) - (cy - by) * (px - bx), s3 = (ax - cx) * (py - cy) - (ay - cy) * (px - cx);
+      if ((s1 >= 0 && s2 >= 0 && s3 >= 0) || (s1 <= 0 && s2 <= 0 && s3 <= 0)) set(x, y, c);
+    }
+  };
+  const fz = dog.fluffy ? 0.35 : 0, hry = dog.long ? 10.5 : 9.5, hrx = dog.long ? 9 : 10.2;
+  ell(16, 33, 12, 7.5, dog.fur, fz);                               // shoulders
+  ell(16, 33, 6, 5.5, dog.fur2);                                   // chest
+  if (dog.saddle && dog.id === 'loki') ell(16, 34, 12, 3, dog.saddle);
+  if (dog.ear === 'flop') { ell(6.5, 18, 3.8, 8, dog.earCol, fz); ell(25.5, 18, 3.8, 8, dog.earCol, fz); }
+  else {
+    tri(5, 1, 5, 15, 14, 9, dog.earCol); tri(27, 1, 27, 15, 18, 9, dog.earCol);
+    tri(6.5, 5, 6.5, 13, 11.5, 10, '#ffb3c7'); tri(25.5, 5, 25.5, 13, 20.5, 10, '#ffb3c7');
+    if (dog.ear === 'fold') { rect(4, 4, 8, 6, shade(dog.earCol, -0.25)); rect(24, 4, 28, 6, shade(dog.earCol, -0.25)); for (let y = 0; y < 4; y++) for (let x = 0; x < N; x++) d[y * N + x] = null; }
+  }
+  ell(16, 17.5, hrx, hry, dog.fur, fz);                            // head
+  if (dog.saddle && dog.id !== 'loki') ell(16, 10, 8.5, 4, dog.saddle);
+  if (dog.mask) { ell(16, 21, 8.8, 6.5, dog.fur2); ell(11.5, 13.2, 1.6, 1, dog.fur2); ell(20.5, 13.2, 1.6, 1, dog.fur2); }
+  if (dog.blaze) { rect(15, 8, 16, 18, dog.fur2); ell(16, 9, 1.5, 1.5, dog.fur2); }
+  if (dog.patch) { ell(11.5, 15.5, 4, 3.8, dog.patch); }
+  if (dog.spots) for (let i = 0; i < 9; i++) { const x = 8 + rnd() * 16, y = 9 + rnd() * 14; if (Math.abs(y - 16) < 2.5 && (Math.abs(x - 12) < 2.5 || Math.abs(x - 20) < 2.5)) continue; ell(x, y, 1.3, 1.1, dog.spots); }
+  if (dog.fringe) { rect(9, 11, 23, 13, shade(dog.fur, -0.12)); for (let x = 9; x <= 23; x += 2) set(x, 14, shade(dog.fur, -0.12)); }
+  ell(16, 22.5, 6.2, 4.6, dog.fur2);                               // muzzle
+  if (dog.id === 'tryggur') ell(16, 22.5, 5.2, 3.8, '#3a3030');
+  const eye = dog.eyeCol;
+  for (const ex of [11, 20]) {
+    rect(ex, 15, ex + 1, 17, '#1c1428');
+    if (eye) { set(ex, 16, eye); set(ex + 1, 16, eye); set(ex, 17, eye); }
+    set(ex, 15, '#ffffff');
+  }
+  rect(14, 19, 17, 20, '#1c1428'); set(15, 19, '#6e6a8a');       // nose
+  set(14, 19, null); set(17, 19, null); rect(14, 19, 14, 19, '#1c1428');
+  set(16, 21, '#1c1428'); set(15, 22, '#1c1428'); set(17, 22, '#1c1428'); set(14, 22, '#1c1428'); set(18, 22, '#1c1428');
+  if (dog.tongue) { rect(15, 23, 17, 25, '#ff6b8b'); set(16, 24, '#e04a6e'); set(15, 25, null); set(17, 25, null); rect(16, 25, 16, 25, '#ff6b8b'); }
+  set(9, 20, '#ff9eb5'); set(10, 20, '#ff9eb5'); set(22, 20, '#ff9eb5'); set(23, 20, '#ff9eb5');
+  if (dog.bow) { rect(19, 6, 20, 8, '#ff3355'); rect(23, 6, 24, 8, '#ff3355'); rect(21, 7, 22, 7, '#c4163a'); }
+  for (let x = 8; x <= 24; x++) for (const y of [28, 29]) if (d[y * N + x]) d[y * N + x] = '#ff3355';
+  if (d[30 * N + 16]) { rect(15, 30, 17, 31, '#ffd23f'); set(16, 31, '#d9a400'); }
+  const out = d.slice();
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    if (d[y * N + x]) continue;
+    if ([[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => { const X = x + dx, Y = y + dy; return X >= 0 && Y >= 0 && X < N && Y < N && d[Y * N + X]; })) out[y * N + x] = OUTLINE;
+  }
+  const cv = document.createElement('canvas'); cv.width = N; cv.height = N;
+  const c = cv.getContext('2d');
+  for (let i = 0; i < N * N; i++) { c.fillStyle = out[i] || bg[i]; c.fillRect(i % N, (i / N) | 0, 1, 1); }
+  if (dog.special) { c.fillStyle = '#fff6b0'; [[3, 3], [28, 5], [4, 26], [27, 24], [2, 14]].forEach(([x, y]) => { c.fillRect(x, y - 1, 1, 3); c.fillRect(x - 1, y, 3, 1); }); }
+  return (PORTRAITS[dog.id] = cv);
+}
+function silhouette(dog) {
+  const src = portrait(dog), cv = document.createElement('canvas'); cv.width = cv.height = 32;
+  const c = cv.getContext('2d'); c.drawImage(src, 0, 0);
+  const im = c.getImageData(0, 0, 32, 32), bg = new Set([dog.bg1, dog.bg2].map(h => hexRgb(h).join(',')));
+  for (let i = 0; i < im.data.length; i += 4) {
+    const k = im.data[i] + ',' + im.data[i + 1] + ',' + im.data[i + 2];
+    if (bg.has(k)) { im.data[i] = 70; im.data[i + 1] = 60; im.data[i + 2] = 120; } else { im.data[i] = 38; im.data[i + 1] = 28; im.data[i + 2] = 66; }
+  }
+  c.putImageData(im, 0, 0); return cv;
+}
+
+/* --- treat blocks (pre-rendered per colour & size) --- */
+const BLK = {};
+function blockImg(c, s, locked) {
+  const key = c + s + (locked ? 'L' : '');
+  if (BLK[key]) return BLK[key];
+  const cv = document.createElement('canvas'); cv.width = cv.height = s;
+  const x = cv.getContext('2d'), base = colHex(c), r = Math.max(2, s * 0.2), m = Math.max(1, Math.round(s * 0.04));
+  const rr = (a, b, w, h, rad) => { x.beginPath(); x.roundRect ? x.roundRect(a, b, w, h, rad) : x.rect(a, b, w, h); };
+  rr(m, m, s - 2 * m, s - 2 * m, r); x.fillStyle = shade(base, -0.35); x.fill();
+  rr(m, m, s - 2 * m, s - 2 * m - Math.max(2, s * 0.1), r); x.fillStyle = base; x.fill();
+  rr(m + s * 0.12, m + s * 0.1, s * 0.45, s * 0.16, s * 0.08); x.fillStyle = 'rgba(255,255,255,.45)'; x.fill();
+  x.fillStyle = 'rgba(255,255,255,.55)'; x.fillRect(Math.round(s * 0.66), Math.round(s * 0.2), Math.max(1, s * 0.09), Math.max(1, s * 0.09));
+  x.fillStyle = shade(base, -0.18); // tiny kibble pattern
+  x.fillRect(Math.round(s * 0.3), Math.round(s * 0.55), Math.max(1, s * 0.1), Math.max(1, s * 0.1));
+  x.fillRect(Math.round(s * 0.6), Math.round(s * 0.62), Math.max(1, s * 0.1), Math.max(1, s * 0.1));
+  if (locked) { rr(m, m, s - 2 * m, s - 2 * m, r); x.fillStyle = 'rgba(25,12,50,.34)'; x.fill(); }
+  return (BLK[key] = cv);
+}
+
+/* --- doghouse --- */
+function roundRect(ctx, x, y, w, h, r) { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, w, h, r); else ctx.rect(x, y, w, h); }
+function drawHouse(ctx, x, y, w, h, c, n, breed, o = {}) {
+  const base = colHex(c), t = o.time || 0;
+  ctx.save();
+  if (o.alpha != null) ctx.globalAlpha = o.alpha;
+  ctx.fillStyle = 'rgba(20,10,40,.25)'; ctx.beginPath(); ctx.ellipse(x + w / 2, y + h * 0.98, w * 0.46, h * 0.07, 0, 0, Math.PI * 2); ctx.fill();
+  const lw = Math.max(2, w * 0.035);
+  ctx.lineWidth = lw; ctx.strokeStyle = OUTLINE; ctx.lineJoin = 'round';
+  roundRect(ctx, x + w * 0.1, y + h * 0.36, w * 0.8, h * 0.6, w * 0.06); ctx.fillStyle = shade(base, 0.3); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = 'rgba(0,0,0,.08)'; for (let i = 1; i < 4; i++) ctx.fillRect(x + w * 0.1 + lw, y + h * (0.36 + i * 0.15), w * 0.8 - 2 * lw, Math.max(1, h * 0.015));
+  ctx.beginPath(); ctx.moveTo(x - w * 0.02, y + h * 0.44); ctx.lineTo(x + w / 2, y + h * 0.02); ctx.lineTo(x + w * 1.02, y + h * 0.44); ctx.closePath();
+  ctx.fillStyle = shade(base, -0.12); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x + w * 0.1, y + h * 0.38); ctx.lineTo(x + w / 2, y + h * 0.08); ctx.lineTo(x + w * 0.9, y + h * 0.38); ctx.closePath(); ctx.fillStyle = base; ctx.fill();
+  const dw = w * 0.3, dh = h * 0.36, dx = x + w * 0.5 - dw / 2, dy = y + h * 0.96 - dh;
+  ctx.beginPath(); ctx.moveTo(dx, dy + dh); ctx.lineTo(dx, dy + dw / 2); ctx.arc(dx + dw / 2, dy + dw / 2, dw / 2, Math.PI, 0); ctx.lineTo(dx + dw, dy + dh); ctx.closePath();
+  ctx.fillStyle = '#2a1f3d'; ctx.fill();
+  const blink = ((t * 0.7 + (o.seed || 0)) % 4) < 0.12;
+  const ey = dy + dh * 0.55, er = Math.max(1.5, dw * 0.11);
+  if (!o.empty) {
+    for (const ex of [dx + dw * 0.32, dx + dw * 0.68]) {
+      ctx.fillStyle = '#fff'; if (blink) ctx.fillRect(ex - er, ey, er * 2, Math.max(1, er * 0.4)); else { ctx.beginPath(); ctx.arc(ex, ey, er, 0, 7); ctx.fill(); ctx.fillStyle = '#1c1428'; ctx.beginPath(); ctx.arc(ex + er * 0.25, ey + er * 0.15, er * 0.55, 0, 7); ctx.fill(); }
+    }
+  }
+  if (n != null) {
+    const fs = Math.round(h * (o.big ? 0.36 : 0.32));
+    ctx.font = `900 ${fs}px system-ui, Roboto, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.lineWidth = Math.max(3, fs * 0.22); ctx.strokeStyle = OUTLINE; ctx.strokeText(n, x + w / 2, y + h * 0.31);
+    ctx.fillStyle = '#fff'; ctx.fillText(n, x + w / 2, y + h * 0.31);
+  }
+  if (breed && breed !== 'l') {
+    const br = h * 0.2, bx = x + w * 0.9, by = y + h * 0.8;
+    ctx.beginPath(); ctx.arc(bx, by, br, 0, 7); ctx.fillStyle = breed === 'd' ? '#ffe2b8' : '#d8f1ff'; ctx.fill(); ctx.lineWidth = lw; ctx.strokeStyle = OUTLINE; ctx.stroke();
+    const spr = dogSprite(breed, breed === 'd' ? '#b0683a' : '#7c8799', 1), u = (br * 1.7) / spr.width;
+    ctx.drawImage(spr, bx - spr.width * u / 2, by - spr.height * u * 0.62, spr.width * u, spr.height * u);
+  }
+  ctx.restore();
+}
+function drawBone(ctx, x, y, s, col, rot = 0) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+  ctx.fillStyle = col; ctx.strokeStyle = OUTLINE; ctx.lineWidth = Math.max(1.5, s * 0.12);
+  ctx.beginPath(); ctx.rect(-s * 0.55, -s * 0.18, s * 1.1, s * 0.36);
+  for (const [a, b] of [[-0.6, -0.2], [-0.6, 0.2], [0.6, -0.2], [0.6, 0.2]]) { ctx.moveTo(a * s + s * 0.22, b * s); ctx.arc(a * s, b * s, s * 0.22, 0, 7); }
+  ctx.stroke(); ctx.fill();
+  ctx.restore();
+}
+
+function draw(cv, safe){
+  const c=cv.getContext('2d'), S=cv.width; c.imageSmoothingEnabled=false;
+  const g=c.createRadialGradient(S/2,S*0.45,S*0.1,S/2,S/2,S*0.75); g.addColorStop(0,'#7b62d6'); g.addColorStop(1,'#2b2350');
+  c.fillStyle=g; c.fillRect(0,0,S,S);
+  const k = safe? 0.72 : 0.9, sz=S*k, o=(S-sz)/2;
+  // rays
+  c.save(); c.translate(S/2,S/2); for(let i=0;i<12;i++){ c.rotate(Math.PI/6); c.fillStyle='rgba(255,210,63,.10)'; c.beginPath(); c.moveTo(0,0); c.lineTo(S*0.08,-S); c.lineTo(-S*0.08,-S); c.fill(); } c.restore();
+  const dog = DOG_DEFS.find(d=>d.id==='vaskur');
+  const p = portrait(dog);
+  const ps = sz*0.78, px=(S-ps)/2, py=o+sz*0.02;
+  c.fillStyle='#2a1f3d'; roundRect(c, px-S*0.025, py-S*0.025, ps+S*0.05, ps+S*0.05, S*0.06); c.fill();
+  c.save(); roundRect(c, px, py, ps, ps, S*0.045); c.clip(); c.drawImage(p, px, py, ps, ps); c.restore();
+  // treat blocks bottom row
+  const bs = sz/8;
+  ['R','Y','C','K','G'].forEach((col,i)=>{ const im=blockImg(col, Math.round(bs), false); c.drawImage(im, S/2 - bs*2.5 + i*bs, py+ps+S*0.005, bs, bs); });
+}
+draw(document.getElementById('a'), false); draw(document.getElementById('m'), true);
+</script></body></html>

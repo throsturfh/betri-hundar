@@ -1,0 +1,10 @@
+{
+ "id": "d-fjarhundur-h",
+ "tier": "h",
+ "g": 1,
+ "r": 0.275,
+ "inBand": false,
+ "houses": 40,
+ "lanes": "N15h G18 N12 W13d C9 O16 O21 O20 | K9 D16 Y4 W16 C12 C11 C11 C17 O13 R19 C13 C18 P10 P23 P11 O23 O8 W11 W22 W22 | C10 N13d P16 O10 C11 R10 C15 O9 W16h C22 P9 O22h",
+ "secs": 244
+}

@@ -1,0 +1,3 @@
+Ld-frisbi-x try 1: quick g=0.31 r=0.06 | exact g=0.515 r=0.070 houses=46 
+Ld-frisbi-x try 2: quick g=0.33 r=0.09 | exact g=0.343 r=0.113 houses=42 IN BAND
+DONE Ld-frisbi-x tier=x g=0.343 r=0.113 band=true houses=42 61s

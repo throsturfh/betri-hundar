@@ -1,0 +1,10 @@
+{
+ "id": "d-bein-h",
+ "tier": "h",
+ "g": 0.6175,
+ "r": 0.2325,
+ "inBand": true,
+ "houses": 39,
+ "lanes": "W13 W19d W12 C19 C14 C18 C13 C11 C10 C12 C18d C14 C17 C17d C16 C12 C10 | Y19 W12 W19 W17d C12 C15h C13h C13 C9 C18 C11 C17d | C24h W11 W18 W17 C19 C18 C17d C13 C10 C9h",
+ "secs": 118
+}

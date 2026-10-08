@@ -1,0 +1,4 @@
+Ld-beagle-x try 1: quick g=0.31 r=0.06 | exact g=0.247 r=0.045 houses=51 
+Ld-beagle-x try 3: quick g=0.33 r=0.09 | exact g=0.305 r=0.138 houses=46 
+Ld-beagle-x try 4: quick g=0.33 r=0.09 | exact g=0.350 r=0.072 houses=56 IN BAND
+DONE Ld-beagle-x tier=x g=0.350 r=0.072 band=true houses=56 144s

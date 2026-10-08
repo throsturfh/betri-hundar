@@ -1,0 +1,4 @@
+Ld-kofi-h try 1: quick g=0.56 r=0.25 | exact g=0.565 r=0.115 houses=40 
+Ld-kofi-h try 2: quick g=0.58 r=0.19 | exact g=0.547 r=0.087 houses=43 
+Ld-kofi-h try 3: quick g=0.56 r=0.25 | exact g=0.547 r=0.280 houses=42 IN BAND
+DONE Ld-kofi-h tier=h g=0.547 r=0.280 band=true houses=42 56s

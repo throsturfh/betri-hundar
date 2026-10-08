@@ -1,0 +1,10 @@
+{
+ "id": "d-dalmatia-m",
+ "tier": "m",
+ "g": 0.75,
+ "r": 0.2725,
+ "inBand": true,
+ "houses": 38,
+ "lanes": "W21 D16d W12 W6 D13 R19 R19 R17h R18 R5 | C22 K1 D10 C18 B15 W13 Y4d W21 W20 W17 D16 W12 W11 R12 R19 R13 | B15 R13 D17 D13d W17 W16 R22 R22 R14 R18 R19h R20",
+ "secs": 18
+}

@@ -1,0 +1,2 @@
+L15 try 1: quick g=0.15 r=0.03 | exact g=0.117 r=0.037 houses=52 IN BAND
+DONE L15 tier=x g=0.117 r=0.037 band=true houses=52 120s

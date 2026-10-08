@@ -1,0 +1,10 @@
+{
+ "id": "d-husky-x",
+ "tier": "x",
+ "g": 0.285,
+ "r": 0.0675,
+ "inBand": true,
+ "houses": 45,
+ "lanes": "C2 R19 W10 R14 W14 D11h B12 D12 W14 W9d B13 B10h D10 D9 W17 B13 D11 D15 B11 B17 B10 B12 B10 | K9 Y4d D19 D13 D9 W14d B10h W9 B9 B18 B16 B20 B17h | D15 D20 W9 B14 W16 D14 B12 B19 B15",
+ "secs": 99
+}

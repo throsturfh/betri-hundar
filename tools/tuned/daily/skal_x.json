@@ -1,0 +1,10 @@
+{
+ "id": "d-skal-x",
+ "tier": "x",
+ "g": 0.3475,
+ "r": 0.0775,
+ "inBand": true,
+ "houses": 44,
+ "lanes": "R16 R18h K16 O7 K15d R14 B11 C16 C13 C17h | C13 Y5 N15 P17 R18 R18 P16 P9 C12 C15 N14 C12 P18d C13 C17 C9d P14d P7 C13 C10 C10 C10 C13 C17 C22 | W12d B14 B9 W16 W9 R5 K5 B12 C14d",
+ "secs": 102
+}

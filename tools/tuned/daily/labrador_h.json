@@ -1,0 +1,10 @@
+{
+ "id": "d-labrador-h",
+ "tier": "h",
+ "g": 0.5975,
+ "r": 0.2625,
+ "inBand": true,
+ "houses": 45,
+ "lanes": "C17 O10 C12 B4 R16h R9 O11 G13 C16 Y19 C18 W20 C13h C10 C12d C19 C20h O20 Y15h | K3 C10h G12 D9 D7 Y14 O10 C14 O9 Y10 Y13 O20 Y18 Y9 Y17h C13h | C9 W9 W7 R8 O17 O14d C9 G14 C16 O11",
+ "secs": 162
+}

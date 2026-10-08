@@ -1,0 +1,4 @@
+Ld-greifingi-x try 1: quick g=0.33 r=0.06 | exact g=0.470 r=0.138 houses=47 
+Ld-greifingi-x try 2: quick g=0.31 r=0.06 | exact g=0.325 r=0.018 houses=47 
+Ld-greifingi-x try 3: quick g=0.31 r=0.09 | exact g=0.290 r=0.052 houses=46 IN BAND
+DONE Ld-greifingi-x tier=x g=0.290 r=0.052 band=true houses=46 115s

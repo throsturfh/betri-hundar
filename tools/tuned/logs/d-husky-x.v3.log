@@ -1,0 +1,4 @@
+Ld-husky-x try 1: quick g=0.33 r=0.06 | exact g=0.315 r=0.207 houses=47 
+Ld-husky-x try 2: quick g=0.33 r=0.09 | exact g=0.455 r=0.225 houses=53 
+Ld-husky-x try 3: quick g=0.31 r=0.09 | exact g=0.285 r=0.068 houses=45 IN BAND
+DONE Ld-husky-x tier=x g=0.285 r=0.068 band=true houses=45 99s

@@ -1,0 +1,6 @@
+Ld-dalmatia-m try 1: quick g=0.69 r=0.28 | exact g=0.770 r=0.193 houses=37 
+Ld-dalmatia-m try 2: quick g=0.73 r=0.44 | exact g=0.802 r=0.525 houses=38 
+Ld-dalmatia-m polish g=0.770 r=0.195
+Ld-dalmatia-m polish g=0.770 r=0.195
+Ld-dalmatia-m polish g=0.682 r=0.092
+DONE Ld-dalmatia-m tier=m g=0.682 r=0.092 band=false houses=37 100s

@@ -1,0 +1,6 @@
+L15 try 1: quick g=0.31 r=0.09 | exact g=0.320 r=0.030 houses=45 
+L15 try 2: quick g=0.31 r=0.06 | exact g=0.350 r=0.033 houses=45 
+L15 try 3: quick g=0.31 r=0.09 | exact g=0.235 r=0.188 houses=51 
+L15 polish g=0.362 r=0.035
+L15 polish g=0.350 r=0.113 IN BAND
+DONE L15 tier=x g=0.350 r=0.113 band=true houses=45 156s

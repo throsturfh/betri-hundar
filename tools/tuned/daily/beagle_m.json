@@ -1,0 +1,10 @@
+{
+ "id": "d-beagle-m",
+ "tier": "m",
+ "g": 0.745,
+ "r": 0.4475,
+ "inBand": true,
+ "houses": 46,
+ "lanes": "Y4 R15 D14 N10 W16 N9 N16 G11 D12 W14 G11 D15 G16 D15d D11h G13 | W10 G9 N14 R13 O4 N10 R5 G17 G13 D17 G15 G9 W19 G17 D19 G15 G19 G16 G14 G14 G15 G10 | K1d N10 W9 D19 N7 W16 D9 G9",
+ "secs": 85
+}

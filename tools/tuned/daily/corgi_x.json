@@ -1,0 +1,10 @@
+{
+ "id": "d-corgi-x",
+ "tier": "x",
+ "g": 0.3775,
+ "r": 0.055,
+ "inBand": true,
+ "houses": 45,
+ "lanes": "O8 Y4 B14 W8 G8h O18 N11d G9 O15 G16 G11 G12 G10 G16 G15 G16 G16 G20 | N14h K11 N17 N9d G16 W8 O15 G14h O17 O9d G16 W13 W16 W12 G9 | R3 D16 B16h G14 W16 G11 O18d O17d O6 G8 W10 G18",
+ "secs": 32
+}

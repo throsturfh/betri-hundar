@@ -1,0 +1,10 @@
+{
+ "id": "d-pylsa-h",
+ "tier": "h",
+ "g": 0.65,
+ "r": 0.155,
+ "inBand": true,
+ "houses": 44,
+ "lanes": "Y9 K2 O20 R11 R17 W6 R12 B9 B15 B10 B15 O9 B9 B15h B17 | W11 R11 B24h N12 B9 Y13 Y9 O10 O10h B15 B20 B9h B5 | Y12 Y15 B19h B18h B20 B9 Y19 B15 B13 B9 B20 B9 O13 B20 B12 B19d",
+ "secs": 74
+}

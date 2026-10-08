@@ -1,0 +1,10 @@
+{
+ "id": "d-pudla-h",
+ "tier": "h",
+ "g": 0.5125,
+ "r": 0.2775,
+ "inBand": true,
+ "houses": 42,
+ "lanes": "Y15 C14 C17 K15 W16 K19 Y5 K9 K13h K14 C9 K17 K14d W19 K19d C12 K10h K11d | R12 R6d C20 C17 C12 C16 C13 C17 C16d C9 C11d C20 C10 | P9 K13h P5 D14 W17 K17 C11 K13 K18 K17 K15",
+ "secs": 150
+}

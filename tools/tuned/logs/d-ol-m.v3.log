@@ -1,0 +1,4 @@
+Ld-ol-m try 1: quick g=0.96 r=0.22 | exact g=0.953 r=0.158 houses=38 
+Ld-ol-m try 2: quick g=0.79 r=0.34 | exact g=0.828 r=0.260 houses=38 
+Ld-ol-m polish g=0.782 r=0.260
+DONE Ld-ol-m tier=m g=0.782 r=0.260 band=false houses=38 189s

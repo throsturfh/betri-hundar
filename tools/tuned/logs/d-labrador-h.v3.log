@@ -1,0 +1,4 @@
+Ld-labrador-h try 1: quick g=0.63 r=0.19 | exact g=0.738 r=0.237 houses=45 
+Ld-labrador-h polish g=0.738 r=0.220
+Ld-labrador-h polish g=0.598 r=0.263 IN BAND
+DONE Ld-labrador-h tier=h g=0.598 r=0.263 band=true houses=45 162s

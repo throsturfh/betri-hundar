@@ -1,0 +1,20 @@
+L10 try 1: quick g=0.33 r=0.06 | exact g=0.313 r=0.035 houses=51 
+L10 try 4: quick g=0.10 r=0.00 | exact g=0.207 r=0.077 houses=45 
+L10 try 5: quick g=0.21 r=0.03 | exact g=0.268 r=0.043 houses=58 
+L10 polish g=0.207 r=0.077
+L10 polish g=0.207 r=0.077
+L10 polish g=0.205 r=0.080
+L10 polish g=0.205 r=0.077
+L10 polish g=0.205 r=0.077
+L10 polish g=0.205 r=0.077
+L10 polish g=0.205 r=0.075
+L10 polish g=0.205 r=0.075
+L10 polish g=0.205 r=0.075
+L10 polish g=0.205 r=0.075
+L10 polish g=0.205 r=0.075
+L10 polish g=0.205 r=0.075
+L10 polish g=0.205 r=0.075
+L10 polish g=0.205 r=0.075
+L10 polish g=0.205 r=0.075
+L10 polish g=0.205 r=0.075
+DONE L10 tier=x g=0.205 r=0.075 band=false houses=45 303s

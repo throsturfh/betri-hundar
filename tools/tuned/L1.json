@@ -1,0 +1,10 @@
+{
+ "id": 1,
+ "tier": "t",
+ "g": 1,
+ "r": 1,
+ "inBand": true,
+ "houses": 19,
+ "lanes": "C33 C28 W41 W32 C28 C26 C33 C42 C26 W24 C31 C24 C35 C27 C27 | Y19 W41 C25 C34",
+ "secs": 11
+}

@@ -1,0 +1,11 @@
+Ld-fjarhundur-x try 1: quick g=0.40 r=0.09 | exact g=0.430 r=0.072 houses=48 
+Ld-fjarhundur-x try 2: quick g=0.33 r=0.16 | exact g=0.335 r=0.177 houses=52 
+Ld-fjarhundur-x try 3: quick g=0.38 r=0.09 | exact g=0.318 r=0.182 houses=50 
+Ld-fjarhundur-x polish g=0.430 r=0.072
+Ld-fjarhundur-x polish g=0.430 r=0.072
+Ld-fjarhundur-x polish g=0.430 r=0.072
+Ld-fjarhundur-x polish g=0.430 r=0.072
+Ld-fjarhundur-x polish g=0.430 r=0.072
+Ld-fjarhundur-x polish g=0.430 r=0.072
+Ld-fjarhundur-x polish g=0.430 r=0.072
+DONE Ld-fjarhundur-x tier=x g=0.430 r=0.072 band=false houses=48 182s

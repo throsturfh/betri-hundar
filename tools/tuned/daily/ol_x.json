@@ -1,0 +1,10 @@
+{
+ "id": "d-ol-x",
+ "tier": "x",
+ "g": 0.8625,
+ "r": 0.0875,
+ "inBand": false,
+ "houses": 45,
+ "lanes": "R18 R12d R12d K11d K18 K13 K16 K17 K16 K9h K8 K12 | Y9 O7 R12 P14 Y12 B17 Y15 B7d K14 K14d K11 K8 K8 K14 K12 K8 K7 | R12 R16 K17 K13 K15h K14 K18 K18 K8 K9 K17h K12 K17d K11 K18 K10h",
+ "secs": 244
+}

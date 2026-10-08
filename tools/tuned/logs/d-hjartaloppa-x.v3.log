@@ -1,0 +1,4 @@
+Ld-hjartaloppa-x try 1: quick g=0.31 r=0.06 | exact g=0.205 r=0.107 houses=44 
+Ld-hjartaloppa-x try 3: quick g=0.40 r=0.19 | exact g=0.422 r=0.233 houses=50 
+Ld-hjartaloppa-x polish g=0.230 r=0.125
+DONE Ld-hjartaloppa-x tier=x g=0.230 r=0.125 band=false houses=44 182s

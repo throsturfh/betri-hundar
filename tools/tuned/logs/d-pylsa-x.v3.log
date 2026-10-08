@@ -1,0 +1,7 @@
+Ld-pylsa-x try 1: quick g=0.31 r=0.13 | exact g=0.287 r=0.155 houses=46 
+Ld-pylsa-x try 2: quick g=0.31 r=0.09 | exact g=0.177 r=0.018 houses=45 
+Ld-pylsa-x polish g=0.287 r=0.155
+Ld-pylsa-x polish g=0.287 r=0.155
+Ld-pylsa-x polish g=0.287 r=0.155
+Ld-pylsa-x polish g=0.343 r=0.142
+DONE Ld-pylsa-x tier=x g=0.343 r=0.142 band=false houses=46 183s

@@ -1,0 +1,10 @@
+{
+ "id": "d-greifingi-x",
+ "tier": "x",
+ "g": 0.29,
+ "r": 0.0525,
+ "inBand": true,
+ "houses": 46,
+ "lanes": "O13d G13h O12d O13 W11 G11 C12 N6d G15 C16 C13 C11d C15 C14 C15 | Y3 N10 N15 N14h O13 C15 C11 C16 C13 C16 | G11 R8 K1 O14 C10 D16h G15h G10h D14h G12h C12 G14h C16 G14 O12 O12 O11 C15 C15 C15 C13",
+ "secs": 115
+}

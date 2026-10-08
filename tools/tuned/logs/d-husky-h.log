@@ -1,0 +1,5 @@
+Ld-husky-h try 1: quick g=0.40 r=0.13 | exact g=0.492 r=0.130 houses=49 
+Ld-husky-h polish g=0.492 r=0.130
+Ld-husky-h polish g=0.492 r=0.130
+Ld-husky-h polish g=0.335 r=0.140 IN BAND
+DONE Ld-husky-h tier=h g=0.335 r=0.140 band=true houses=49 102s

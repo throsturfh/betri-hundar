@@ -1,0 +1,10 @@
+{
+ "id": 11,
+ "tier": "e",
+ "g": 1,
+ "r": 0.6125,
+ "inBand": true,
+ "houses": 32,
+ "lanes": "N22 N23d O18 K1d D15 G18 G7 C22 C18 C15d C16 | G29 R8 D15 O16 C26 C17d O28h C21 G15d O15 O8 C27h C19 C24h | Y3d G19 C27 O15d W11 G27 C31",
+ "secs": 36
+}

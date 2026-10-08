@@ -1,0 +1,5 @@
+Ld-corgi-h try 1: quick g=0.56 r=0.28 | exact g=0.520 r=0.403 houses=46 
+Ld-corgi-h try 2: quick g=0.58 r=0.19 | exact g=0.565 r=0.128 houses=42 
+Ld-corgi-h polish g=0.608 r=0.313
+Ld-corgi-h polish g=0.573 r=0.203 IN BAND
+DONE Ld-corgi-h tier=h g=0.573 r=0.203 band=true houses=42 183s

@@ -72,6 +72,9 @@ button { font-family: inherit; touch-action: manipulation; cursor: pointer; }
 .btn:active { transform: translateY(4px); box-shadow: inset 0 2px 0 rgba(255,255,255,.6), 0 2px 0 var(--edge), 0 4px 8px rgba(25,8,55,.3); }
 .btn.alt { --edge: #c94d86; background: linear-gradient(#ffaad3, #ff7eb9 52%, #ff63a8); }
 .btn.blue { --edge: #1f8db0; background: linear-gradient(#86e3ff, #3cc8f4 52%, #1fb2e3); }
+.btn.danger { --edge: #a3162a; color: #fff; background: linear-gradient(#ff8a96, #ff4d5e 52%, #e0283d); }
+.dangerzone { margin-top: 14px; padding-top: 12px; border-top: 2px dashed rgba(224,40,61,.35); text-align: center; }
+.dangerzone small { display: block; margin-top: 6px; font-size: 12px; opacity: .7; }
 .btn.green { --edge: #1f9c57; background: linear-gradient(#86f0b6, #3ddc84 52%, #24c46e); }
 .btn.small { min-height: 48px; font-size: 17px; }
 /* home */
@@ -496,7 +499,7 @@ const LEVEL_DEFS = [
            KKKKKKKKYOYOYKKKKKKKKKKK
            KKKKKKKKKKYKKKKKKKKKKKKK`,
     lanes: 'B15 K19 B9 K20 | O7 K25 Y11d K24 K19 R27 K25d R27d K21 K26 K18 K17 K23 K14 K26 R7 K19 K17 | Y25 K16 P14d K16 R21d K25 K22 K21' },
-  { id: 7, name: 'Frisbí', tier: 'm', dog: 'vargur',
+  { id: 7, name: 'Frisbí', tier: 'm', dog: 'mio',
     grid: `CCCCCCCCCCCCCCCCCCCCCCCC
            CCCCCCCCCCCCCCCCCCCCCCCC
            CCCCCCCCCCCCCCCCCWWWWWWC
@@ -522,7 +525,7 @@ const LEVEL_DEFS = [
            GGGGGGGKGGGGGGGGGGGGWGGG
            GGGGGGGGGGGGGGGGGGGGGGGG`,
     lanes: 'W11 P10d K12h W11d C11 C22 C17 | G24h K12 Y2 C14 G13 K22 C13 W23 C16 | P19 G20h K18h G14 C19 G21 K17d C15 P20d C19h C19 C20 C17 C17 C12 C19 C15 C15 C11 C16h' },
-  { id: 8, name: 'Brunahani', tier: 'h', dog: 'bronco',
+  { id: 8, name: 'Brunahani', tier: 'h', dog: 'vargur',
     grid: `CCCCCCCCCCCRRCCCCCCCCCCC
            CCCCCCCCCCRRRRCCCCCCCCCC
            CCCCCCCCCRRKRRRCCCCCCCCC
@@ -548,7 +551,7 @@ const LEVEL_DEFS = [
            GGGGGGGGDDDDDDDDGGGGGGGG
            GGGGGGGGGGGGGGGGGGGGGGGG`,
     lanes: 'Y20 P9 D14 G19d C16d G19 C19 P20 C16h P9 C10 C16h C20 | O2 R12h K7 R10 R20 R18 R16d G14 C10 P17 C10h P13 C18 C14 C19 C11d C18 C11 | D17 D23 G10 R15 G8d C11 P14 C18 C13d' },
-  { id: 9, name: 'Pylsa', tier: 'e', dog: 'sami',
+  { id: 9, name: 'Pylsa', tier: 'e', dog: 'bronco',
     grid: `BBBBBBBBBBBBBBBBBBBBBBBB
            BBBBBBBBBBBBBBBBBBBBBBBB
            BBBBBBBBBBBBBBBBBBBOBBBB
@@ -890,9 +893,9 @@ const DAILY_BANK = {"1":{"m":"C10 W11 W20 C11 W14d W5 C12 C21 | W16 W17 C11 W10 
    family: true = one of OUR dogs (heart tag + "Einn/Ein af hundunum okkar" in the album).
    HOW TO ADD A DOG: append a line below. A dog is rescued on the level that names it in tools/levelspec.js
    (dog: '<id>'); any dog without a level is rescued by winning a daily puzzle, so a new name never needs
-   a new level. Album order = level order, then the daily-puzzle dogs in the order listed here. */
+   a new level. Album order = family dogs in the order listed here (= levels 1-9), then the other level dogs by level, then the daily-puzzle dogs in the order listed here. */
 const DOG_DEFS = [
-  // --- our family dogs (levels 1-8) ---
+  // --- our family dogs (levels 1-9; the album lists them in THIS order, e.g. Míó right after his brother Emil) ---
   // All four are Border Collies: Lotta & Roxy (girls, hún) wear the Red Cross bandana, Rökkvi (blue merle) & Myrkvi
   // (black & white) are boys (hann). Hand-drawn portraits in CUSTOM_PORTRAIT (gfx.js); colours below are for small sprites/silhouettes
   { id: 'lotta', name: 'Lotta', dat: 'Lottu', g: 'f', breed: 'Border Collie', family: true, fur: '#1e1c26', fur2: '#f6f4ef', ear: 'up', earCol: '#1e1c26', bg1: '#ffd6ea', bg2: '#ffc0df' },
@@ -905,10 +908,14 @@ const DOG_DEFS = [
   // Emil (boy, hann): white Havanese farm dog (sveitahundur) – fluffy, always smiling, always a little muddy; level 6
   { id: 'emil', name: 'Emil', g: 'm', breed: 'Havanese', family: true, fur: '#f6efe0', fur2: '#ffffff', ear: 'flop', earCol: '#efe4cc', bg1: '#bfe8ff', bg2: '#9fd86f', sky: 'farm',
     line: 'Sterkur sveitahundur sem brosir alltaf – og er alltaf pínulítið skítugur í loppunum!' },
-  // Vargur (boy, hann): Brussels Griffon farm dog, drawn from ref/vargur.jpg – dark rough brindle, scruffy beard; level 7
+  // Míó (boy, hann): Emil's little brother – white Havanese too, but smaller and slimmer, narrower face, a little topknot
+  // with a blue hair tie, wavier ears and hardly any mud; level 7. big < 1: a bit smaller than Emil in the yard
+  { id: 'mio', name: 'Míó', g: 'm', breed: 'Havanese', family: true, fur: '#f8f2e4', fur2: '#ffffff', ear: 'flop', earCol: '#efe6d2', bg1: '#e4f6c4', bg2: '#cdeca0', big: 0.82,
+    line: 'Litli bróðir Emils – minni og nettari, en alveg jafn glaður og eltir stóra bróður hvert sem er!' },
+  // Vargur (boy, hann): Brussels Griffon farm dog, drawn from ref/vargur.jpg – dark rough brindle, scruffy beard; level 8
   { id: 'vargur', name: 'Vargur', dat: 'Vargi', g: 'm', breed: 'Brussels Griffon', family: true, fur: '#4a3a30', fur2: '#9a5a2e', ear: 'fold', earCol: '#2a2422', bg1: '#efe2cc', bg2: '#e2d0b4', sky: 'blanket',
     line: 'Lítill, úfinn og skeggjaður sveitahundur – en með risastórt sjálfstraust!' },
-  // Bronco (boy, hann): big, powerful Rottweiler – black with rich tan/mahogany points, broad head, friendly face; level 8.
+  // Bronco (boy, hann): big, powerful Rottweiler – black with rich tan/mahogany points, broad head, friendly face; level 9.
   // big: drawn larger in Hundagarðurinn
   { id: 'bronco', name: 'Bronco', g: 'm', breed: 'Rottweiler', family: true, fur: '#1f1b1d', fur2: '#a8542a', ear: 'fold', earCol: '#141113', bg1: '#ffe2ae', bg2: '#ffcf86', big: 1.4,
     line: 'Risastór og rammsterkur – en blíðastur allra og heldur að hann sé kjölturakki!' },
@@ -1310,7 +1317,9 @@ function grantLevelDogs(d) {
 /* album helpers: a dog is rescued on the level that names it, otherwise by winning a daily puzzle */
 const levelOfDog = id => PL.LEVELS.find(l => l.dog === id);
 function albumDogs() {
-  const lv = PL.DOGS.filter(d => levelOfDog(d.id)).sort((a, b) => levelOfDog(a.id).id - levelOfDog(b.id).id);
+  // family dogs first, in the order they are listed in dogs.js (Míó sits next to his brother Emil), then the other level dogs
+  const key = d => d.family ? PL.DOGS.indexOf(d) : 1000 + levelOfDog(d.id).id;
+  const lv = PL.DOGS.filter(d => levelOfDog(d.id)).sort((a, b) => key(a) - key(b));
   return lv.concat(PL.DOGS.filter(d => !levelOfDog(d.id)));
 }
 /* the dog waiting at the end of a daily puzzle: the first daily-only dog not yet rescued, else a seeded pick */
@@ -1332,7 +1341,19 @@ function tierBadge(t, small) {
   const T = TIERS[t]; if (!T || !T.cls) return '';
   return `<span class="tbadge ${T.cls}${small ? ' sm' : ''}">${t === 'x' ? ICON_SKULLPAW : ICON_FLAME}<span>${T.name}</span></span>`;
 }
-function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} }
+let resetting = false;   // set by resetGame(): nothing may write the save again before the reload
+function persist() { if (resetting) return; try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} }
+/* 3.5: 'Byrja upp á nýtt' (settings) – deletes every key the game stores (packleader.v2 save, the old packleader.v1
+   save it would otherwise migrate from again, the packleader.daily cache) and reloads to a fresh game at home. */
+const STORE_PREFIX = 'packleader';
+function resetGame() {
+  resetting = true;
+  for (const st of [localStorage, sessionStorage]) {
+    try { for (const k of Object.keys(st)) if (k.startsWith(STORE_PREFIX)) st.removeItem(k); } catch (e) {}
+  }
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+  location.reload();
+}
 
 let scr = 'home';
 function setScreen(n) {
@@ -1678,6 +1699,12 @@ function bindUI() {
     else if (a === 'home-yes') { G = null; setScreen('home'); }
     else if (a === 'home-bank') { if (G && !G.banked) bankLevel(0); G = null; setScreen('home'); }
     else if (a === 'quit-yes') { closeModal(); quitGame(); }
+    else if (a === 'reset-ask') openModal(`<h2>⚠️ Byrja upp á nýtt?</h2>
+      <p>Þetta eyðir <b>öllu</b>: framvindu í borðum og stjörnum, öllu nammi, öllum hundum í albúminu, Hundagarðinum og öllu sem þú hefur keypt í Búðinni (föt og hjálpartæki).</p>
+      <p><b>Það er ekki hægt að afturkalla þetta.</b></p>
+      <div class="row"><button class="btn" data-act="reset-no">Hætta við</button><button class="btn danger" data-act="reset-yes">Eyða öllu</button></div>`);
+    else if (a === 'reset-no') showSettings();
+    else if (a === 'reset-yes') resetGame();
     else if (a === 'album') { G = null; setScreen('album'); }
     else if (a === 'yard') { G = null; setScreen('yard'); }
     else if (a === 'wear') { equip(b.dataset.dog, b.dataset.gear); if (b.dataset.stay) showDog(b.dataset.dog); else { closeModal(); toast(`${dogById(b.dataset.dog).name} er flott${dogById(b.dataset.dog).g === 'f' ? '' : 'ur'}! 🎀`, 1600); if (scr === 'album') renderAlbum(); } }
@@ -1923,7 +1950,8 @@ function showSettings() {
     <div class="set"><span>Hallastýring í Sæktu</span><button class="chip ${save.tilt !== false ? 'on' : ''}" data-set="tilt">${save.tilt !== false ? 'Á' : 'Af'}</button></div>
     <div class="set"><span>Hraði</span><button class="chip on" data-set="speed">${save.speed || 1}×</button></div>
     <div class="fair big">💚 <b>Engin kaup fyrir alvöru peninga.</b><br>Allt í leiknum fæst með nammi sem þú vinnur þér inn með því að spila. Engar auglýsingar, ekkert happdrætti sem kostar, enginn tímamælir.</div>
-    <div class="row"><button class="btn" data-act="close">Loka</button></div>`);
+    <div class="row"><button class="btn" data-act="close">Loka</button></div>
+    <div class="dangerzone"><button class="btn danger small wide" data-act="reset-ask">🗑️ Byrja upp á nýtt</button><small>Eyðir allri framvindu – spurt er áður.</small></div>`);
 }
 
 /* ---------- home progress panel ---------- */
@@ -2593,6 +2621,31 @@ const CUSTOM_PORTRAIT = {
     rect(14, 23, 17, 24, '#ff6b8b'); rect(15, 25, 16, 25, '#ff6b8b'); set(16, 24, '#e04a6e');                        // tongue out
     set(10, 20, '#ffb3c0'); set(21, 20, '#ffb3c0');         // happy cheeks
     set(22, 7, S); set(23, 6, S); set(24, 5, S); set(25, 4, S); set(23, 7, '#d9b03c');   // a stray straw in his hair
+  },
+  /* MÍÓ (boy): Emil's little brother – the same fluffy white/cream Havanese, but smaller and slimmer: narrower shoulders
+     and face, eyes a little closer together, a small topknot tied with a blue band, wavier (curlier) ear fluff,
+     a smaller smile and only one tiny mud spot (he's the tidy one). */
+  mio({ set, ell, rect, tri }) {
+    const W = '#fffdf8', C = '#f1e8d4', c = '#dccfb2', M = '#9a7350', B = '#4fa8ff', b = '#2f7fd6';
+    ell(16, 34.5, 9.5, 7, C, 0.35);                         // narrower, slimmer shoulders
+    ell(16, 32, 7, 5.6, W, 0.4);                            // fluffy chest
+    ell(10.5, 30.8, 2.3, 1.7, W); ell(21.5, 30.8, 2.3, 1.7, W);   // small front paws
+    set(21, 31, M); set(22, 31, M);                         // one tiny mud spot
+    [[13, 31], [18, 31], [16, 30]].forEach(([x, y]) => set(x, y, c));
+    ell(8.3, 21, 3, 6.2, C, 0.5); ell(23.7, 21, 3, 6.2, C, 0.5);   // wavy drop ears ...
+    [[7, 18], [6, 21], [7, 24], [8, 26], [24, 18], [25, 21], [24, 24], [23, 26]].forEach(([x, y]) => set(x, y, c));   // ... curls
+    ell(16, 17.6, 7.2, 8, W, 0.25);                         // slimmer, narrower head
+    for (let y = 17; y <= 24; y++) { set(9, y, c); set(22, y, c); }   // soft line where the ears hang from the head
+    for (let x = 11; x <= 21; x += 2) set(x, 11, C);        // light fringe
+    ell(16, 8.6, 2.6, 2.4, W, 0.3); set(15, 6, W); set(17, 6, W); set(16, 5, C); set(14, 7, c); set(18, 7, c);   // topknot ...
+    rect(14, 10, 18, 10, B); set(15, 10, b); set(17, 10, b);   // ... with a blue hair tie
+    ell(16, 22.2, 4.4, 3.4, W);                             // narrower muzzle
+    [12, 18].forEach(ex => { rect(ex, 15, ex + 1, 17, '#1a0f0a'); set(ex + 1, 16, '#3a2412'); set(ex + 1, 17, '#3a2412'); set(ex, 17, '#3a2412'); set(ex, 15, '#ffffff'); });   // eyes a bit closer
+    rect(15, 19, 16, 20, '#121018'); set(15, 19, '#5c586e');   // small button nose
+    set(12, 21, '#121018'); set(19, 21, '#121018');
+    rect(13, 22, 18, 22, '#121018'); rect(14, 23, 17, 23, '#5a1a24');   // happy smile
+    rect(15, 23, 16, 25, '#ff6b8b'); set(15, 24, '#e04a6e');   // little tongue
+    set(11, 21, '#ffc4cf'); set(20, 21, '#ffc4cf');         // rosy cheeks
   },
   /* VARGUR (boy): Brussels Griffon from ref/vargur.jpg – small rough-coated dog, dark brindle (black + rusty red/tan
      streaks), wiry scruffy face, short flat muzzle with a black nose, slightly undershot chin with a little beard,
@@ -3592,7 +3645,7 @@ function startFinale() {
    neutral angle is calibrated when the shot is fired; 3° dead zone; smoothed; full strength at 25° past neutral.
    Max push 220 px/s² (gravity is 760) and it never drives the ball faster than 200 px/s sideways, so pegs and
    bounces still decide most of the path. No sensor events (desktop) -> nothing happens. Setting: save.tilt. */
-const TILT = { dead: 3, full: 25, acc: 220, vcap: 200, smooth: 7 };
+const TILT = { dead: 3, full: 25, acc: 1150, vcap: 560, smooth: 7 };   // 3.5: ~5× stronger push + higher speed cap: full tilt now moves a clean drop ~60–90px at the bowls (was ~15px)
 const tiltIn = { g: null, sm: null, t: -1, asked: false };
 window.addEventListener('deviceorientation', e => {
   if (e.gamma == null) return;

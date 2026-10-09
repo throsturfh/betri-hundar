@@ -3777,10 +3777,9 @@ function renderBonus() {
 }
 function showOdds() {
   Snd.tap();
-  if (scr === 'finale') {   // 4.1: Sæktu events + the pocket, published
+  if (scr === 'finale') {   // 4.1: Sæktu events, published
     openModal(`<h2>ℹ️ Sæktu – líkur og reglur</h2><table class="odds">${FEVENTS.map(e => `<tr><td>${e.name}</td><td>${e.p}%</td></tr>`).join('')}<tr class="sum"><td>Samtals</td><td>${FEVENTS.reduce((a, e) => a + e.p, 0)}%</td></tr></table>
       <p class="tipsmall">Í hverju skoti er dregið einu sinni hvort kemur <b>flóð</b> (vatn og straumur ýta boltanum), <b>eldgos</b> (hraunsteinar fljúga og nokkrir pinnar bráðna) eða ekkert. Atburðurinn byrjar þegar boltinn er kominn hálfa leið.</p>
-      <p class="tipsmall"><b>VASINN</b> rennur fram og til baka neðst. Lendi boltinn í honum tapast allt sem vannst í því skoti (nammi og gullbein). Hann hreyfist alltaf eins – hallaðu símanum til að forðast hann.</p>
       <p class="tipsmall">Skálar: ×${MULTS.join(' · ×')}. Gullbein +12, pinni +2.</p><div class="row"><button class="btn" data-act="close">Loka</button></div>`);
     return;
   }
@@ -5536,7 +5535,7 @@ let F = null;
 const FW = 360, FH = 620, BALL_R = 11, GRAV = 1080, SHOT = 640, PEG_E = 0.5, WALL_E = 0.58;
 const MULTS = [1, 2, 4, 2, 1];
 const FEVENTS = [{ k: 'flood', name: 'Flóð', p: 35 }, { k: 'erupt', name: 'Eldgos', p: 35 }, { k: 'none', name: 'Rólegt skot', p: 30 }];
-const POCKET = { w: 54, speed: 0.85 };
+const POCKET = { on: false, w: 54, speed: 0.85 };   // 4.1 hotfix: pocket removed at Þröstur's request
 const pocketX = t => FW / 2 + Math.sin(t * POCKET.speed) * (FW / 2 - POCKET.w / 2 - 4);
 const PEG_TOP = 212;   // first peg row (launcher mouth is at y≈118 -> ~80px of empty sky to read the aim)
 function startFinale() {
@@ -5695,7 +5694,7 @@ function landBall() {
   F.bowl = Math.max(0, Math.min(4, Math.floor(b.x / 72)));
   const px = pocketX(F.pocketT);
   b.y = FH - 30; b.vx = 0; b.vy = 0;
-  if (Math.abs(b.x - px) < POCKET.w / 2) {   // 4.1: the pocket swallows everything won in this shot (bones too)
+  if (POCKET.on && Math.abs(b.x - px) < POCKET.w / 2) {   // 4.1 (removed in 4.1 hotfix: POCKET.on=false): the pocket swallows everything won in this shot (bones too)
     F.lost = true; F.total = 0; F.lostBones = F.bones; F.bones = 0; F.bowl = -1;
     Snd.deny(); Snd.bark(0.7, 0, 0.4); vibrate([80, 40, 80]); F.shake = 14;
     fBurst(b.x, b.y - 10, 40, ['#2a1f3d', '#6a5a9a', '#ffffff']);
@@ -5806,7 +5805,7 @@ function renderFinale() {
     ctx.fillStyle = OUTLINE; ctx.font = '900 18px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('×' + m, x + 36, FH - 24);
   }
   for (let k = 1; k < 5; k++) { ctx.fillStyle = '#d9d2ff'; ctx.fillRect(k * 72 - 2, 548, 4, FH - 548); ctx.beginPath(); ctx.arc(k * 72, 548, 4, 0, 7); ctx.fill(); }
-  drawPocket(t);
+  if (POCKET.on) drawPocket(t);
   // pegs & golden bones
   for (const p of F.pegs) {
     if (p.pop) continue;
@@ -5866,7 +5865,7 @@ function renderFinale() {
     const tip = 'Dragðu til að miða – slepptu til að kasta!';
     ctx.strokeText(tip, W / 2, tipY); ctx.fillStyle = '#fff'; ctx.fillText(tip, W / 2, tipY);
     // 4.1: the pocket + the published event odds, right on the screen (also behind the i button)
-    const t2 = 'Varastu VASANN · flóð 35% · eldgos 35% · rólegt 30%', y2 = v.oy + 560 * v.k;
+    const t2 = 'Flóð 35% · eldgos 35% · rólegt 30%', y2 = v.oy + 560 * v.k;
     ctx.font = '800 12px system-ui, Roboto, sans-serif'; ctx.lineWidth = 4; ctx.strokeText(t2, W / 2, y2); ctx.fillStyle = '#ffd2d8'; ctx.fillText(t2, W / 2, y2);
   }
   ctx.font = '900 17px system-ui'; ctx.lineWidth = 5;

@@ -1976,14 +1976,14 @@ const PL = (function () {
     for (let k = 0; k < s.slots.length; k++) {   // (3.5: a level can get a 6th leash from the shop helper)
       const p = s.slots[k]; if (!p) continue;
       const t = target(s, p, s.D);
-      if (t < 0) { p.wait = true; if (s.ho > 0 && !s.noHandoff && handoff(s, k, p, ev)) { s.ho--; any = true; } continue; }
+      if (t < 0) { p.wait = true; if ((s.ho > 0 || s.hoAlways) && !s.noHandoff && handoff(s, k, p, ev)) { if (!s.hoAlways) s.ho--; any = true; } continue; }
       p.wait = false; any = true;
       eatCell(s, t, ev, k, p);
       if (p.n <= 0) { s.slots[k] = null; if (ev) ev.push({ t: 'home', slot: k, id: p.id, c: p.c, b: p.b }); }
     }
     return any;
   }
-  /* 4.0 handoff (only after a bomb – s.ho handoffs, one per doghouse the bomb shrank; normal play has none, so the tuned
+  /* 4.0 handoff (in real play always on via s.hoAlways, set in game.js, so a tap order can never dead-end on the column rule; the solver/tuner run without it, so the tuned difficulty is measured strictly. Originally only after a bomb – s.ho handoffs, one per doghouse the bomb shrank; normal play has none, so the tuned
      difficulty is untouched): a pack that is blocked ONLY by the column rule while it holds all remaining capacity of its colour
      (p.n === blocks left of that colour) could never be finished by anyone else – a guaranteed dead end (this is what a
      bomb could cause by shrinking the second house of a colour). Then the pack goes home and its remaining dogs come back
@@ -4388,7 +4388,7 @@ function dogById(id) { return PL.DOGS.find(d => d.id === id) || PL.DOGS[0]; }
 function startLevel(def, opts = {}) {
   const p = PL.parseLevel(def);
   G = {
-    def, p, s: PL.newState(p), daily: !!opts.daily, dog: opts.daily ? dailyDog(def) : dogById(def.dog), bdirty: true,
+    def, p, s: Object.assign(PL.newState(p), { hoAlways: true }), daily: !!opts.daily, dog: opts.daily ? dailyDog(def) : dogById(def.dog), bdirty: true,
     undo: [], undos: 0, packs: [], runners: [], sleds: [], tunnels: [], parts: [], texts: [], banners: [], pending: new Map(), hlKey: '', hl: null, digSaid: 0, sledSaid: 0, maxSlots: 0, slot6: false, peek: false,
     acc: 0, eaten: 0, total: p.cells.filter(Boolean).length, clears: 0, comboBonus: 0, lastClearT: -99, comboN: 0,
     over: false, won: false, wonT: 0, loseT: 0, shake: 0, chain: 0, chainT: 0, laneAnim: p.lanes.map(() => 0),

@@ -401,6 +401,7 @@ table.odds tr.sum td { font-weight: 1000; border-top: 2px solid var(--ink); }
 .namein { width: 100%; height: 46px; border-radius: 14px; border: 3px solid var(--ink); padding: 0 12px; font: 800 18px system-ui, sans-serif; margin: 4px 0 8px; box-sizing: border-box; }
 .namein.bad { border-color: #ff4d5e; }
 .statsnote { font-size: 13px; line-height: 1.35; background: rgba(255,210,63,.18); border: 2px dashed rgba(90,42,0,.35); border-radius: 12px; padding: 7px 9px; margin: 4px 0 8px; text-align: left; }
+#hVer { pointer-events: auto; padding: 6px; }
 
 </style>
 </head>
@@ -3738,16 +3739,47 @@ const PL = (function () {
 const $ = s => document.querySelector(s);
 const VERSION = '4.3';   // Betri Hundar 4.3 (shown on the home screen; bump sw.js CACHE together with this)
 const SAVE_KEY = 'packleader.v2';
+/* 4.3 save safety. All versions (1.0 … 4.3, different folders) share this origin and the key packleader.v2, and every
+   version writes its WHOLE in-memory save. A tab/home-screen app of any version left open with older progress could
+   therefore overwrite newer progress (last writer wins). 4.3 now:
+   - keeps backups under keys that no version (and not 'Byrja upp á nýtt') ever deletes: bh.backup.best (the save with
+     the most progress ever seen), bh.backup.prev (the raw save as found at each launch, before any migration);
+   - adopts saves written by other tabs (storage event / when the app comes back) instead of overwriting them;
+   - never writes a save with clearly less progress over a stored one (it merges: best stars, union of dogs …);
+   - offers to restore when the backup has more progress than the current save (also in Stillingar). */
+const BK_BEST = 'bh.backup.best', BK_PREV = 'bh.backup.prev';
+function progScore(d) { if (!d || typeof d !== 'object') return 0; const st = d.stars || {}; return Object.keys(st).filter(k => st[k] > 0).length * 1000 + Object.values(st).reduce((a, v) => a + (+v || 0), 0) * 10 + (Array.isArray(d.album) ? d.album.length : 0) + Object.keys(d.skipped || {}).length * 1000; }
+function readJSON(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
+function keepBackup(raw) {   // raw: a save object; becomes the 'best' backup when it has at least as much progress
+  try { const best = readJSON(BK_BEST); if (raw && progScore(raw) > 0 && (!best || progScore(raw) >= progScore(best.save))) localStorage.setItem(BK_BEST, JSON.stringify({ at: Date.now(), ver: VERSION, save: raw })); } catch (e) {}
+}
+function mergeSaves(mine, other) {   // keeps every bit of progress of both (used when another tab/version wrote in between)
+  const m = mine; if (!other || typeof other !== 'object') return m;
+  const takeCoins = (other.coins || 0) > (m.coins || 0) && progScore(other) > progScore(m);
+  for (const k of Object.keys(other)) if (m[k] == null) m[k] = other[k];
+  m.stars = m.stars || {}; for (const k in other.stars || {}) m.stars[k] = Math.max(m.stars[k] || 0, other.stars[k] || 0);
+  for (const f of ['firstClear', 'skipped', 'tips', 'tierSeen', 'superWonIds', 'daily', 'dailyTry', 'dailyBonus']) if (other[f] && typeof other[f] === 'object') m[f] = Object.assign({}, other[f], m[f] || {});
+  for (const f of ['album', 'owned']) if (Array.isArray(other[f])) m[f] = [...new Set([...(m[f] || []), ...other[f]])];
+  if ((other.yardLvl || 0) > (m.yardLvl || 0)) m.yardLvl = other.yardLvl;
+  if (other.yardSlots) m.yardSlots = Object.assign({}, other.yardSlots, m.yardSlots || {});
+  if (other.cabinets) m.cabinets = Object.assign({}, other.cabinets, m.cabinets || {});
+  if (takeCoins) m.coins = other.coins;
+  return m;
+}
 const save = loadSave();
 function loadSave() {
   const d = { coins: 0, stars: {}, album: [], tips: {}, daily: {}, mute: false, speed: 1, v: 2 };
   try {
-    const cur = JSON.parse(localStorage.getItem(SAVE_KEY));
-    if (cur) return migrate42(ensureEcon(grantLevelDogs(Object.assign(d, cur))));
+    const raw = localStorage.getItem(SAVE_KEY), cur = raw ? JSON.parse(raw) : null;
+    if (raw) { try { localStorage.setItem(BK_PREV, JSON.stringify({ at: Date.now(), ver: VERSION, raw })); } catch (e) {} }
+    if (cur) { keepBackup(cur); return migrate42(ensureEcon(grantLevelDogs(Object.assign(d, cur)))); }
     // v1 -> v2: keep coins, rescued dogs, tips and settings; the 20 new levels start fresh
     const old = JSON.parse(localStorage.getItem('packleader.v1'));
     if (old) for (const k of ['coins', 'album', 'tips', 'mute', 'speed', 'daily']) if (old[k] != null) d[k] = old[k];
-  } catch (e) {}
+  } catch (e) {
+    // an unreadable save is never thrown away: keep the raw text as a backup
+    try { const r = localStorage.getItem(SAVE_KEY); if (r) localStorage.setItem('bh.backup.broken', r); } catch (e2) {}
+  }
   return ensureEcon(d);
 }
 /* 4.2: new save fields get defaults; a daily puzzle already won today in 4.1 counts as today's attempt */
@@ -3810,11 +3842,57 @@ function tierBadge(t, small) {
   return `<span class="tbadge tier-${t} ${T.cls || 'soft'}${small ? ' sm' : ''}" style="--tc:${T.col};--tk:${T.ink || '#fff'}">${ico}<span>${T.name}</span></span>`;
 }
 let resetting = false;   // set by resetGame(): nothing may write the save again before the reload
-function persist() { if (resetting) return; try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} }
+function persist() {
+  if (resetting) return;
+  try {
+    const stored = readJSON(SAVE_KEY);
+    // another tab / another version wrote more progress since we loaded: merge it in instead of overwriting it
+    if (stored && progScore(stored) > progScore(save)) { mergeSaves(save, stored); ensureEcon(save); }
+    localStorage.setItem(SAVE_KEY, JSON.stringify(save)); keepBackup(save);
+  } catch (e) {}
+}
+/* adopt what other tabs/versions write (same origin, same key) */
+function adoptStored() {
+  if (resetting) return; const stored = readJSON(SAVE_KEY); if (!stored) return;
+  if (JSON.stringify(stored) === JSON.stringify(save)) return;
+  mergeSaves(save, stored); ensureEcon(save); grantLevelDogs(save);
+  if (typeof renderHome === 'function' && scr === 'home') try { renderHome(); } catch (e) {}
+}
+let verTaps = 0, verT = 0;
+document.addEventListener('click', e => { if (!e.target.closest || !e.target.closest('#hVer')) return; const n = performance.now(); verTaps = n - verT < 900 ? verTaps + 1 : 1; verT = n; if (verTaps >= 5) { verTaps = 0; showManualRestore(); } });
+window.addEventListener('storage', e => { if (e.key === SAVE_KEY) adoptStored(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) adoptStored(); });
+/* restore: from the best backup (offered automatically when it has clearly more progress), or by hand */
+function backupInfo(manual) { const b = readJSON(BK_BEST) || (manual ? readJSON('bh.backup.reset') : null); if (!b || !b.save) return null; const st = b.save.stars || {}; const won = Object.keys(st).filter(k => st[k] > 0).map(Number);
+  return { b, won: won.length, top: won.length ? Math.max(...won) : 0, stars: Object.values(st).reduce((a, v) => a + (+v || 0), 0), dogs: (b.save.album || []).length, coins: b.save.coins || 0, better: progScore(b.save) > progScore(save) }; }
+function offerRestore(manual) {
+  const i = backupInfo(manual); RESTORE_SRC = !!manual;
+  if (!i || (!i.better && !manual)) { if (manual) toast('Engin eldri vistun með meiri framvindu fannst.', 2400); return false; }
+  if (!manual && save.restoreDeclined === progScore(i.b.save)) return false;
+  openModal(`<h2>💾 Eldri vistun fannst</h2><p>Í símanum er afrit af vistun með <b>${i.won} unnin borð</b> (hæst borð ${i.top}), ${i.stars} ★, ${i.dogs} hunda og 🦴 ${i.coins}.</p>
+    <p class="tipsmall">Núna: ${Object.keys(save.stars).filter(k => save.stars[k] > 0).length} unnin borð. Endurheimt sameinar: ekkert sem þú hefur núna tapast.</p>
+    <div class="row"><button class="btn green" data-act="restore-yes">Endurheimta</button><button class="btn alt small" data-act="restore-no">Nei takk</button></div>`);
+  return true;
+}
+let RESTORE_SRC = false;
+function doRestore() { const i = backupInfo(RESTORE_SRC); if (!i) return; mergeSaves(save, JSON.parse(JSON.stringify(i.b.save))); ensureEcon(save); grantLevelDogs(save); persist(); closeModal(); toast('Framvindan er komin aftur! 🐾', 2600); if (scr === 'home') renderHome(); }
+/* hidden manual restore (tap the version label 5 times): board reached + nammi, e.g. from the owner's stats page */
+function showManualRestore() {
+  openModal(`<h2>🛠️ Endurheimta framvindu</h2><p>Sláðu inn borðið sem þú varst komin(n) í. Öll borð á undan teljast unnin (★) og hundarnir þeirra koma í albúmið.</p>
+    <input id="rsBoard" class="namein" type="number" min="1" max="${PL.LEVELS.length}" placeholder="Borð (t.d. 61)"><input id="rsCoins" class="namein" type="number" min="0" placeholder="Nammi (valfrjálst)">
+    <div class="row"><button class="btn green" data-act="mrestore-ok">Endurheimta</button><button class="btn alt small" data-act="restore-backup">Úr afriti</button><button class="btn plain small" data-act="close">Hætta við</button></div>`);
+}
+function manualRestore(board, coins) {
+  board = Math.max(1, Math.min(PL.LEVELS.length, board | 0)); if (!board) return false;
+  for (const l of PL.LEVELS) if (l.id < board && !save.stars[l.id]) { save.stars[l.id] = 1; save.firstClear[l.id] = true; }
+  if (coins > 0) save.coins = Math.max(save.coins || 0, coins | 0);
+  grantLevelDogs(save); persist(); closeModal(); toast(`Framvinda endurheimt: borð ${board} opið 🐾`, 2600); if (scr === 'home') renderHome(); return true;
+}
 /* 3.5: 'Byrja upp á nýtt' (settings) – deletes every key the game stores (packleader.v2 save, the old packleader.v1
    save it would otherwise migrate from again, the packleader.daily cache) and reloads to a fresh game at home. */
 const STORE_PREFIX = 'packleader';
 function resetGame() {
+  try { const b = readJSON(BK_BEST), keep = b && progScore(b.save) > progScore(save) ? b.save : save; localStorage.setItem('bh.backup.reset', JSON.stringify({ at: Date.now(), ver: VERSION, save: keep })); localStorage.removeItem(BK_BEST); } catch (e) {}   // 4.3: undo-able from Stillingar (not offered automatically)
   resetting = true;
   for (const st of [localStorage, sessionStorage]) {
     try { for (const k of Object.keys(st)) if (k.startsWith(STORE_PREFIX)) st.removeItem(k); } catch (e) {}
@@ -3991,12 +4069,13 @@ function portraitURL(dog, locked) {
 const passed = id => !!save.stars[id] || !!(save.skipped && save.skipped[id]);
 function nextLevelId() { for (const l of PL.LEVELS) if (!passed(l.id)) return l.id; return PL.LEVELS[PL.LEVELS.length - 1].id; }
 function isUnlocked(id) { return id === 1 || passed(id - 1); }
+let homeRestoreAsked = false;
 function renderHome() {
   const n = nextLevelId();
   $('#hPlay').textContent = `▶ Spila – Borð ${n}`;
   $('#hVer').textContent = 'v' + VERSION;
   renderProgress(); renderDailyBtns(); if (save.playerName) statsSync();
-  if (save.owner == null) setTimeout(maybeOwnerPicker, 350); else setTimeout(maybeNamePicker, 400);   // 4.3: name for the stats   // 4.0: first launch – pick the dog owner (a person)
+  if (!homeRestoreAsked && backupInfo() && backupInfo().better) { homeRestoreAsked = true; setTimeout(() => { if (!$('#modal').classList.contains('on')) offerRestore(false); }, 300); } else if (save.owner == null) setTimeout(maybeOwnerPicker, 350); else setTimeout(maybeNamePicker, 400);   // 4.3: name for the stats   // 4.0: first launch – pick the dog owner (a person)
   $('#hTip').textContent = (!fsSupported() && !isStandalone() && isIOS()) ? 'Á iPhone: ýttu á Deila og veldu „Bæta við heimaskjá“ til að spila á fullum skjá.' : '';
 }
 function todayKey(d = new Date()) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
@@ -4233,6 +4312,10 @@ function bindUI() {
     if (b.dataset.owner != null) { pickOwner(+b.dataset.owner); return; }
     if (b.dataset.act === 'owner-ok') { confirmOwner(); return; }
     if (b.dataset.act === 'name-ok') { confirmName(); return; }
+    if (b.dataset.act === 'restore-yes' || b.dataset.act === 'restore-backup') { if (b.dataset.act === 'restore-backup') RESTORE_SRC = true; if (b.dataset.act === 'restore-backup' && !backupInfo(true)) { toast('Ekkert afrit fannst', 1800); return; } doRestore(); return; }
+    if (b.dataset.act === 'restore-no') { const i = backupInfo(); if (i) save.restoreDeclined = progScore(i.b.save); persist(); closeModal(); return; }
+    if (b.dataset.act === 'restore-ask') { offerRestore(true); return; }
+    if (b.dataset.act === 'mrestore-ok') { manualRestore(+document.getElementById('rsBoard').value, +document.getElementById('rsCoins').value); return; }
     if (b.dataset.act === 'name-skip') { skipName(); return; }
     if (b.dataset.act === 'name-edit') { showNamePicker(true); return; }
     if (b.dataset.act === 'stats-toggle') { toggleStats(); return; }
@@ -4634,6 +4717,7 @@ function showSettings() {
     <div class="set"><span>Hallastýring í Sæktu</span><button class="chip ${save.tilt !== false ? 'on' : ''}" data-set="tilt">${save.tilt !== false ? 'Á' : 'Af'}</button></div>
     <div class="set"><span>Hraði (1×–4×)</span><button class="chip on" data-set="speed">${save.speed || 1}×</button></div>
     ${statsSettingsHTML()}
+    <div class="set"><span>Afrit af vistun</span><button class="chip" data-act="restore-ask">💾 Endurheimta</button></div>
     <div class="fair big">💚 <b>Engin kaup fyrir alvöru peninga.</b><br>Allt í leiknum fæst með nammi sem þú vinnur þér inn með því að spila. Engar auglýsingar, ekkert happdrætti sem kostar, enginn tímamælir.</div>
     <div class="row"><button class="btn" data-act="close">Loka</button></div>
     <div class="dangerzone"><button class="btn danger small wide" data-act="reset-ask">🗑️ Byrja upp á nýtt</button><small>Eyðir allri framvindu – spurt er áður.</small></div>`);
@@ -7745,7 +7829,7 @@ if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) navigato
 // test/debug hook (read-only helpers)
 window.__pl = { version: VERSION, screen: () => scr, fsState: () => ({ armed: autoFsArmed, wanted: fsWanted, on: !!fsEl() }), game: () => G, finale: () => F, layout: () => L, laneX, slotPos, fview: () => fView(), launch: () => LAUNCH, save: () => save,
   // 3.5 test/screenshot helpers
-  dbg: { STATS, statsPayload, statsSync, statsCfgOk, showNamePicker, confirmName, maybeNamePicker, breedFirstBoard, nextSpeed, ECON, enterYard, drawTiltCaption: () => F && F.captionDrawn, showDog, luxToYard, startBonus, bonusSpin, bonusKind, slotOdds, WHEEL, YSLOTS, YITEMS, YSIZE, yChoices, fitsSlot, toggleYardFree, openSlot, OWNERS, showOwnerPicker, pickOwner, confirmOwner, SUPER, grantSuper, askSkip, skipLevel, TIERS, nextLevelId, isUnlocked, albumDogs, customPortraits: () => Object.keys(CUSTOM_PORTRAIT),
+  dbg: { progScore, mergeSaves, backupInfo, offerRestore, doRestore, manualRestore, showManualRestore, adoptStored, persist, STATS, statsPayload, statsSync, statsCfgOk, showNamePicker, confirmName, maybeNamePicker, breedFirstBoard, nextSpeed, ECON, enterYard, drawTiltCaption: () => F && F.captionDrawn, showDog, luxToYard, startBonus, bonusSpin, bonusKind, slotOdds, WHEEL, YSLOTS, YITEMS, YSIZE, yChoices, fitsSlot, toggleYardFree, openSlot, OWNERS, showOwnerPicker, pickOwner, confirmOwner, SUPER, grantSuper, askSkip, skipLevel, TIERS, nextLevelId, isUnlocked, albumDogs, customPortraits: () => Object.keys(CUSTOM_PORTRAIT),
     winNow: () => { if (!G) return; G.s.cells = G.s.cells.map(() => null); G.s.left = 0; G.bdirty = true; }, GEAR, HELPERS, buyYard, buyGear, buyHelper, useHelper, bombAt, bombTap, layout: () => L, game: () => G, equip, levelEarnings, finishLevel, bonus: () => B, yard: () => YD, setScreen, startLevel, startFinale, tapLane, makePackVis, closeModal, finaleDown, finaleUp, specialPreview, showBreeds, aimPath, view: () => ({ W, H }),
     yView: () => yView(), yardScroll, ySlots, cSlots, CSLOTS, YARDS, CABS, CAB_ITEMS, showYards, buyYardLevel, buyCabinet, buyCabItem, openCabinetShop, openCabinetPicker, careAction, giveTreat, yardTap, yardH, yardBox, ensureEcon, FEVENTS, POCKET, finaleConst: () => ({ GRAV, SHOT, PEG_E, WALL_E, MULTS }), routeSpy: f => { ROUTE_SPY = f; }, blockImg, drawHouse, landBall, pocketX, forceEvent: ev => { if (F) F.forceEv = ev; window.__forceEv = ev; },
     // 4.2 test hooks

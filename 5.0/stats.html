@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="is"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Betri Hundar – leikmenn</title>
+<style>
+body { margin: 0; font: 15px system-ui, Roboto, sans-serif; background: linear-gradient(#3a2690, #6a43c4 40%, #c064bc); color: #fff; min-height: 100vh; }
+main { max-width: 900px; margin: 0 auto; padding: 16px 10px 40px; }
+h1 { margin: 6px 0 2px; font-size: 26px; text-shadow: 0 2px 0 #2a1f3d; } p { margin: 4px 0 12px; opacity: .9; }
+.wrap { overflow-x: auto; background: rgba(255,248,230,.97); color: #2a1f3d; border-radius: 16px; box-shadow: 0 6px 0 rgba(0,0,0,.25); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; } th, td { padding: 8px 9px; text-align: right; white-space: nowrap; border-bottom: 1px solid #ead9b8; }
+th { background: #ffd23f; position: sticky; top: 0; cursor: pointer; } th:first-child, td:first-child { text-align: left; } td:first-child { font-weight: 800; }
+.msg { background: rgba(255,248,230,.97); color: #2a1f3d; border-radius: 16px; padding: 14px; } a { color: #ffd23f; }
+</style></head><body><main>
+<h1>🐾 Betri Hundar – leikmenn</h1>
+<p>Framvinda leikmanna sem völdu nafn í leiknum (útgáfa 4.3 og nýrri). Pikkaðu á dálkheiti til að raða.</p>
+<div id="out" class="msg">Hleð…</div>
+<p><a href="./">← Aftur í leikinn</a></p>
+</main>
+<script>
+const COLS = [['name', 'Nafn'], ['board_reached', 'Borð'], ['boards_won', 'Unnin borð'], ['stars', '★'], ['wins', 'Sigrar'], ['losses', 'Töp'], ['daily_played', 'Daglegar'], ['daily_won', 'Daglegar unnar'], ['dogs', 'Hundar'], ['last_played', 'Síðast'], ['version', 'Útg.']];
+const ok = c => c && c.provider === 'supabase' && /^https:\/\//.test(c.url || '') && c.anonKey && !/YOUR|DIN|PLACEHOLDER|<|xxx/i.test(c.url + c.anonKey);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const when = s => { if (!s) return ''; const d = new Date(s); return d.toLocaleDateString('is-IS', { day: 'numeric', month: 'short' }) + ' ' + d.toLocaleTimeString('is-IS', { hour: '2-digit', minute: '2-digit' }); };
+let rows = [], key = 'last_played', dir = -1;
+function render() {
+  const r = rows.slice().sort((a, b) => (a[key] > b[key] ? 1 : a[key] < b[key] ? -1 : 0) * dir);
+  document.getElementById('out').outerHTML = `<div id="out" class="wrap"><table><thead><tr>${COLS.map(([k, t]) => `<th data-k="${k}">${t}${k === key ? (dir < 0 ? ' ▼' : ' ▲') : ''}</th>`).join('')}</tr></thead><tbody>${r.map(x => `<tr>${COLS.map(([k]) => `<td>${k === 'last_played' ? when(x[k]) : esc(x[k])}</td>`).join('')}</tr>`).join('') || `<tr><td colspan="${COLS.length}">Enginn leikmaður ennþá.</td></tr>`}</tbody></table></div>`;
+  document.querySelectorAll('th').forEach(th => th.onclick = () => { const k = th.dataset.k; dir = k === key ? -dir : -1; key = k; render(); });
+}
+fetch('stats-config.json', { cache: 'no-store' }).then(r => r.json()).then(c => {
+  if (!ok(c)) { document.getElementById('out').innerHTML = 'Tölfræðiþjónninn er ekki tengdur ennþá (stats-config.json vantar Supabase slóð og lykil).'; return; }
+  return fetch(c.url.replace(/\/$/, '') + '/rest/v1/' + (c.table || 'players') + '?select=*&order=last_played.desc&limit=1000', { headers: { apikey: c.anonKey, Authorization: 'Bearer ' + c.anonKey } })
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(d => { rows = d; render(); });
+}).catch(e => { document.getElementById('out').innerHTML = 'Gat ekki sótt tölfræðina (' + esc(e.message) + ').'; });
+</script></body></html>

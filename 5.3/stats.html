@@ -38,7 +38,7 @@ select { font: 700 14px system-ui; padding: 6px; border-radius: 10px; }
 </main>
 <script>
 /* newest game version: change this one line when a new version is released */
-const GAME = '../5.3/';
+const GAME = '../5.31/';
 document.querySelectorAll('#gameB, #gameT').forEach(a => a.href = GAME);
 const PH = [['Borð', '🐶', 'Venjulegir'], ['Gullborð', '✨', 'Gull'], ['Platínuborð', '🤍', 'Platínu'], ['Safírborð', '🔷', 'Safír'], ['Smaragðsborð', '💚', 'Smaragðs'], ['Rúbínborð', '❤️', 'Rúbín'], ['Demantsborð', '💎', 'Demants'], ['Svartdemantsborð', '🖤', 'Svartdemants'], ['Norðurljósasteinsborð', '🌌', 'Norðurljósa'], ['Stjörnusteinsborð', '⭐', 'Stjörnu']];
 const ok = c => c && c.provider === 'supabase' && /^https:\/\//.test(c.url || '') && c.anonKey && !/YOUR|DIN|PLACEHOLDER|<|xxx/i.test(c.url + c.anonKey);
@@ -75,19 +75,24 @@ function view(x) {
   return v;
 }
 /* Heildarstig: everything the rows carry today (5.31 will also report mini games, dog show, agility and weekly history) */
-const W = { b: 10, g: 20, mStep: 10, dog: 5, star: 2, item: 15, yard: 50, cab: 10, gear: 5, dw: 20, dp: 5, wk: 50 };
+const W = { b: 10, g: 20, mStep: 10, dog: 5, star: 2, item: 15, yard: 50, cab: 10, gear: 5, dw: 20, dp: 5, wk: 50, mg: 5, sh: 10, shw: 20, mg1: 15, mg2: 10, mg3: 5 };   // 5.31: + mini games, dog shows, agility medals
 function overall(v, y) {
   const x = v.x, P = [], add = (t, n, pts) => { if (n > 0) P.push([t, n, Math.round(pts)]); };
   add('Venjuleg borð unnin', v.won[0], v.won[0] * W.b);
   for (let m = 0; m <= 8; m++) add(`${PH[m + 1][1]} ${PH[m + 1][0]} unnin`, v.won[m + 1], v.won[m + 1] * (W.g + m * W.mStep));
   add('Hundar (allir fasar)', v.tot, v.tot * W.dog);
   add('Stjörnur', v.st, v.st * W.star);
-  const items = y.slots && typeof y.slots === 'object' ? Object.keys(y.slots).length : 0; add('Hlutir í garðinum', items, items * W.item);
-  const yards = Math.max(0, Math.min(20, num(y.lvl))); add('Garðar keyptir', yards, yards * W.yard);
-  const cabs = y.cabs && typeof y.cabs === 'object' ? Object.keys(y.cabs).length : 0; add('Skápar', cabs, cabs * W.cab);
+  const s5 = y.s531 && typeof y.s531 === 'object' ? y.s531 : null;   // 5.31 lifetime numbers (older rows: estimated from the yard as before)
+  const items = s5 ? Math.max(0, Math.min(400, num(s5.it))) : y.slots && typeof y.slots === 'object' ? Object.keys(y.slots).length : 0; add('Hlutir í garðinum', items, items * W.item);
+  const yards = Math.max(0, Math.min(20, s5 ? num(s5.yl) - 1 : num(y.lvl))); add('Garðar keyptir', yards, yards * W.yard);
+  const cabs = s5 ? Math.max(0, Math.min(50, num(s5.cab))) : y.cabs && typeof y.cabs === 'object' ? Object.keys(y.cabs).length : 0; add('Skápar', cabs, cabs * W.cab);
   const gear = y.gear && typeof y.gear === 'object' ? Object.keys(y.gear).length : 0; add('Hundar með búnað', gear, gear * W.gear);
   const dw = num(x.daily_won), dp = Math.max(0, num(x.daily_played) - dw); add('Daglegar þrautir leystar', dw, dw * W.dw); add('Daglegar þrautir reyndar', dp, dp * W.dp);
-  if (v.wk && v.wk.won) add('Vikuáskorun leyst', 1, W.wk);
+  if (s5) { const wk = Math.max(0, Math.min(520, num(s5.wkw))); add('Vikuáskoranir leystar', wk, wk * W.wk);
+    const mg = Math.max(0, Math.min(1e5, num(s5.mg))); add('Smáleikir spilaðir', mg, mg * W.mg);
+    const sh = Math.max(0, Math.min(1e4, num(s5.sh))), shw = Math.max(0, Math.min(sh, num(s5.shw))); add('Hundasýningar', sh, sh * W.sh); add('Sigrar á hundasýningu', shw, shw * W.shw);
+    const md = s5.med && typeof s5.med === 'object' ? s5.med : {}, mc = k => Math.max(0, Math.min(1e4, num(md[k]))); add('Hundafimi 🥇', mc('g'), mc('g') * W.mg1); add('Hundafimi 🥈', mc('s'), mc('s') * W.mg2); add('Hundafimi 🥉', mc('b'), mc('b') * W.mg3); }
+  else if (v.wk && v.wk.won) add('Vikuáskorun leyst', 1, W.wk);
   return P;
 }
 const PHB = ['#8a7bb0', '#d9a400', '#8f9bb3', '#2f6fd6', '#16a05a', '#d23a4b', '#36b5d8', '#2a1f3d', '#7a3fd0', '#e08a00'];
@@ -105,7 +110,7 @@ const dogChips = v => v.dogs.map((n, i) => n ? `<span class="chip" title="${PH[i
 function renderBest() {
   const r = uniq().sort((a, b) => b.total - a.total || b.score - a.score).slice(0, 30);
   return `<div class="lb best"><h2>👑 Bestur í öllu · heildarstig</h2>
-    <div class="sub">Allt telur: unnin borð í öllum fösum (seinni fasar gefa meira: venjuleg ${W.b}, gull ${W.g}, platína ${W.g + W.mStep} … stjörnusteinn ${W.g + 8 * W.mStep} á borð), hundar ×${W.dog}, stjörnur ×${W.star}, hlutir í garði ×${W.item}, garðar ×${W.yard}, skápar ×${W.cab}, búnaður ×${W.gear}, daglegar þrautir leystar ×${W.dw} (reyndar ×${W.dp}), vikuáskorun ${W.wk}. Pikkaðu á nafn til að sjá sundurliðun.</div>
+    <div class="sub">Allt telur: unnin borð í öllum fösum (seinni fasar gefa meira: venjuleg ${W.b}, gull ${W.g}, platína ${W.g + W.mStep} … stjörnusteinn ${W.g + 8 * W.mStep} á borð), hundar ×${W.dog}, stjörnur ×${W.star}, hlutir í garði ×${W.item}, garðar ×${W.yard}, skápar ×${W.cab}, búnaður ×${W.gear}, daglegar þrautir leystar ×${W.dw} (reyndar ×${W.dp}), vikuáskoranir ${W.wk}, smáleikir ×${W.mg}, hundasýningar ×${W.sh} (sigur ×${W.shw}), hundafimi 🥇${W.mg1} 🥈${W.mg2} 🥉${W.mg3} (smáleikir, sýningar og fimi teljast frá útgáfu 5.31). Pikkaðu á nafn til að sjá sundurliðun.</div>
     <ol>${r.map((v, i) => `<li class="bx"><details><summary><span class="rk">${i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1}</span><span class="nm"><b>${esc(v.name)}</b>${badge(v)}</span><i>${v.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')} stig</i></summary>
       <table class="bd">${v.parts.map(q => `<tr><td>${esc(q[0])}</td><td>${q[1]}</td><td>${q[2].toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}</td></tr>`).join('')}<tr class="sum"><td>Samtals</td><td></td><td>${v.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}</td></tr></table>
       ${v.est ? '<div class="sub">≈ fasinn er áætlaður út frá hundunum því tækið sendi ekki nýjustu tölurnar.</div>' : ''}${devs(v) > 1 ? `<div class="sub">📱 ${devs(v)} tæki með þessu nafni – besta tækið gildir.</div>` : ''}</details></li>`).join('') || '<li>Enginn ennþá.</li>'}</ol></div>`;

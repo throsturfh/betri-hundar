@@ -1,0 +1,7 @@
+{
+  "provider": "supabase",
+  "url": "https://dvmufututcxyanfovikm.supabase.co",
+  "anonKey": "sb_publishable_SLYw8G5BqYlbUgB793AXfA_jEXCmX93",
+  "table": "players",
+  "_help": "Betri Hundar 4.3 tölfræði. Settu inn Project URL og anon public key úr Supabase (Project Settings -> API). provider 'none' slekkur á sendingu. Sjá stats-setup.sql."
+}

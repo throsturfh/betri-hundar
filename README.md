@@ -9,6 +9,13 @@ Eldri útgáfur:
 - 1.1: https://throsturfh.github.io/betri-hundar/1.1/
 - 4.3 (forskoðun): https://throsturfh.github.io/betri-hundar/4.3/ · leikmenn: https://throsturfh.github.io/betri-hundar/4.3/stats.html
 
+## 5.2 (/5.2/)
+- Engir túlípanar lengur (eitraðir hundum): túlípanabeð verða sólblóm, líka í eldri vistunum og heimsóknum.
+- 8 nýir fasar eftir gullborðin, 100 borð hver: Platína, Safír, Smaragður, Rúbín, Demantur, Svartur demantur, Norðurljósasteinn, Stjörnusteinn. Hver fasi heldur öllum römmum fyrri fasa og bætir við fleiri (hreiðraðir rammar), borgar meira bein, hefur sitt útlit og sína hundaútgáfu.
+- 8 ný erfiðleikastig ofan við Ragnarök (Goðsögn … Yggdrasill).
+- Allir 800 leysanlegir (sannað með leysara), 0 einnar-raðar sigrar, engar blindgötur.
+- Heimaspjöld: t.d. Platínuborð 5 / 100, Hundar upp í 1000.
+
 ## 5.1 (/5.1/)
 - Gullborð: litaðir rammar (líka hreiðraðir) í stað hengilása – aðeins hundar í lit rammans éta í gegn. Allir 100 leysanlegir, 0 einnar-raðar sigrar, engar blindgötur.
 - Kubbar hvers litar á gullborðum eins og ógegnsæir.

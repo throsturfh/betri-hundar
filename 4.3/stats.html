@@ -38,7 +38,7 @@ select { font: 700 14px system-ui; padding: 6px; border-radius: 10px; }
 </main>
 <script>
 /* newest game version: change this one line when a new version is released */
-const GAME = '../5.31/';
+const GAME = '../5.33/';
 document.querySelectorAll('#gameB, #gameT').forEach(a => a.href = GAME);
 const PH = [['Borð', '🐶', 'Venjulegir'], ['Gullborð', '✨', 'Gull'], ['Platínuborð', '🤍', 'Platínu'], ['Safírborð', '🔷', 'Safír'], ['Smaragðsborð', '💚', 'Smaragðs'], ['Rúbínborð', '❤️', 'Rúbín'], ['Demantsborð', '💎', 'Demants'], ['Svartdemantsborð', '🖤', 'Svartdemants'], ['Norðurljósasteinsborð', '🌌', 'Norðurljósa'], ['Stjörnusteinsborð', '⭐', 'Stjörnu']];
 const ok = c => c && c.provider === 'supabase' && /^https:\/\//.test(c.url || '') && c.anonKey && !/YOUR|DIN|PLACEHOLDER|<|xxx/i.test(c.url + c.anonKey);

@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="is"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Betri Hundar – leikmenn og stigatafla</title>
+<style>
+body { margin: 0; font: 15px system-ui, Roboto, sans-serif; background: linear-gradient(#3a2690, #6a43c4 40%, #c064bc); color: #fff; min-height: 100vh; }
+main { max-width: 980px; margin: 0 auto; padding: 16px 10px 40px; }
+h1 { margin: 6px 0 2px; font-size: 26px; text-shadow: 0 2px 0 #2a1f3d; } p { margin: 4px 0 12px; opacity: .9; }
+h2 { margin: 4px 0 8px; font-size: 18px; }
+.wrap { overflow-x: auto; background: rgba(255,248,230,.97); color: #2a1f3d; border-radius: 16px; box-shadow: 0 6px 0 rgba(0,0,0,.25); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; } th, td { padding: 8px 9px; text-align: right; white-space: nowrap; border-bottom: 1px solid #ead9b8; }
+th { background: #ffd23f; position: sticky; top: 0; cursor: pointer; } th:first-child, td:first-child { text-align: left; } td.n { text-align: left; font-weight: 800; }
+td.l, th.l { text-align: left; }
+.msg { background: rgba(255,248,230,.97); color: #2a1f3d; border-radius: 16px; padding: 14px; } a { color: #ffd23f; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 12px; }
+.tabs button { font: 800 14px system-ui, sans-serif; padding: 9px 14px; border-radius: 14px; border: 3px solid #2a1f3d; background: #fff8e6; color: #2a1f3d; cursor: pointer; box-shadow: 0 3px 0 #2a1f3d; }
+.tabs button.on { background: #ffd23f; transform: translateY(2px); box-shadow: 0 1px 0 #2a1f3d; }
+.lbs { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.lb { background: rgba(255,248,230,.97); color: #2a1f3d; border-radius: 16px; padding: 10px 12px 12px; box-shadow: 0 6px 0 rgba(0,0,0,.25); }
+.lb ol { margin: 0; padding: 0; list-style: none; } .lb li { display: flex; gap: 8px; align-items: baseline; padding: 5px 2px; border-bottom: 1px solid #ead9b8; }
+.lb li b { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .lb li i { font-style: normal; font-weight: 800; color: #6a43c4; white-space: nowrap; }
+.lb .rk { width: 26px; text-align: center; font-weight: 900; } .sub { font-size: 12px; opacity: .75; }
+.chip { display: inline-block; padding: 1px 6px; border-radius: 8px; background: #efe3ff; margin: 0 2px; font-size: 12px; }
+.ph { display: inline-block; padding: 2px 8px; border-radius: 10px; background: var(--c); color: #fff; font-weight: 800; font-size: 13px; white-space: nowrap; text-shadow: 0 1px 0 rgba(0,0,0,.35); }
+.lb .ph { font-size: 12px; } .best { margin-bottom: 12px; border: 3px solid #ffd23f; }
+.best li.bx { display: block; } .best summary { display: flex; gap: 8px; align-items: center; cursor: pointer; list-style: none; } .best summary::-webkit-details-marker { display: none; }
+.best summary .nm { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; } .best summary b { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .best summary i { font-style: normal; font-weight: 900; color: #6a43c4; }
+table.bd { width: auto; margin: 6px 0 4px 34px; font-size: 13px; } table.bd td { padding: 2px 8px; border: 0; } table.bd tr.sum td { font-weight: 900; border-top: 2px solid #ead9b8; }
+.gbtn { display: block; text-align: center; text-decoration: none; font: 900 20px system-ui, sans-serif; color: #2a1f3d; background: linear-gradient(#ffe36e, #ffc21a); border: 3px solid #2a1f3d; border-radius: 18px; box-shadow: 0 5px 0 #2a1f3d; padding: 16px; margin: 20px 0 6px; }
+.gbtn:active { transform: translateY(3px); box-shadow: 0 2px 0 #2a1f3d; } .gbtn.top { display: inline-block; font-size: 14px; padding: 7px 12px; margin: 0 0 6px; border-radius: 12px; box-shadow: 0 3px 0 #2a1f3d; }
+select { font: 700 14px system-ui; padding: 6px; border-radius: 10px; }
+</style></head><body><main>
+<a class="gbtn top" id="gameT" href="../5.3/">← 🐾 Í leikinn</a>
+<h1>🐾 Betri Hundar – leikmenn og stigatafla</h1>
+<p>Framvinda leikmanna sem völdu nafn í leiknum (útgáfa 4.3 og nýrri). Nýjustu tölurnar (fasar, gull- og eðalsteinahundar, vikuáskorun) koma frá útgáfu 5.3.</p>
+<div class="tabs" id="tabs"><button data-t="lb">🏅 Stigatafla</button><button data-t="wk">🏆 Vikuáskorun</button><button data-t="all">📋 Allir leikmenn</button></div>
+<div id="out" class="msg">Hleð…</div>
+<a class="gbtn big" id="gameB" href="../5.3/">🐾 Aftur í leikinn</a>
+</main>
+<script>
+/* newest game version: change this one line when a new version is released */
+const GAME = '../5.33/';
+document.querySelectorAll('#gameB, #gameT').forEach(a => a.href = GAME);
+const PH = [['Borð', '🐶', 'Venjulegir'], ['Gullborð', '✨', 'Gull'], ['Platínuborð', '🤍', 'Platínu'], ['Safírborð', '🔷', 'Safír'], ['Smaragðsborð', '💚', 'Smaragðs'], ['Rúbínborð', '❤️', 'Rúbín'], ['Demantsborð', '💎', 'Demants'], ['Svartdemantsborð', '🖤', 'Svartdemants'], ['Norðurljósasteinsborð', '🌌', 'Norðurljósa'], ['Stjörnusteinsborð', '⭐', 'Stjörnu']];
+const ok = c => c && c.provider === 'supabase' && /^https:\/\//.test(c.url || '') && c.anonKey && !/YOUR|DIN|PLACEHOLDER|<|xxx/i.test(c.url + c.anonKey);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const MON = ['jan.', 'feb.', 'mar.', 'apr.', 'maí', 'jún.', 'júl.', 'ágú.', 'sep.', 'okt.', 'nóv.', 'des.'], p2 = n => String(n).padStart(2, '0');
+const when = s => { if (!s) return ''; const d = new Date(s); if (isNaN(d)) return ''; return d.getDate() + '. ' + MON[d.getMonth()] + ' ' + p2(d.getHours()) + ':' + p2(d.getMinutes()); };
+function weekKeyOf(d) { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())), day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - day);
+  const y = t.getUTCFullYear(), w = Math.ceil(((t - Date.UTC(y, 0, 1)) / 864e5 + 1) / 7); return y + '-V' + String(w).padStart(2, '0'); }
+const fmtT = s => { s = s | 0; return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+const num = v => Number.isFinite(+v) ? +v : 0;
+/* one derived view per row: 5.3 rows carry yard.p53 (phase, board, wins + dogs per phase, stars); older rows (or a 5.3 row
+   whose yard was not re-sent) are derived from the old columns + yard.gd (gold dogs: one per gold board won) and yard.md
+   (dog -> highest material phase reached: a dog at phase m was won in every phase up to m) */
+function view(x) {
+  const y = x.yard && typeof x.yard === 'object' ? x.yard : {}, p = y.p53 && typeof y.p53 === 'object' ? y.p53 : null;
+  let cp, b, dogs, st, won, est = false;
+  if (p && Array.isArray(p.dogs)) {
+    cp = Math.max(-1, Math.min(8, p.cp | 0)); b = Math.max(1, Math.min(100, p.b | 0)); dogs = p.dogs.slice(0, 10).map(num); st = num(p.st); won = (p.won || []).slice(0, 10).map(num);
+  } else {
+    const gd = Array.isArray(y.gd) ? y.gd.length : 0, mv = y.md && typeof y.md === 'object' ? Object.values(y.md).map(num) : [];
+    won = [num(x.boards_won), Math.min(100, gd)]; for (let m = 1; m <= 8; m++) won.push(Math.min(100, mv.filter(v => v >= m).length));
+    dogs = [num(x.dogs), ...won.slice(1)]; st = num(x.stars);
+    cp = -1; for (let m = 8; m >= 0; m--) if (won[m + 1] > 0) { cp = m; break; }
+    b = cp >= 0 ? Math.min(100, won[cp + 1] + 1) : Math.max(1, Math.min(100, num(x.board_reached) || 1)); if (cp < 0 && won[0] >= 100) b = 100;
+    est = cp >= 0;
+  }
+  while (won.length < 10) won.push(0); while (dogs.length < 10) dogs.push(0);
+  const tot = dogs.reduce((a, v) => a + v, 0), done = (won[cp + 1] | 0) >= 100;
+  const label = `${PH[cp + 1][0]} ${done ? 100 : b} / 100${done ? ' ✓' : ''}`;
+  const score = (cp + 1) * 1000 + (done ? 100 : b) * 10 + (won[cp + 1] | 0) / 100;
+  const wk = y.wk && typeof y.wk === 'object' && /^\d{4}-V\d\d$/.test(y.wk.w || '') ? y.wk : null;
+  const v = { name: x.name || 'Leikmaður', label, score, cp, b, dogs, tot, st, won, wonAll: won.reduce((a, q) => a + q, 0), wk, est, last: x.last_played, version: x.version, x };
+  v.parts = overall(v, y); v.total = v.parts.reduce((a, q) => a + q[2], 0);
+  return v;
+}
+/* Heildarstig: everything the rows carry today (5.31 will also report mini games, dog show, agility and weekly history) */
+const W = { b: 10, g: 20, mStep: 10, dog: 5, star: 2, item: 15, yard: 50, cab: 10, gear: 5, dw: 20, dp: 5, wk: 50, mg: 5, sh: 10, shw: 20, mg1: 15, mg2: 10, mg3: 5 };   // 5.31: + mini games, dog shows, agility medals
+function overall(v, y) {
+  const x = v.x, P = [], add = (t, n, pts) => { if (n > 0) P.push([t, n, Math.round(pts)]); };
+  add('Venjuleg borð unnin', v.won[0], v.won[0] * W.b);
+  for (let m = 0; m <= 8; m++) add(`${PH[m + 1][1]} ${PH[m + 1][0]} unnin`, v.won[m + 1], v.won[m + 1] * (W.g + m * W.mStep));
+  add('Hundar (allir fasar)', v.tot, v.tot * W.dog);
+  add('Stjörnur', v.st, v.st * W.star);
+  const s5 = y.s531 && typeof y.s531 === 'object' ? y.s531 : null;   // 5.31 lifetime numbers (older rows: estimated from the yard as before)
+  const items = s5 ? Math.max(0, Math.min(400, num(s5.it))) : y.slots && typeof y.slots === 'object' ? Object.keys(y.slots).length : 0; add('Hlutir í garðinum', items, items * W.item);
+  const yards = Math.max(0, Math.min(20, s5 ? num(s5.yl) - 1 : num(y.lvl))); add('Garðar keyptir', yards, yards * W.yard);
+  const cabs = s5 ? Math.max(0, Math.min(50, num(s5.cab))) : y.cabs && typeof y.cabs === 'object' ? Object.keys(y.cabs).length : 0; add('Skápar', cabs, cabs * W.cab);
+  const gear = y.gear && typeof y.gear === 'object' ? Object.keys(y.gear).length : 0; add('Hundar með búnað', gear, gear * W.gear);
+  const dw = num(x.daily_won), dp = Math.max(0, num(x.daily_played) - dw); add('Daglegar þrautir leystar', dw, dw * W.dw); add('Daglegar þrautir reyndar', dp, dp * W.dp);
+  if (s5) { const wk = Math.max(0, Math.min(520, num(s5.wkw))); add('Vikuáskoranir leystar', wk, wk * W.wk);
+    const mg = Math.max(0, Math.min(1e5, num(s5.mg))); add('Smáleikir spilaðir', mg, mg * W.mg);
+    const sh = Math.max(0, Math.min(1e4, num(s5.sh))), shw = Math.max(0, Math.min(sh, num(s5.shw))); add('Hundasýningar', sh, sh * W.sh); add('Sigrar á hundasýningu', shw, shw * W.shw);
+    const md = s5.med && typeof s5.med === 'object' ? s5.med : {}, mc = k => Math.max(0, Math.min(1e4, num(md[k]))); add('Hundafimi 🥇', mc('g'), mc('g') * W.mg1); add('Hundafimi 🥈', mc('s'), mc('s') * W.mg2); add('Hundafimi 🥉', mc('b'), mc('b') * W.mg3); }
+  else if (v.wk && v.wk.won) add('Vikuáskorun leyst', 1, W.wk);
+  return P;
+}
+const PHB = ['#8a7bb0', '#d9a400', '#8f9bb3', '#2f6fd6', '#16a05a', '#d23a4b', '#36b5d8', '#2a1f3d', '#7a3fd0', '#e08a00'];
+const badge = v => `<span class="ph" style="--c:${PHB[v.cp + 1]}">${PH[v.cp + 1][1]} ${esc(v.label)}${v.est ? ' <span title="Áætlað út frá hundunum (tækið sendi ekki fasann)">≈</span>' : ''}</span>`;
+const nkey = s => String(s || '').trim().toLowerCase();
+/* the same name on several devices (each device has its own random player id) counts once on the lists: its best row */
+function uniq() { const m = new Map(); for (const v of V) { const k = nkey(v.name), o = m.get(k); if (!o || v.total > o.total) m.set(k, v); } return [...m.values()]; }
+const devs = v => V.filter(o => nkey(o.name) === nkey(v.name)).length;
+let rows = [], V = [], tab = (location.hash || '#lb').slice(1), key = 'total', dir = -1, wsel = weekKeyOf(new Date());
+function lb(title, sub, list, fmt, cls) {
+  return `<div class="lb ${cls || ''}"><h2>${title}</h2><div class="sub">${sub}</div><ol>${list.map((v, i) => `<li><span class="rk">${i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1}</span><b>${esc(v.name)}</b><i>${fmt(v)}</i></li>`).join('') || '<li>Enginn ennþá.</li>'}</ol></div>`;
+}
+const topN = (f) => uniq().sort(f).slice(0, 20);
+const dogChips = v => v.dogs.map((n, i) => n ? `<span class="chip" title="${PH[i][2]}">${PH[i][1]} ${n}</span>` : '').join('');
+function renderBest() {
+  const r = uniq().sort((a, b) => b.total - a.total || b.score - a.score).slice(0, 30);
+  return `<div class="lb best"><h2>👑 Bestur í öllu · heildarstig</h2>
+    <div class="sub">Allt telur: unnin borð í öllum fösum (seinni fasar gefa meira: venjuleg ${W.b}, gull ${W.g}, platína ${W.g + W.mStep} … stjörnusteinn ${W.g + 8 * W.mStep} á borð), hundar ×${W.dog}, stjörnur ×${W.star}, hlutir í garði ×${W.item}, garðar ×${W.yard}, skápar ×${W.cab}, búnaður ×${W.gear}, daglegar þrautir leystar ×${W.dw} (reyndar ×${W.dp}), vikuáskoranir ${W.wk}, smáleikir ×${W.mg}, hundasýningar ×${W.sh} (sigur ×${W.shw}), hundafimi 🥇${W.mg1} 🥈${W.mg2} 🥉${W.mg3} (smáleikir, sýningar og fimi teljast frá útgáfu 5.31). Pikkaðu á nafn til að sjá sundurliðun.</div>
+    <ol>${r.map((v, i) => `<li class="bx"><details><summary><span class="rk">${i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1}</span><span class="nm"><b>${esc(v.name)}</b>${badge(v)}</span><i>${v.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')} stig</i></summary>
+      <table class="bd">${v.parts.map(q => `<tr><td>${esc(q[0])}</td><td>${q[1]}</td><td>${q[2].toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}</td></tr>`).join('')}<tr class="sum"><td>Samtals</td><td></td><td>${v.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}</td></tr></table>
+      ${v.est ? '<div class="sub">≈ fasinn er áætlaður út frá hundunum því tækið sendi ekki nýjustu tölurnar.</div>' : ''}${devs(v) > 1 ? `<div class="sub">📱 ${devs(v)} tæki með þessu nafni – besta tækið gildir.</div>` : ''}</details></li>`).join('') || '<li>Enginn ennþá.</li>'}</ol></div>`;
+}
+function renderLB() {
+  return `${renderBest()}<div class="lbs">${lb('🚀 Lengst komin', 'fasi og borð', topN((a, b) => b.score - a.score), v => badge(v))}
+    ${lb('🏁 Flest unnin borð', 'öll borð í öllum fösum', topN((a, b) => b.wonAll - a.wonAll), v => v.wonAll + ' borð')}
+    ${lb('🐶 Flestir hundar', 'venjulegir + gull- og eðalsteinahundar', topN((a, b) => b.tot - a.tot), v => v.tot + ' 🐶')}
+    ${lb('⭐ Flestar stjörnur', 'öll borð í öllum fösum', topN((a, b) => b.st - a.st), v => v.st + ' ★')}
+    ${lb('🧩 Daglegar þrautir', 'leystar', topN((a, b) => num(b.x.daily_won) - num(a.x.daily_won)).filter(v => num(v.x.daily_won) > 0), v => num(v.x.daily_won) + ' leystar')}</div>`;
+}
+function renderWK() {
+  const weeks = [...new Set([wsel, ...V.filter(v => v.wk).map(v => v.wk.w)])].sort().reverse();
+  const r = V.filter(v => v.wk && v.wk.w === wsel).sort((a, b) => (b.wk.won | 0) - (a.wk.won | 0) || (b.wk.st | 0) - (a.wk.st | 0) || (a.wk.mv | 0) - (b.wk.mv | 0) || (a.wk.t | 0) - (b.wk.t | 0));
+  return `<div class="lb"><h2>🏆 Vikuáskorun · <select id="wsel">${weeks.map(w => `<option value="${w}"${w === wsel ? ' selected' : ''}>Vika ${+w.split('-V')[1]} (${w.slice(0, 4)})</option>`).join('')}</select></h2>
+    <div class="sub">Sama borðið hjá öllum alla vikuna (mánudagur–sunnudagur). Röðun: leyst, flestar ★, fæst pikk, stystur tími.</div>
+    <ol>${r.map((v, i) => `<li><span class="rk">${v.wk.won ? (i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1) : '–'}</span><b>${esc(v.name)}</b><i>${v.wk.won ? `${'★'.repeat(v.wk.st | 0)} · ${v.wk.mv | 0} pikk · ${fmtT(v.wk.t)}` : 'ekki leyst ennþá'} <span class="sub">(${v.wk.n | 0} tilr.)</span></i></li>`).join('') || '<li>Enginn hefur reynt þessa viku ennþá.</li>'}</ol></div>`;
+}
+const COLS = [['name', 'Nafn'], ['label', 'Fasi / borð'], ['total', 'Heildarstig'], ['wonAll', 'Unnin borð'], ['tot', 'Hundar'], ['dogsby', 'Hundar eftir fasa'], ['st', '★'], ['wins', 'Sigrar'], ['losses', 'Töp'], ['daily_played', 'Daglegar'], ['daily_won', 'Daglegar unnar'], ['last', 'Síðast'], ['version', 'Útg.']];
+const val = (v, k) => k === 'label' ? v.score : k === 'dogsby' ? v.tot : k in v ? v[k] : v.x[k];
+function renderAll() {
+  const r = V.slice().sort((a, b) => { const p = val(a, key), q = val(b, key); return (p > q ? 1 : p < q ? -1 : 0) * dir; });
+  return `<div class="wrap"><table><thead><tr>${COLS.map(([k, t]) => `<th data-k="${k}" class="${k === 'dogsby' ? 'l' : ''}">${t}${k === key ? (dir < 0 ? ' ▼' : ' ▲') : ''}</th>`).join('')}</tr></thead><tbody>${r.map(v => `<tr>${COLS.map(([k]) =>
+    k === 'name' ? `<td class="n">${esc(v.name)}${devs(v) > 1 ? ' <span class="sub" title="Sama nafn á fleiri tækjum">📱</span>' : ''}</td>` : k === 'label' ? `<td>${badge(v)}</td>` : k === 'last' ? `<td>${when(v.last)}</td>` : k === 'dogsby' ? `<td class="l">${dogChips(v)}</td>` : `<td>${esc(k in v ? v[k] : v.x[k])}</td>`).join('')}</tr>`).join('') || `<tr><td colspan="${COLS.length}">Enginn leikmaður ennþá.</td></tr>`}</tbody></table></div>`;
+}
+function render() {
+  if (!['lb', 'wk', 'all'].includes(tab)) tab = 'lb';
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === tab));
+  const o = document.getElementById('out'); o.className = tab === 'all' ? '' : ''; o.innerHTML = tab === 'lb' ? renderLB() : tab === 'wk' ? renderWK() : renderAll();
+  document.querySelectorAll('th[data-k]').forEach(th => th.onclick = () => { const k = th.dataset.k; dir = k === key ? -dir : -1; key = k; render(); });
+  const ws = document.getElementById('wsel'); if (ws) ws.onchange = () => { wsel = ws.value; render(); };
+}
+document.getElementById('tabs').onclick = e => { const b = e.target.closest('button'); if (!b) return; tab = b.dataset.t; history.replaceState(null, '', '#' + tab); if (rows.length || V.length) render(); };
+function load(data) { rows = Array.isArray(data) ? data : []; V = rows.map(view); render(); }
+window.__statsLoad = load;   // tests / screenshots feed sample rows
+fetch('stats-config.json', { cache: 'no-store' }).then(r => r.json()).then(c => {
+  if (!ok(c)) { document.getElementById('out').innerHTML = 'Tölfræðiþjónninn er ekki tengdur ennþá (stats-config.json vantar Supabase slóð og lykil).'; return; }
+  return fetch(c.url.replace(/\/$/, '') + '/rest/v1/' + (c.table || 'players') + '?select=*&order=last_played.desc&limit=1000', { headers: { apikey: c.anonKey, Authorization: 'Bearer ' + c.anonKey } })
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(load);
+}).catch(e => { if (!V.length) document.getElementById('out').innerHTML = 'Gat ekki sótt tölfræðina (' + esc(e.message) + ').'; });
+</script></body></html>

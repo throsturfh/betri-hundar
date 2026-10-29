@@ -9331,7 +9331,7 @@ function s531Snap() {
    (VISIT.v60, cleaned by clean60 in v60_net.js); while visiting nothing of yours changes. ===== */
 function ensure60(d) {   // literals only (runs while the save loads)
   const v = d.v60 = d.v60 && typeof d.v60 === 'object' && !Array.isArray(d.v60) ? d.v60 : {};
-  for (const f of ['up', 'areas', 'wear', 'tricks', 'deco', 'decoOn', 'inv', 'boost', 'vil', 'fr', 'frDay', 'bred', 'exp', 'gclaim', 'gsent', 'gday', 'show', 'tro', 'tripDone', 'seen', 'expFirst', 'grOut', 'ref601'])
+  for (const f of ['up', 'areas', 'wear', 'tricks', 'deco', 'decoOn', 'inv', 'boost', 'vil', 'fr', 'frDay', 'bred', 'exp', 'gclaim', 'gsent', 'gday', 'show', 'tro', 'tripDone', 'seen', 'expFirst', 'grOut', 'ref601', 'thx601'])
     v[f] = v[f] && typeof v[f] === 'object' && !Array.isArray(v[f]) ? v[f] : {};
   for (const f of ['pups', 'trips', 'friends', 'dogs60', 'out']) v[f] = Array.isArray(v[f]) ? v[f] : [];
   v.main = Number.isInteger(v.main) && v.main >= 0 && v.main <= 6 ? v.main : 0;
@@ -9345,7 +9345,7 @@ function merge60(m, o) {   // mergeSaves: keep everything of both
   if (!o || !o.v60 || typeof o.v60 !== 'object') return; ensure60(m); const a = m.v60, b = ensure60({ v60: JSON.parse(JSON.stringify(o.v60)) }).v60;
   const maxMap = f => { for (const k in b[f]) if (typeof b[f][k] === 'number') a[f][k] = Math.max(+a[f][k] || 0, b[f][k]); };
   const fill = f => { for (const k in b[f]) if (a[f][k] == null) a[f][k] = b[f][k]; };
-  for (const f of ['up', 'areas', 'deco', 'vil', 'fr', 'exp', 'inv', 'gsent', 'tro', 'tripDone', 'bred', 'gclaim', 'seen', 'expFirst', 'frDay', 'gday', 'ref601']) maxMap(f);
+  for (const f of ['up', 'areas', 'deco', 'vil', 'fr', 'exp', 'inv', 'gsent', 'tro', 'tripDone', 'bred', 'gclaim', 'seen', 'expFirst', 'frDay', 'gday', 'ref601', 'thx601']) maxMap(f);
   if (!Array.isArray(a.ord) && Array.isArray(b.ord)) a.ord = b.ord.slice(0, 8);
   for (const f of ['wear', 'decoOn', 'show', 'boost']) fill(f);
   for (const k in b.tricks) { const x = a.tricks[k] = a.tricks[k] && typeof a.tricks[k] === 'object' ? a.tricks[k] : {}; for (const t in b.tricks[k] || {}) if (b.tricks[k][t]) x[t] = 1; }
@@ -10510,7 +10510,21 @@ document.addEventListener('click', e => {
 });
 (function () { const st = document.createElement('style'); st.textContent = `.v601ord{display:flex;flex-direction:column;gap:6px;margin:8px 0}.v601o{display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(255,255,255,.75);border:2px solid #2a1f3d;border-radius:12px;padding:6px 8px;text-align:left}.v601o.first{background:#fff3b0}.v601o b{font-size:14px}.v601o span{display:flex;gap:4px}.v601o .btn{min-width:40px;padding:6px 8px;margin:0}.v601o .btn[disabled]{opacity:.35}.v601tabs{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;margin:4px 0 8px}.v601tabs .btn{font-size:12px;padding:7px 2px;margin:0;white-space:nowrap}`; document.head.appendChild(st); })();
 setInterval(() => { try { refund601(); } catch (e) {} }, 5000);   // also after a cloud merge brought old areas in
-const V601DBG = () => ({ order: yardOrder601, setOrd: setOrd601, segs: yardSegs601, n2d: yN2D601, d2n: yD2N601, openOrder: openOrder601, ordMove: ordMove601, refund: refund601, REF601, AREAS60, DIST601, distOpen: distOpen601, distSum: distSum601,
+
+/* ---------- hotfix: a one-time thank-you for playing the platinum and sapphire boards ---------- */
+const THX601 = MATS.slice(1).map((M, i) => ({ k: String(i + 1), m: i + 1, n: 50000 * (i + 1), txt: `Þú ert komin(n) í ${M.b.toLowerCase()}in – vel gert!` }));   // 50k, 100k … 400k
+function thanks601() {
+  if (VISIT || !save || !save.v5 || !save.v60) return 0; if ($('#modal').classList.contains('on')) return 0;   // wait until no other window is open
+  const t = save.v60.thx601 = save.v60.thx601 || {}, mph = save.v5.mph | 0, got = THX601.filter(g => mph >= g.m && !t[g.k]);
+  if (!got.length) return 0; let n = 0; for (const g of got) { t[g.k] = 1; n += g.n; }
+  save.coins += n; persist(); try { Snd.coin(); } catch (e) {} try { updateCoins(); } catch (e) {}
+  openModal(`<h2>💛 Takk fyrir að spila!</h2>${got.map(g => `<p>${MATS[g.m].ic} ${g.txt}<br><b>🦴 ${fmt60(g.n)} bein</b> að gjöf frá okkur.</p>`).join('')}
+    <p class="tipsmall">Bara gaman að hafa þig með. Njóttu beinanna!</p><div class="row"><button class="btn green" data-thx601="ok">Takk! 🐾</button></div>`);
+  return n;
+}
+document.addEventListener('click', e => { if (e.target.closest('[data-thx601]')) { Snd.tap(); closeModal(); } });
+setInterval(() => { try { thanks601(); } catch (e) {} }, 5000);
+const V601DBG = () => ({ thanks: thanks601, THX601,  order: yardOrder601, setOrd: setOrd601, segs: yardSegs601, n2d: yN2D601, d2n: yD2N601, openOrder: openOrder601, ordMove: ordMove601, refund: refund601, REF601, AREAS60, DIST601, distOpen: distOpen601, distSum: distSum601,
   openVillage: d => openVillage60(d), agents: () => VAG601, step: (d, dt) => stepVillage601(d, dt), bakery: bakeryClaim601, trickPrice: trickPrice601, tripMs: tripMs60, pupCap: () => PUP60.cap, VIL60, upVil: upVil60, hap: hap60, tripLoot: tripLoot60, bankExp: bankExp60, lh: () => LH601 });
 
 /* ===== Boot, canvas, input, main loop ===== */
@@ -10590,7 +10604,7 @@ function frame(now) {
 }
 window.addEventListener('resize', resize);
 if (window.visualViewport) visualViewport.addEventListener('resize', resize);
-bindUI(); resize(); setScreen('home'); setTimeout(prewarmDaily, 1200); cloudFromHash(); setTimeout(() => { try { refund601(); } catch (e) {} }, 900);   // 6.01: bones back for the removed areas
+bindUI(); resize(); setScreen('home'); setTimeout(prewarmDaily, 1200); cloudFromHash(); setTimeout(() => { try { refund601(); } catch (e) {} }, 900); setTimeout(() => { try { thanks601(); } catch (e) {} }, 1600);   // 6.01: bones back for the removed areas
 requestAnimationFrame(frame);
 // Android back button -> in-game back
 try { history.replaceState({ pl: 0 }, ''); history.pushState({ pl: 1 }, ''); } catch (e) {}

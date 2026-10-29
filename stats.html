@@ -18,6 +18,7 @@ td.l, th.l { text-align: left; }
 .lb { background: rgba(255,248,230,.97); color: #2a1f3d; border-radius: 16px; padding: 10px 12px 12px; box-shadow: 0 6px 0 rgba(0,0,0,.25); }
 .lb ol { margin: 0; padding: 0; list-style: none; } .lb li { display: flex; gap: 8px; align-items: baseline; padding: 5px 2px; border-bottom: 1px solid #ead9b8; }
 .lb li b { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .lb li i { font-style: normal; font-weight: 800; color: #6a43c4; white-space: nowrap; }
+.f60.g { padding: 1px 6px; border-radius: 8px; border: 2px solid #e0a800; background: linear-gradient(90deg, #fff3b0, #ffd23f, #fff3b0); box-shadow: 0 0 6px rgba(255,190,0,.7); } .f60.l { border-color: #b46cff; box-shadow: 0 0 8px rgba(180,108,255,.8); } .t60 { font-size: 11px; font-weight: 800; color: #8a5a00; white-space: nowrap; }
 .lb .rk { width: 26px; text-align: center; font-weight: 900; } .sub { font-size: 12px; opacity: .75; }
 .chip { display: inline-block; padding: 1px 6px; border-radius: 8px; background: #efe3ff; margin: 0 2px; font-size: 12px; }
 .ph { display: inline-block; padding: 2px 8px; border-radius: 10px; background: var(--c); color: #fff; font-weight: 800; font-size: 13px; white-space: nowrap; text-shadow: 0 1px 0 rgba(0,0,0,.35); }
@@ -71,6 +72,7 @@ function view(x) {
   const score = (cp + 1) * 1000 + (done ? 100 : b) * 10 + (won[cp + 1] | 0) / 100;
   const wk = y.wk && typeof y.wk === 'object' && /^\d{4}-V\d\d$/.test(y.wk.w || '') ? y.wk : null;
   const v = { name: x.name || 'Leikmaður', label, score, cp, b, dogs, tot, st, won, wonAll: won.reduce((a, q) => a + q, 0), wk, est, last: x.last_played, version: x.version, x };
+  const s60 = y.v60 && typeof y.v60 === 'object' && y.v60.st && typeof y.v60.st === 'object' ? y.v60.st : null; v.t60 = s60 ? Math.max(0, Math.min(4, num(s60.t))) : -1;   // 6.0 title (Staðan mín)
   v.parts = overall(v, y); v.total = v.parts.reduce((a, q) => a + q[2], 0);
   return v;
 }
@@ -103,7 +105,7 @@ function uniq() { const m = new Map(); for (const v of V) { const k = nkey(v.nam
 const devs = v => V.filter(o => nkey(o.name) === nkey(v.name)).length;
 let rows = [], V = [], tab = (location.hash || '#lb').slice(1), key = 'total', dir = -1, wsel = weekKeyOf(new Date());
 function lb(title, sub, list, fmt, cls) {
-  return `<div class="lb ${cls || ''}"><h2>${title}</h2><div class="sub">${sub}</div><ol>${list.map((v, i) => `<li><span class="rk">${i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1}</span><b>${esc(v.name)}</b><i>${fmt(v)}</i></li>`).join('') || '<li>Enginn ennþá.</li>'}</ol></div>`;
+  return `<div class="lb ${cls || ''}"><h2>${title}</h2><div class="sub">${sub}</div><ol>${list.map((v, i) => `<li><span class="rk">${i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1}</span><b>${nm60(v)}</b><i>${fmt(v)}</i></li>`).join('') || '<li>Enginn ennþá.</li>'}</ol></div>`;
 }
 const topN = (f) => uniq().sort(f).slice(0, 20);
 const dogChips = v => v.dogs.map((n, i) => n ? `<span class="chip" title="${PH[i][2]}">${PH[i][1]} ${n}</span>` : '').join('');
@@ -111,7 +113,7 @@ function renderBest() {
   const r = uniq().sort((a, b) => b.total - a.total || b.score - a.score).slice(0, 30);
   return `<div class="lb best"><h2>👑 Bestur í öllu · heildarstig</h2>
     <div class="sub">Allt telur: unnin borð í öllum fösum (seinni fasar gefa meira: venjuleg ${W.b}, gull ${W.g}, platína ${W.g + W.mStep} … stjörnusteinn ${W.g + 8 * W.mStep} á borð), hundar ×${W.dog}, stjörnur ×${W.star}, hlutir í garði ×${W.item}, garðar ×${W.yard}, skápar ×${W.cab}, búnaður ×${W.gear}, daglegar þrautir leystar ×${W.dw} (reyndar ×${W.dp}), vikuáskoranir ${W.wk}, smáleikir ×${W.mg}, hundasýningar ×${W.sh} (sigur ×${W.shw}), hundafimi 🥇${W.mg1} 🥈${W.mg2} 🥉${W.mg3} (smáleikir, sýningar og fimi teljast frá útgáfu 5.31). Pikkaðu á nafn til að sjá sundurliðun.</div>
-    <ol>${r.map((v, i) => `<li class="bx"><details><summary><span class="rk">${i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1}</span><span class="nm"><b>${esc(v.name)}</b>${badge(v)}</span><i>${v.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')} stig</i></summary>
+    <ol>${r.map((v, i) => `<li class="bx"><details><summary><span class="rk">${i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1}</span><span class="nm"><b>${nm60(v)}</b>${badge(v)}</span><i>${v.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')} stig</i></summary>
       <table class="bd">${v.parts.map(q => `<tr><td>${esc(q[0])}</td><td>${q[1]}</td><td>${q[2].toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}</td></tr>`).join('')}<tr class="sum"><td>Samtals</td><td></td><td>${v.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}</td></tr></table>
       ${v.est ? '<div class="sub">≈ fasinn er áætlaður út frá hundunum því tækið sendi ekki nýjustu tölurnar.</div>' : ''}${devs(v) > 1 ? `<div class="sub">📱 ${devs(v)} tæki með þessu nafni – besta tækið gildir.</div>` : ''}</details></li>`).join('') || '<li>Enginn ennþá.</li>'}</ol></div>`;
 }
@@ -127,14 +129,16 @@ function renderWK() {
   const r = V.filter(v => v.wk && v.wk.w === wsel).sort((a, b) => (b.wk.won | 0) - (a.wk.won | 0) || (b.wk.st | 0) - (a.wk.st | 0) || (a.wk.mv | 0) - (b.wk.mv | 0) || (a.wk.t | 0) - (b.wk.t | 0));
   return `<div class="lb"><h2>🏆 Vikuáskorun · <select id="wsel">${weeks.map(w => `<option value="${w}"${w === wsel ? ' selected' : ''}>Vika ${+w.split('-V')[1]} (${w.slice(0, 4)})</option>`).join('')}</select></h2>
     <div class="sub">Sama borðið hjá öllum alla vikuna (mánudagur–sunnudagur). Röðun: leyst, flestar ★, fæst pikk, stystur tími.</div>
-    <ol>${r.map((v, i) => `<li><span class="rk">${v.wk.won ? (i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1) : '–'}</span><b>${esc(v.name)}</b><i>${v.wk.won ? `${'★'.repeat(v.wk.st | 0)} · ${v.wk.mv | 0} pikk · ${fmtT(v.wk.t)}` : 'ekki leyst ennþá'} <span class="sub">(${v.wk.n | 0} tilr.)</span></i></li>`).join('') || '<li>Enginn hefur reynt þessa viku ennþá.</li>'}</ol></div>`;
+    <ol>${r.map((v, i) => `<li><span class="rk">${v.wk.won ? (i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1) : '–'}</span><b>${nm60(v)}</b><i>${v.wk.won ? `${'★'.repeat(v.wk.st | 0)} · ${v.wk.mv | 0} pikk · ${fmtT(v.wk.t)}` : 'ekki leyst ennþá'} <span class="sub">(${v.wk.n | 0} tilr.)</span></i></li>`).join('') || '<li>Enginn hefur reynt þessa viku ennþá.</li>'}</ol></div>`;
 }
 const COLS = [['name', 'Nafn'], ['label', 'Fasi / borð'], ['total', 'Heildarstig'], ['wonAll', 'Unnin borð'], ['tot', 'Hundar'], ['dogsby', 'Hundar eftir fasa'], ['st', '★'], ['wins', 'Sigrar'], ['losses', 'Töp'], ['daily_played', 'Daglegar'], ['daily_won', 'Daglegar unnar'], ['last', 'Síðast'], ['version', 'Útg.']];
 const val = (v, k) => k === 'label' ? v.score : k === 'dogsby' ? v.tot : k in v ? v[k] : v.x[k];
+const T60 = ['Hvolpur', 'Hundavinur', 'Hundaþjálfari', 'Hundameistari', 'Hundagoðsögn'];   // 6.0: title + gold frame (Hundameistari and up)
+const nm60 = v => v.t60 >= 0 ? `<span class="f60${v.t60 >= 3 ? ' g' : ''}${v.t60 >= 4 ? ' l' : ''}">${esc(v.name)}</span> <span class="t60">${v.t60 >= 3 ? '🏅 ' : ''}${T60[v.t60]}</span>` : esc(v.name);
 function renderAll() {
   const r = V.slice().sort((a, b) => { const p = val(a, key), q = val(b, key); return (p > q ? 1 : p < q ? -1 : 0) * dir; });
   return `<div class="wrap"><table><thead><tr>${COLS.map(([k, t]) => `<th data-k="${k}" class="${k === 'dogsby' ? 'l' : ''}">${t}${k === key ? (dir < 0 ? ' ▼' : ' ▲') : ''}</th>`).join('')}</tr></thead><tbody>${r.map(v => `<tr>${COLS.map(([k]) =>
-    k === 'name' ? `<td class="n">${esc(v.name)}${devs(v) > 1 ? ' <span class="sub" title="Sama nafn á fleiri tækjum">📱</span>' : ''}</td>` : k === 'label' ? `<td>${badge(v)}</td>` : k === 'last' ? `<td>${when(v.last)}</td>` : k === 'dogsby' ? `<td class="l">${dogChips(v)}</td>` : `<td>${esc(k in v ? v[k] : v.x[k])}</td>`).join('')}</tr>`).join('') || `<tr><td colspan="${COLS.length}">Enginn leikmaður ennþá.</td></tr>`}</tbody></table></div>`;
+    k === 'name' ? `<td class="n">${nm60(v)}${devs(v) > 1 ? ' <span class="sub" title="Sama nafn á fleiri tækjum">📱</span>' : ''}</td>` : k === 'label' ? `<td>${badge(v)}</td>` : k === 'last' ? `<td>${when(v.last)}</td>` : k === 'dogsby' ? `<td class="l">${dogChips(v)}</td>` : `<td>${esc(k in v ? v[k] : v.x[k])}</td>`).join('')}</tr>`).join('') || `<tr><td colspan="${COLS.length}">Enginn leikmaður ennþá.</td></tr>`}</tbody></table></div>`;
 }
 function render() {
   if (!['lb', 'wk', 'all'].includes(tab)) tab = 'lb';

@@ -1,11 +1,11 @@
 /* Betri Hundar service worker: network-first, falls back to cache when offline. */
-const CACHE = 'betri-hundar-root-5.34';   // bump with every release (1.0 used 'betri-hundar-v3', 1.1 'betri-hundar-1.1')
+const CACHE = 'betri-hundar-root-6.01';   // bump with every release (1.0 used 'betri-hundar-v3', 1.1 'betri-hundar-1.1')
 const CORE = ['./', './index.html', './manifest.json', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE && (k.startsWith('betri-hundar-root') || k === 'betri-hundar-1.1' || k === 'betri-hundar-v3')).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
 self.addEventListener('fetch', e => {
   const req = e.request;

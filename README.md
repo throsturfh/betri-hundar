@@ -2,7 +2,7 @@
 
 Púsluleikur um hunda fyrir símann.
 
-Spila: https://throsturfh.github.io/betri-hundar/ (rótin er nú 5.34; 1.1 er áfram á /1.1/)
+Spila: https://throsturfh.github.io/betri-hundar/ (rótin er nú 6.01; 5.34 er áfram á /5.34/)
 
 Eldri útgáfur:
 - 1.0: https://throsturfh.github.io/betri-hundar/1.0/

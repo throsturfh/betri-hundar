@@ -543,7 +543,7 @@ svg.svgi { width: 1.05em; height: 1.05em; vertical-align: -0.16em; margin-right:
         <button class="btn quit small" id="hQuit"><svg class="svgi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M12 3v8"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg> Hætta leik</button>
       </div>
       <div class="tipline" id="hTip"></div>
-      <div class="ver" id="hVer">v6.01</div>
+      <div class="ver" id="hVer">v6.02</div>
     </section>
     <section id="bye" class="screen">
       <img class="byedog" id="byeDog" alt="">
@@ -3838,7 +3838,7 @@ const PL = (function () {
 'use strict';
 /* ===== DOM screens, modals, fullscreen, persistence ===== */
 const $ = s => document.querySelector(s);
-const VERSION = '6.01';   // Betri Hundar 6.01 (shown on the home screen; bump sw.js CACHE together with this)
+const VERSION = '6.02';   // Betri Hundar 6.02 (shown on the home screen; bump sw.js CACHE together with this)
 const SAVE_KEY = 'packleader.v2';
 /* 4.3 save safety. All versions (1.0 … 4.3, different folders) share this origin and the key packleader.v2, and every
    version writes its WHOLE in-memory save. A tab/home-screen app of any version left open with older progress could
@@ -9331,7 +9331,7 @@ function s531Snap() {
    (VISIT.v60, cleaned by clean60 in v60_net.js); while visiting nothing of yours changes. ===== */
 function ensure60(d) {   // literals only (runs while the save loads)
   const v = d.v60 = d.v60 && typeof d.v60 === 'object' && !Array.isArray(d.v60) ? d.v60 : {};
-  for (const f of ['up', 'areas', 'wear', 'tricks', 'deco', 'decoOn', 'inv', 'boost', 'vil', 'fr', 'frDay', 'bred', 'exp', 'gclaim', 'gsent', 'gday', 'show', 'tro', 'tripDone', 'seen', 'expFirst', 'grOut', 'ref601', 'thx601'])
+  for (const f of ['up', 'areas', 'wear', 'tricks', 'deco', 'decoOn', 'inv', 'boost', 'vil', 'fr', 'frDay', 'bred', 'exp', 'gclaim', 'gsent', 'gday', 'show', 'tro', 'tripDone', 'seen', 'expFirst', 'grOut', 'ref601', 'thx601', 'lux602', 'gi602', 'pet602', 'rare602'])
     v[f] = v[f] && typeof v[f] === 'object' && !Array.isArray(v[f]) ? v[f] : {};
   for (const f of ['pups', 'trips', 'friends', 'dogs60', 'out']) v[f] = Array.isArray(v[f]) ? v[f] : [];
   v.main = Number.isInteger(v.main) && v.main >= 0 && v.main <= 6 ? v.main : 0;
@@ -9345,8 +9345,8 @@ function merge60(m, o) {   // mergeSaves: keep everything of both
   if (!o || !o.v60 || typeof o.v60 !== 'object') return; ensure60(m); const a = m.v60, b = ensure60({ v60: JSON.parse(JSON.stringify(o.v60)) }).v60;
   const maxMap = f => { for (const k in b[f]) if (typeof b[f][k] === 'number') a[f][k] = Math.max(+a[f][k] || 0, b[f][k]); };
   const fill = f => { for (const k in b[f]) if (a[f][k] == null) a[f][k] = b[f][k]; };
-  for (const f of ['up', 'areas', 'deco', 'vil', 'fr', 'exp', 'inv', 'gsent', 'tro', 'tripDone', 'bred', 'gclaim', 'seen', 'expFirst', 'frDay', 'gday', 'ref601', 'thx601']) maxMap(f);
-  if (!Array.isArray(a.ord) && Array.isArray(b.ord)) a.ord = b.ord.slice(0, 8);
+  for (const f of ['up', 'areas', 'deco', 'vil', 'fr', 'exp', 'inv', 'gsent', 'tro', 'tripDone', 'bred', 'gclaim', 'seen', 'expFirst', 'frDay', 'gday', 'ref601', 'thx601', 'lux602', 'gi602', 'pet602', 'rare602']) maxMap(f);
+  if (!Array.isArray(a.ord) && Array.isArray(b.ord)) a.ord = b.ord.slice(0, 16);
   for (const f of ['wear', 'decoOn', 'show', 'boost']) fill(f);
   for (const k in b.tricks) { const x = a.tricks[k] = a.tricks[k] && typeof a.tricks[k] === 'object' ? a.tricks[k] : {}; for (const t in b.tricks[k] || {}) if (b.tricks[k][t]) x[t] = 1; }
   const ids = new Set(a.pups.map(p => p && p.id)); for (const p of b.pups) if (p && p.id && !ids.has(p.id)) a.pups.push(p);
@@ -10527,6 +10527,418 @@ setInterval(() => { try { thanks601(); } catch (e) {} }, 5000);
 const V601DBG = () => ({ thanks: thanks601, THX601,  order: yardOrder601, setOrd: setOrd601, segs: yardSegs601, n2d: yN2D601, d2n: yD2N601, openOrder: openOrder601, ordMove: ordMove601, refund: refund601, REF601, AREAS60, DIST601, distOpen: distOpen601, distSum: distSum601,
   openVillage: d => openVillage60(d), agents: () => VAG601, step: (d, dt) => stepVillage601(d, dt), bakery: bakeryClaim601, trickPrice: trickPrice601, tripMs: tripMs60, pupCap: () => PUP60.cap, VIL60, upVil: upVil60, hap: hap60, tripLoot: tripLoot60, bankExp: bankExp60, lh: () => LH601 });
 
+/* ===== Betri Hundar 6.02 – Lúxus: big bone sinks for players with a lot of bones. Fixed prices, no real money, no nagging,
+   everything is seen by visitors too. 1 luxury yards (whole yards, sorted with ▲▼⭐), 2 giant yard rides the dogs use,
+   3 phase outfits (one per material phase, unlocked by finishing that phase), 4 pets living with the dogs, 5 village
+   wonders (a fifth district), 6 rare dogs that are only sold here. Save: save.v60.lux602 / gi602 / pet602 / rare602
+   (maxMap-merged in merge60, so cloud saves never lose a purchase); outfits are in save.owned like all clothes. ===== */
+
+/* ---------- data ---------- */
+const LUX602 = [
+  { k: 'kast', id: 101, name: 'Kastalagarður', ic: '🏰', price: 300000, h: 330, txt: 'Steinlagður hallargarður með turnum, fánum og síki. Hundarnir standa vörð á veggnum.' },
+  { k: 'eld', id: 102, name: 'Eldfjallagarður', ic: '🌋', price: 600000, h: 330, txt: 'Lítið eldfjall sem rýkur úr og heitur pottur sem hundarnir liggja í.' },
+  { k: 'strand', id: 103, name: 'Strandvilla', ic: '🏝️', price: 800000, h: 330, txt: 'Hvít villa við sjóinn, sundlaug og pálmatré. Hundarnir synda og sóla sig.' },
+  { k: 'nord', id: 104, name: 'Norðurljósagarður', ic: '🌌', price: 1000000, h: 330, txt: 'Alltaf heiðskír vetrarnótt og norðurljós sem dansa yfir hundunum.' },
+];
+const GI602 = [
+  { k: 'slide', name: 'Risavatnsrennibraut', ic: '💦', price: 150000, txt: 'Hundarnir klifra upp og renna sér á fullri ferð ofan í laugina.' },
+  { k: 'balloon', name: 'Loftbelgur', ic: '🎈', price: 250000, txt: 'Einn hundur í einu fær að svífa upp og líta yfir garðinn.' },
+  { k: 'coaster', name: 'Hundarússíbani', ic: '🎢', price: 350000, txt: 'Lítil karfa þýtur hring eftir hring – með hund um borð.' },
+  { k: 'tower', name: 'Norðurljósaturn', ic: '🗼', price: 400000, txt: 'Hár turn sem glóir í öllum litum. Hundurinn efst sér langt.' },
+  { k: 'palace', name: 'Gullhöll', ic: '👑', price: 500000, txt: 'Lítil höll úr gulli. Hundarnir rölta inn og út eins og kóngafólk.' },
+];
+const GIB602 = { id: 110, name: 'Risaleikvöllurinn', ic: '🎢', h: 530 };
+const PET602 = [
+  { k: 'cat', name: 'Köttur', ic: '🐈', price: 200000, nm: 'Kisi', txt: 'Laumast á milli hundanna og nuddar sér upp við þá.' },
+  { k: 'rabbit', name: 'Kanína', ic: '🐇', price: 300000, nm: 'Snúlla', txt: 'Skoppar um garðinn og fer í eltingaleik við hundana.' },
+  { k: 'puffin', name: 'Lundi', ic: '🐧', price: 400000, nm: 'Lundi', txt: 'Vaggar um og heilsar hverjum einasta hundi.' },
+  { k: 'pony', name: 'Smáhestur', ic: '🐴', price: 600000, nm: 'Skjóni', txt: 'Rólegur smáhestur sem hundarnir elska að elta.' },
+];
+const OUT602 = [   // one outfit per material phase – buyable when that phase is finished (all 100 boards won)
+  { m: 1, id: 'k_m1', name: 'Platínuskikkja', price: 150000, col: '#e4e8ee', cape: true },
+  { m: 2, id: 'k_m2', name: 'Safírbrynja', price: 180000, col: '#3f6df2', pat: '#a9c2ff', trim: '#ffffff' },
+  { m: 3, id: 'k_m3', name: 'Smaragðsskikkja', price: 210000, col: '#1fae6a', cape: true },
+  { m: 4, id: 'k_m4', name: 'Rúbínbúningur', price: 250000, col: '#d81e3c', trim: '#ffd23f' },
+  { m: 5, id: 'k_m5', name: 'Demantskóróna', price: 280000, col: '#bff3ff', crown: '#e8fbff', gem: '#7ad8ff', tiny: true },
+  { m: 6, id: 'k_m6', name: 'Svartdemantsbrynja', price: 320000, col: '#2b2533', pat: '#6c5f80', trim: '#c9b8ff' },
+  { m: 7, id: 'k_m7', name: 'Norðurljósaskikkja', price: 360000, col: '#1fbf8f', cape: true, aur: true },
+  { m: 8, id: 'k_m8', name: 'Stjörnubúningur', price: 400000, col: '#1e2a6e', stars: true, crown: '#ffd23f', gem: '#fff6a8' },
+];
+const RARE602 = [
+  { id: 'r602_lubbi', name: 'Gullni Lubbi', dat: 'Gullna Lubba', g: 'm', breed: 'Golden retriever', fur: '#e9b730', fur2: '#fff1b8', ear: 'flop', earCol: '#c9921a', bg1: '#fff3b0', bg2: '#ffd23f', sheen: true, price: 1000000,
+    line: 'Glóir eins og gull í sólinni og veit alveg af því.' },
+  { id: 'r602_skuggi', name: 'Silfurskuggi', dat: 'Silfurskugga', g: 'm', breed: 'Siberian Husky', fur: '#c3c9d4', fur2: '#ffffff', ear: 'up', earCol: '#8d95a4', bg1: '#dfe6f2', bg2: '#aeb9cc', eyeCol: '#59b8ff', price: 1250000,
+    line: 'Hljóðlátur og silfurgrár. Enginn veit hvaðan hann kom.' },
+  { id: 'r602_glod', name: 'Glóð', g: 'f', breed: 'Pylsuhundur', fur: '#d9542b', fur2: '#ffb27a', ear: 'flop', earCol: '#a8361a', bg1: '#ffd0b0', bg2: '#ff8a5c', price: 1500000,
+    line: 'Lítil, rauð og hraðari en allir hinir til samans.' },
+  { id: 'r602_stjarna', name: 'Stjarna', g: 'f', breed: 'Samoyed', fur: '#f6f7ff', fur2: '#ffffff', ear: 'up', earCol: '#e2e6f8', bg1: '#20285e', bg2: '#3a2f7a', sky: 'night', fluffy: true, eyeCol: '#6fb8ff', price: 2000000,
+    line: 'Hvít eins og nýfallinn snjór. Sú sjaldgæfasta af þeim öllum.' },
+];
+for (const d of RARE602) d.r602 = true;
+const WON602 = [   // village wonders: one level each, in a fifth district
+  { k: 'w_statue', dist: 'undur', name: 'Gullstytta', ic: '🗿', need: 0, max: 1, price: [500000], eff: () => 'Gullstytta af besta hundinum þínum. Allir hundar +5% gleði' },
+  { k: 'w_star', dist: 'undur', name: 'Stjörnuskoðunarstöð', ic: '🔭', need: 0, max: 1, price: [1200000], eff: () => 'Ferðir gefa 25% meira nammi (hundarnir rata eftir stjörnunum)' },
+  { k: 'w_park', dist: 'undur', name: 'Skemmtigarður', ic: '🎡', need: 0, max: 1, price: [2000000], eff: () => 'Allir hundar +8% gleði og 2.000 bein á dag úr miðasölunni' },
+];
+VIL60.push(...WON602);
+DIST601.push({ k: 'undur', name: 'Undrahæð', ic: '🌟', need: ['gata', 3], txt: 'Risabyggingar fyrir þá sem eiga nóg af beinum.' });
+for (const o of OUT602) WEAR60.push(Object.assign({ t: 'k' }, o));
+
+/* ---------- save helpers ---------- */
+const S602 = () => S60() || EMPTY60;
+const has602 = (f, k) => !!((S602()[f] || {})[k]);
+const lux602 = () => LUX602.filter(l => has602('lux602', l.k));
+const gi602 = () => GI602.filter(g => has602('gi602', g.k));
+const pets602 = () => PET602.filter(p => has602('pet602', p.k));
+const rare602 = () => RARE602.filter(d => has602('rare602', d.id));
+const phaseDone602 = m => { try { return goldWon(m) >= 100; } catch (e) { return false; } };
+function bands602() {   // the extra bands, in their native (bought-order independent) layout under the normal yards
+  const out = []; let y = yardH0();
+  for (const l of lux602()) { out.push({ id: l.id, k: l.k, name: l.name, ic: l.ic, y0: y, h: l.h, lux: l }); y += l.h; }
+  if (gi602().length) out.push({ id: GIB602.id, k: 'giant', name: GIB602.name, ic: GIB602.ic, y0: y, h: GIB602.h });
+  return out;
+}
+const band602 = id => bands602().find(b => b.id === id) || null;
+const name602 = k => k <= YMAX ? YARDS[k].name : (band602(k) || { name: '?' }).name;
+function buy602(price, what) { if (!pay60(price, what)) return false; statCount('lux602'); return true; }
+function rebuildYard602(id) { if (!YD) return; LAWN = null; const keep = YD.page53; YD = null; enterYard(keep); if (YD && id != null) { const s = yardSegs601(); const b = band602(id); if (s && b) { const q = s.find(z => z.k === id); if (q) YD.scroll = Math.max(0, Math.min(yView().max, q.d - 40)); } } }
+function buyLux602(k) { const l = LUX602.find(q => q.k === k); if (!l || VISIT || save.v60.lux602[k]) return false; if (!buy602(l.price, `${l.ic} ${l.name} er þinn! Hann bætist við garðana – raðaðu þeim með ↕️`)) return false; save.v60.lux602[k] = 1; persist(); rebuildYard602(l.id); return true; }
+function buyGiant602(k) { const g = GI602.find(q => q.k === k); if (!g || VISIT || save.v60.gi602[k]) return false; if (!buy602(g.price, `${g.ic} ${g.name} er komin(n) á Risaleikvöllinn!`)) return false; save.v60.gi602[k] = 1; persist(); rebuildYard602(GIB602.id); return true; }
+function buyPet602(k) { const p = PET602.find(q => q.k === k); if (!p || VISIT || save.v60.pet602[k]) return false; if (!buy602(p.price, `${p.ic} ${p.nm} er fluttur í garðinn!`)) return false; save.v60.pet602[k] = 1; persist(); rebuildYard602(); return true; }
+function buyRare602(id) { const d = RARE602.find(q => q.id === id); if (!d || VISIT || save.v60.rare602[id]) return false; if (!buy602(d.price, `${d.name} er komin(n) heim! 🐾`)) return false; save.v60.rare602[id] = 1; persist(); rebuildYard602(); return true; }
+function buyOut602(id) { const o = OUT602.find(q => q.id === id); if (!o || VISIT || ownsWear60(id)) return false; if (!phaseDone602(o.m)) { toast(`🔒 Kláraðu öll ${MATS[o.m].b.toLowerCase()}in (100) fyrst`, 2200); return false; }
+  if (!buy602(o.price, `${o.name} keypt! Klæddu hund í hana undir 🐶 Hundar`)) return false; save.owned.push(id); persist(); return true; }
+buyWear60 = (function (orig) { return function (id) { const o = OUT602.find(q => q.id === id); return o ? buyOut602(id) : orig(id); }; })(buyWear60);
+upVil60 = (function (orig) { return function (k) { const b = VIL60.find(q => q.k === k); if (b && b.max && vilL60(k) >= b.max) return false; return orig(k); }; })(upVil60);
+
+/* ---------- 1 + 2. the extra bands take part in the yard order ---------- */
+areasH60 = function () { return bands602().reduce((a, b) => a + b.h, 0); };
+ordNorm601 = function (o, L, main) {
+  const ex = bands602().map(b => b.id), okk = k => (k >= 0 && k <= L) || ex.includes(k);
+  const r = Array.isArray(o) ? o.map(k => k | 0).filter((k, i, a) => okk(k) && a.indexOf(k) === i) : [];
+  if (!r.length && main > 0 && main <= L) r.push(main);
+  for (let k = 0; k <= L; k++) if (!r.includes(k)) r.push(k);
+  for (const k of ex) if (!r.includes(k)) r.push(k);   // a new luxury yard goes last
+  return r;
+};
+bandRange601 = (function (orig) { return function (k) { if (k > YMAX) { const b = band602(k); return b ? [b.y0, b.y0 + b.h] : [0, 0]; } return orig(k); }; })(bandRange601);
+yardSegs601 = function () {
+  const o = yardOrder601(), ex = bands602(); if (!ex.length && o.every((k, i) => k === i)) return null;
+  const L = save.yardLvl | 0, segs = [{ n0: 0, n1: SKY601, d: 0 }]; let d = SKY601;
+  for (const k of o) { const [a, b] = bandRange601(k); if (b <= a) continue; segs.push({ n0: a, n1: b, d, k }); d += b - a; }
+  const f0 = YARDS[L].h - SEAM601; segs.push({ n0: f0, n1: Math.max(f0 + 1, yardH0()), d, last: true });
+  return segs;
+};
+setOrd601 = (function (orig) { return function (o, quiet) { const r = orig(o, quiet); if (r && save.v60) { const f = (save.v60.ord || []).find(k => k <= YMAX); save.v60.main = f == null ? 0 : f; persist(); } return r; }; })(setOrd601);
+setMain60 = function (k) { if (VISIT) return; k = k | 0; if (!(k >= 0 && k <= save.yardLvl) && !band602(k)) return; const o = yardOrder601().filter(q => q !== k); o.unshift(k); setOrd601(o); toast(`⭐ ${name602(k)} er nú fremstur – hann opnast fyrst (líka hjá gestum). Raða: ↕️`, 2600); };
+openOrder601 = function () {
+  Snd.tap(); const o = yardOrder601();
+  openModal(`<h2>↕️ Raða görðum</h2><p class="tipsmall">Raðaðu görðunum eins og þú vilt. Sá efsti opnast fyrst í Hundagarðinum og gestir sjá garðana í sömu röð.</p>
+    ${o.length < 2 ? '<p class="tipsmall">Þú átt bara einn garð enn – keyptu stærri garð í „Garðarnir“ til að raða.</p>' : ''}
+    <div class="v601ord">${o.map((k, i) => `<div class="v601o${i ? '' : ' first'}"><b>${i + 1}. ${i ? '' : '⭐ '}${k > YMAX ? (band602(k) || {}).ic + ' ' : ''}${name602(k)}</b><span>
+      <button class="btn small blue" data-v601="ou:${i}" ${i ? '' : 'disabled'} aria-label="Upp">▲</button><button class="btn small blue" data-v601="od:${i}" ${i < o.length - 1 ? '' : 'disabled'} aria-label="Niður">▼</button><button class="btn small alt" data-v601="of:${i}" ${i ? '' : 'disabled'} aria-label="Fremst">⭐</button></span></div>`).join('')}</div>
+    <div class="row">${o.length > 1 ? '<button class="btn small plain" data-v601="or">Upprunaleg röð</button>' : ''}<button class="btn alt small" data-act="close">Loka</button></div>`);
+};
+
+/* ---------- drawing the bands ---------- */
+const _drawAreas602 = drawAreas60;
+drawAreas60 = function (c, t) { try { _drawAreas602(c, t); } catch (e) {} for (const b of bands602()) { c.save(); c.beginPath(); c.rect(0, b.y0, YW, b.h); c.clip(); if (b.lux) drawLux602(c, b, t); else drawGiantBand602(c, b, t); c.restore(); sign602(c, b); } };
+function sign602(c, b) {
+  const y = b.y0 + 6; c.fillStyle = '#8a5a33'; c.fillRect(176, y, 8, 24); roundRect(c, 98, y + 4, 164, 24, 8);
+  const g = c.createLinearGradient(98, 0, 262, 0); g.addColorStop(0, '#ffe58a'); g.addColorStop(0.5, '#fff6c8'); g.addColorStop(1, '#ffd23f'); c.fillStyle = g; c.fill(); c.strokeStyle = OUTLINE; c.lineWidth = 2; c.stroke();
+  c.fillStyle = OUTLINE; c.font = '900 12px system-ui'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(`${b.ic} ${b.name}`, 180, y + 16.5); c.textBaseline = 'alphabetic';
+  const s = starPos602(b), on = yardOrder601()[0] === b.id; c.save(); c.translate(s.x, s.y); c.fillStyle = on ? '#ffd23f' : 'rgba(255,255,255,.75)'; c.strokeStyle = OUTLINE; c.lineWidth = 1.6; c.beginPath();
+  for (let i = 0; i < 10; i++) { const r = i % 2 ? 4.6 : 11, a = -Math.PI / 2 + i * Math.PI / 5; c.lineTo(Math.cos(a) * r, Math.sin(a) * r); } c.closePath(); c.fill(); c.stroke(); c.restore();
+}
+const starPos602 = b => ({ x: 278, y: b.y0 + 22 });
+function tree602(c, x, y, s, col) { c.fillStyle = '#6b4424'; c.fillRect(x - 2 * s, y - 10 * s, 4 * s, 10 * s); c.fillStyle = col; c.beginPath(); c.arc(x, y - 16 * s, 10 * s, 0, 7); c.fill(); }
+function palm602(c, x, y, t) { c.strokeStyle = '#8a5a33'; c.lineWidth = 5; c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + 8, y - 30, x + 4, y - 56); c.stroke(); c.fillStyle = '#2e9a4a';
+  for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + (i - 2) * 0.62 + Math.sin(t * 1.5 + i) * 0.05; c.beginPath(); c.ellipse(x + 4 + Math.cos(a) * 16, y - 56 + Math.sin(a) * 9 + 6, 18, 5, a, 0, 7); c.fill(); } }
+function drawLux602(c, b, t) {
+  const y0 = b.y0, H = b.h, k = b.k;
+  if (k === 'kast') {
+    c.fillStyle = '#7cc36b'; c.fillRect(0, y0, YW, H); c.fillStyle = '#b9b2c9'; c.fillRect(0, y0 + 40, YW, 70);
+    c.strokeStyle = 'rgba(42,31,61,.25)'; c.lineWidth = 1; for (let x = 0; x < YW; x += 22) for (let yy = 40; yy < 110; yy += 14) c.strokeRect(x + ((yy / 14) % 2) * 11, y0 + yy, 22, 14);
+    c.fillStyle = '#9d95b2'; for (let x = 0; x < YW; x += 26) c.fillRect(x, y0 + 30, 14, 12);
+    for (const tx of [30, 300]) { c.fillStyle = '#a79fbe'; c.fillRect(tx, y0 + 20, 34, 100); c.strokeStyle = OUTLINE; c.lineWidth = 2; c.strokeRect(tx, y0 + 20, 34, 100); c.fillStyle = '#9b5de5'; c.beginPath(); c.moveTo(tx - 4, y0 + 20); c.lineTo(tx + 17, y0 - 8); c.lineTo(tx + 38, y0 + 20); c.fill(); c.stroke();
+      c.fillStyle = '#ff4d5e'; c.beginPath(); c.moveTo(tx + 17, y0 - 8); c.lineTo(tx + 17, y0 - 24); c.lineTo(tx + 32 + Math.sin(t * 4 + tx) * 3, y0 - 19); c.lineTo(tx + 17, y0 - 14); c.fill(); }
+    c.fillStyle = '#e6d3b3'; c.fillRect(150, y0 + 110, 60, H - 110); const g = c.createLinearGradient(0, y0 + 270, 0, y0 + 330); g.addColorStop(0, '#5fc7f0'); g.addColorStop(1, '#2a7fc8'); c.fillStyle = g; c.fillRect(0, y0 + 290, YW, 40);
+    c.fillStyle = '#8a5a33'; c.fillRect(146, y0 + 286, 68, 46); c.strokeStyle = 'rgba(255,255,255,.6)'; c.lineWidth = 1.5; for (let i = 0; i < 8; i++) { const x = 20 + i * 44 + Math.sin(t + i) * 4; c.beginPath(); c.moveTo(x - 7, y0 + 308); c.quadraticCurveTo(x, y0 + 305, x + 7, y0 + 308); c.stroke(); }
+    c.fillStyle = '#d7d2e6'; c.beginPath(); c.arc(180, y0 + 190, 26, 0, 7); c.fill(); c.strokeStyle = OUTLINE; c.lineWidth = 2; c.stroke(); c.fillStyle = '#6fd3ff'; c.beginPath(); c.arc(180, y0 + 190, 19, 0, 7); c.fill();
+    c.fillStyle = 'rgba(255,255,255,.85)'; for (let i = 0; i < 6; i++) { const a = t * 2 + i; c.beginPath(); c.arc(180 + Math.cos(a) * 6, y0 + 172 - Math.abs(Math.sin(t * 3 + i)) * 12, 2, 0, 7); c.fill(); }
+    for (const [x, yy] of [[70, 170], [290, 170], [70, 250], [290, 250]]) tree602(c, x, y0 + yy, 1, '#2e8a4a');
+  } else if (k === 'eld') {
+    const g = c.createLinearGradient(0, y0, 0, y0 + H); g.addColorStop(0, '#3a2a2a'); g.addColorStop(1, '#5a4030'); c.fillStyle = g; c.fillRect(0, y0, YW, H);
+    c.fillStyle = '#2a1e1e'; c.beginPath(); c.moveTo(40, y0 + 170); c.lineTo(150, y0 + 40); c.lineTo(210, y0 + 40); c.lineTo(320, y0 + 170); c.closePath(); c.fill();
+    c.fillStyle = '#ff6a1a'; c.beginPath(); c.moveTo(150, y0 + 40); c.lineTo(210, y0 + 40); c.lineTo(196, y0 + 56); c.lineTo(164, y0 + 56); c.fill();
+    c.strokeStyle = '#ff8a2a'; c.lineWidth = 4; c.beginPath(); c.moveTo(172, y0 + 56); c.quadraticCurveTo(150 + Math.sin(t) * 4, y0 + 110, 120, y0 + 160); c.stroke(); c.strokeStyle = '#ffd23f'; c.lineWidth = 1.5; c.stroke();
+    for (let i = 0; i < 5; i++) { const ph = (t * 0.25 + i / 5) % 1; c.fillStyle = `rgba(200,200,210,${0.5 * (1 - ph)})`; c.beginPath(); c.arc(180 + Math.sin(i * 2 + t) * 10 + ph * 30, y0 + 36 - ph * 50, 8 + ph * 16, 0, 7); c.fill(); }
+    if (((t * 0.7) % 3) < 0.6) for (let i = 0; i < 4; i++) { c.fillStyle = '#ffb02a'; c.beginPath(); c.arc(170 + i * 7, y0 + 30 - ((t * 60 + i * 13) % 30), 2.5, 0, 7); c.fill(); }
+    c.fillStyle = '#6a5040'; c.fillRect(0, y0 + 170, YW, H - 170); c.fillStyle = '#8a6a50'; for (let i = 0; i < 26; i++) c.fillRect((i * 53) % YW, y0 + 180 + (i * 37) % 140, 6, 4);
+    c.fillStyle = '#9a8a7a'; c.beginPath(); c.ellipse(220, y0 + 250, 110, 52, 0, 0, 7); c.fill(); const w = c.createRadialGradient(220, y0 + 250, 10, 220, y0 + 250, 100); w.addColorStop(0, '#9ff0ff'); w.addColorStop(1, '#3fb8d8'); c.fillStyle = w; c.beginPath(); c.ellipse(220, y0 + 250, 98, 44, 0, 0, 7); c.fill();
+    for (let i = 0; i < 6; i++) { const ph = (t * 0.4 + i / 6) % 1; c.fillStyle = `rgba(255,255,255,${0.45 * (1 - ph)})`; c.beginPath(); c.arc(150 + i * 26, y0 + 236 - ph * 40, 5 + ph * 8, 0, 7); c.fill(); }
+  } else if (k === 'strand') {
+    c.fillStyle = '#f3dc9a'; c.fillRect(0, y0, YW, H); const g = c.createLinearGradient(0, y0 + 250, 0, y0 + H); g.addColorStop(0, '#3cc8f4'); g.addColorStop(1, '#1f6fd6'); c.fillStyle = g;
+    c.beginPath(); c.moveTo(0, y0 + 262); for (let x = 0; x <= YW; x += 10) c.lineTo(x, y0 + 262 + Math.sin(x / 26 + t * 1.3) * 6); c.lineTo(YW, y0 + H); c.lineTo(0, y0 + H); c.fill();
+    c.strokeStyle = 'rgba(255,255,255,.85)'; c.lineWidth = 3; c.beginPath(); for (let x = 0; x <= YW; x += 10) c.lineTo(x, y0 + 262 + Math.sin(x / 26 + t * 1.3) * 6); c.stroke();
+    c.fillStyle = '#ffffff'; c.strokeStyle = OUTLINE; c.lineWidth = 2; c.fillRect(30, y0 + 50, 130, 80); c.strokeRect(30, y0 + 50, 130, 80); c.fillStyle = '#3aa0d8'; c.fillRect(22, y0 + 40, 146, 12); c.strokeRect(22, y0 + 40, 146, 12);
+    c.fillStyle = '#9fdcff'; for (const x of [44, 84, 124]) { c.fillRect(x, y0 + 66, 24, 22); c.strokeRect(x, y0 + 66, 24, 22); } c.fillStyle = '#c98a4b'; c.fillRect(86, y0 + 100, 20, 30); c.strokeRect(86, y0 + 100, 20, 30);
+    c.fillStyle = '#e8f4ff'; roundRect(c, 186, y0 + 140, 150, 70, 12); c.fill(); c.stroke(); const p = c.createLinearGradient(0, y0 + 146, 0, y0 + 204); p.addColorStop(0, '#7fe6ff'); p.addColorStop(1, '#2aa6e8'); c.fillStyle = p; roundRect(c, 194, y0 + 147, 134, 56, 9); c.fill();
+    c.strokeStyle = 'rgba(255,255,255,.7)'; c.lineWidth = 1.5; for (let i = 0; i < 5; i++) { const x = 210 + i * 26 + Math.sin(t * 1.5 + i) * 4; c.beginPath(); c.moveTo(x - 6, y0 + 170 + (i % 2) * 14); c.quadraticCurveTo(x, y0 + 167 + (i % 2) * 14, x + 6, y0 + 170 + (i % 2) * 14); c.stroke(); }
+    for (const [x, yy] of [[60, 200], [110, 220]]) { c.fillStyle = '#ff7eb9'; roundRect(c, x - 16, y0 + yy, 32, 10, 4); c.fill(); c.strokeStyle = OUTLINE; c.lineWidth = 1.5; c.stroke(); }
+    palm602(c, 176, y0 + 140, t); palm602(c, 340, y0 + 250, t); palm602(c, 16, y0 + 250, t);
+  } else if (k === 'nord') {
+    const g = c.createLinearGradient(0, y0, 0, y0 + H); g.addColorStop(0, '#0c1238'); g.addColorStop(0.6, '#1c2a5e'); g.addColorStop(1, '#2c3a70'); c.fillStyle = g; c.fillRect(0, y0, YW, H);
+    for (let i = 0; i < 40; i++) { const tw = 0.5 + 0.5 * Math.sin(t * 2 + i * 1.7); c.fillStyle = `rgba(255,255,255,${0.3 + 0.6 * tw})`; c.fillRect((i * 89) % YW, y0 + 30 + (i * 47) % 120, 2, 2); }
+    c.save(); c.globalCompositeOperation = 'lighter';
+    for (let r = 0; r < 3; r++) { const col = ['rgba(60,255,170,', 'rgba(120,200,255,', 'rgba(190,110,255,'][r]; for (let x = 0; x <= YW; x += 6) { const yy = y0 + 70 + r * 22 + Math.sin(x / 40 + t * 0.9 + r * 1.3) * 18 + Math.sin(x / 13 + t * 1.7) * 4, hh = 40 + Math.sin(x / 25 + t * 1.2 + r) * 16;
+      const gg = c.createLinearGradient(0, yy - hh, 0, yy); gg.addColorStop(0, col + '0)'); gg.addColorStop(1, col + (0.32 + 0.12 * Math.sin(t * 2 + x / 30)) + ')'); c.fillStyle = gg; c.fillRect(x, yy - hh, 6, hh); } }
+    c.restore();
+    c.fillStyle = '#eef4fb'; c.beginPath(); c.moveTo(0, y0 + 190); c.quadraticCurveTo(120, y0 + 160, 220, y0 + 186); c.quadraticCurveTo(300, y0 + 200, 360, y0 + 176); c.lineTo(360, y0 + H); c.lineTo(0, y0 + H); c.fill();
+    c.fillStyle = '#dbe6f3'; for (let i = 0; i < 12; i++) { c.beginPath(); c.ellipse((i * 71) % YW, y0 + 220 + (i * 29) % 100, 16, 4, 0, 0, 7); c.fill(); }
+    c.fillStyle = '#ffffff'; c.strokeStyle = '#9fb4cc'; c.lineWidth = 1.5; c.beginPath(); c.arc(290, y0 + 240, 36, Math.PI, 0); c.lineTo(326, y0 + 240); c.lineTo(254, y0 + 240); c.fill(); c.stroke();
+    for (let i = 1; i < 3; i++) { c.beginPath(); c.arc(290, y0 + 240, 36 - i * 12, Math.PI, 0); c.stroke(); } c.fillStyle = '#2c3a70'; c.beginPath(); c.arc(290, y0 + 240, 11, Math.PI, 0); c.fill();
+    for (const [x, yy] of [[40, 230], [80, 280], [330, 300]]) { c.fillStyle = '#1f5a3a'; c.beginPath(); c.moveTo(x - 12, y0 + yy); c.lineTo(x, y0 + yy - 32); c.lineTo(x + 12, y0 + yy); c.fill(); c.fillStyle = '#fff'; c.beginPath(); c.moveTo(x - 5, y0 + yy - 19); c.lineTo(x, y0 + yy - 32); c.lineTo(x + 5, y0 + yy - 19); c.fill(); }
+  }
+}
+// the giant rides: fixed spots in the Risaleikvöllur band
+const GIS602 = { coaster: { x: 20, y: 40, w: 320, h: 130 }, slide: { x: 18, y: 196, w: 150, h: 150 }, balloon: { x: 200, y: 190, w: 140, h: 160 }, palace: { x: 20, y: 372, w: 170, h: 140 }, tower: { x: 228, y: 360, w: 100, h: 155 } };
+function coasterPt602(u, y0) { const R = GIS602.coaster, cx = R.x + R.w / 2, a = u * Math.PI * 2; return { x: cx + Math.cos(a) * (R.w / 2 - 18), y: y0 + R.y + R.h / 2 + Math.sin(a) * 38 + Math.sin(a * 3) * 14 }; }
+function drawGiantBand602(c, b, t) {
+  const y0 = b.y0; c.fillStyle = '#6cc46a'; c.fillRect(0, y0, YW, b.h); c.fillStyle = '#5cb45a'; for (let i = 0; i < 50; i++) c.fillRect((i * 41) % YW, y0 + (i * 67) % b.h, 3, 7);
+  c.fillStyle = '#e6d3b3'; c.fillRect(170, y0 + 30, 22, b.h - 30);
+  const own = k => has602('gi602', k);
+  if (own('coaster')) { c.strokeStyle = '#8a5a33'; c.lineWidth = 3; for (let i = 0; i < 12; i++) { const p = coasterPt602(i / 12, y0); c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(p.x, y0 + GIS602.coaster.y + GIS602.coaster.h + 6); c.stroke(); }
+    c.strokeStyle = '#e8262e'; c.lineWidth = 5; c.beginPath(); for (let i = 0; i <= 80; i++) { const p = coasterPt602(i / 80, y0); i ? c.lineTo(p.x, p.y) : c.moveTo(p.x, p.y); } c.stroke(); c.strokeStyle = '#ffd23f'; c.lineWidth = 1.5; c.stroke(); }
+  if (own('slide')) { const R = GIS602.slide, x = R.x, y = y0 + R.y; c.fillStyle = '#7fe6ff'; c.beginPath(); c.ellipse(x + 112, y + 126, 40, 18, 0, 0, 7); c.fill(); c.strokeStyle = OUTLINE; c.lineWidth = 2; c.stroke();
+    c.fillStyle = '#c8c8d4'; c.fillRect(x + 8, y + 14, 8, 130); c.fillRect(x + 30, y + 14, 8, 130); c.fillStyle = '#8a8a99'; for (let yy = 24; yy < 140; yy += 14) c.fillRect(x + 8, y + yy, 30, 3);
+    c.strokeStyle = '#3f6df2'; c.lineWidth = 12; c.lineCap = 'round'; c.beginPath(); c.moveTo(x + 30, y + 16); c.bezierCurveTo(x + 120, y + 20, x + 30, y + 90, x + 100, y + 118); c.stroke(); c.strokeStyle = '#9fdcff'; c.lineWidth = 4; c.stroke(); c.lineCap = 'butt';
+    c.fillStyle = '#ff4d5e'; c.fillRect(x + 4, y + 6, 40, 10); }
+  if (own('balloon')) { const R = GIS602.balloon, cx = R.x + R.w / 2, by = y0 + R.y + 62 + balloonH602(t); c.strokeStyle = 'rgba(42,31,61,.5)'; c.lineWidth = 1; c.beginPath(); c.moveTo(cx, y0 + R.y + R.h); c.lineTo(cx, by + 40); c.stroke();
+    c.fillStyle = 'rgba(20,50,20,.2)'; c.beginPath(); c.ellipse(cx, y0 + R.y + R.h, 24, 6, 0, 0, 7); c.fill();
+    const cols = ['#ff4d5e', '#ffd23f', '#3ddc84', '#3f6df2', '#9b5de5']; for (let i = 0; i < 5; i++) { c.fillStyle = cols[i]; c.beginPath(); c.ellipse(cx - 24 + i * 12, by - 8, 7, 38, 0, 0, 7); c.fill(); }
+    c.strokeStyle = OUTLINE; c.lineWidth = 2; c.beginPath(); c.ellipse(cx, by - 8, 32, 40, 0, 0, 7); c.stroke(); c.beginPath(); c.moveTo(cx - 22, by + 22); c.lineTo(cx - 10, by + 38); c.moveTo(cx + 22, by + 22); c.lineTo(cx + 10, by + 38); c.stroke();
+    c.fillStyle = '#a0703c'; c.fillRect(cx - 12, by + 38, 24, 14); c.strokeRect(cx - 12, by + 38, 24, 14); }
+  if (own('palace')) { const R = GIS602.palace, x = R.x, y = y0 + R.y; const g = c.createLinearGradient(x, y, x + R.w, y + R.h); g.addColorStop(0, '#ffe58a'); g.addColorStop(0.5, '#ffd23f'); g.addColorStop(1, '#e0a800');
+    c.fillStyle = g; c.strokeStyle = OUTLINE; c.lineWidth = 2; c.fillRect(x + 20, y + 50, 130, 80); c.strokeRect(x + 20, y + 50, 130, 80);
+    for (const tx of [x + 6, x + 136]) { c.fillRect(tx, y + 30, 28, 100); c.strokeRect(tx, y + 30, 28, 100); c.beginPath(); c.moveTo(tx - 3, y + 30); c.lineTo(tx + 14, y + 4); c.lineTo(tx + 31, y + 30); c.fill(); c.stroke(); }
+    c.beginPath(); c.moveTo(x + 50, y + 50); c.lineTo(x + 85, y + 18); c.lineTo(x + 120, y + 50); c.fill(); c.stroke(); c.fillStyle = '#6b4424'; c.beginPath(); c.arc(x + 85, y + 112, 14, Math.PI, 0); c.lineTo(x + 99, y + 130); c.lineTo(x + 71, y + 130); c.fill(); c.stroke();
+    c.fillStyle = '#ff4d5e'; c.beginPath(); c.arc(x + 85, y + 34, 5, 0, 7); c.fill(); sparkles(c, x + 85, y + 60, 150, 80, t); }
+  if (own('tower')) { const R = GIS602.tower, cx = R.x + R.w / 2, y = y0 + R.y; c.fillStyle = '#d7d2e6'; c.strokeStyle = OUTLINE; c.lineWidth = 2; c.beginPath(); c.moveTo(cx - 22, y + R.h); c.lineTo(cx - 10, y + 34); c.lineTo(cx + 10, y + 34); c.lineTo(cx + 22, y + R.h); c.closePath(); c.fill(); c.stroke();
+    c.fillStyle = '#9b5de5'; c.fillRect(cx - 18, y + 26, 36, 10); c.strokeRect(cx - 18, y + 26, 36, 10);
+    c.save(); c.globalCompositeOperation = 'lighter'; for (let i = 0; i < 4; i++) { const a = t * 0.8 + i * Math.PI / 2, col = ['rgba(60,255,170,.35)', 'rgba(120,200,255,.35)', 'rgba(190,110,255,.35)', 'rgba(255,120,200,.3)'][i];
+      c.fillStyle = col; c.beginPath(); c.moveTo(cx, y + 20); c.lineTo(cx + Math.cos(a) * 60 - 8, y - 20 + Math.sin(a) * 12); c.lineTo(cx + Math.cos(a) * 60 + 8, y - 20 + Math.sin(a) * 12); c.fill(); } c.restore();
+    for (let yy = 50; yy < R.h - 10; yy += 22) { c.fillStyle = `hsl(${(t * 60 + yy * 3) % 360},80%,70%)`; c.fillRect(cx - 4, y + yy, 8, 8); } }
+}
+const balloonH602 = t => -40 - Math.sin(t * 0.35) * 40;
+
+/* ---------- dogs on the luxury yards and the giant rides ---------- */
+function setup602() {
+  if (!YD) return; const free = YD.dogs.filter(d => !d.act); let i = 0; const take = () => (free.length - i > 3 ? free[i++] : null);
+  for (const b of bands602()) {
+    if (b.lux) for (let j = 0; j < 2; j++) { const yd = take(); if (!yd) return; yd.act = { k: 'a602', band: b.id, lux: b.k, u: j * 0.5 + 0.05, sp: 0, j, T: 0 }; }
+    else for (const g of gi602()) { const yd = take(); if (!yd) return; yd.act = { k: 'a602', band: b.id, gi: g.k, u: Math.random(), sp: 0, j: 0, T: 0 }; }
+  }
+}
+function update602(dt) {
+  if (!YD) return; const t = YD.t;
+  for (const yd of YD.dogs) { const a = yd.act; if (!a || a.k !== 'a602') continue; const b = band602(a.band); if (!b) { yd.act = null; continue; }
+    const y0 = b.y0; a.T += dt; yd.hop = 0; yd.swim = false; yd.hide = false; yd.tr60 = null;
+    const walkTo = (x, y, sp = 40) => { const dx = x - yd.x, dy = y - yd.y, L = Math.hypot(dx, dy); if (L < 2) { yd.st = 'sit'; return true; } const s = Math.min(L, sp * dt); yd.x += dx / L * s; yd.y += dy / L * s; yd.st = 'walk'; yd.tx = x; yd.ty = y; yd.flip = dx < 0; return false; };
+    if (a.lux) { a.u = (a.u + dt * 0.035) % 1; const u = a.u;
+      if (a.lux === 'kast') { const P = [[70, 100], [290, 100], [290, 200], [180, 240], [70, 200]], s = (u * P.length) | 0, f = u * P.length - s, p0 = P[(s + a.j * 2) % P.length], p1 = P[(s + 1 + a.j * 2) % P.length];
+        yd.x = p0[0] + (p1[0] - p0[0]) * f; yd.y = y0 + p0[1] + (p1[1] - p0[1]) * f; yd.st = 'walk'; yd.flip = p1[0] < p0[0]; yd.tx = yd.x + (yd.flip ? -5 : 5); yd.ty = yd.y; }
+      else if (a.lux === 'eld') { if (a.j === 0) { yd.x = 200 + Math.sin(t * 0.6) * 40; yd.y = y0 + 258; yd.st = 'sit'; yd.swim = true; } else { const an = u * Math.PI * 2; yd.x = 220 + Math.cos(an) * 118; yd.y = y0 + 250 + Math.sin(an) * 60; yd.st = 'walk'; yd.flip = -Math.sin(an) < 0; yd.tx = yd.x - Math.sin(an) * 8; yd.ty = yd.y; } }
+      else if (a.lux === 'strand') { if (a.j === 0) { const an = u * Math.PI * 4; yd.x = 261 + Math.cos(an) * 50; yd.y = y0 + 182 + Math.sin(an) * 12; yd.st = 'walk'; yd.swim = true; yd.flip = -Math.sin(an) < 0; yd.tx = yd.x - Math.sin(an) * 8; yd.ty = yd.y; }
+        else { if (u < 0.5) { yd.x = 60; yd.y = y0 + 205; yd.st = 'sit'; yd.flip = false; } else { const k = (u - 0.5) * 2; yd.x = 60 + Math.sin(k * Math.PI) * 120; yd.y = y0 + 205 + Math.sin(k * Math.PI) * 40; yd.st = 'walk'; yd.flip = k > 0.5; yd.tx = yd.x + (yd.flip ? -5 : 5); yd.ty = yd.y; } } }
+      else if (a.lux === 'nord') { if (u < 0.5) { yd.x = 150 + a.j * 50; yd.y = y0 + 230 + a.j * 30; yd.st = 'sit'; yd.tr60 = { k: a.j ? 'beg' : 'sit', T: 1, dur: 1e9 }; } else { const k = (u - 0.5) * 2; yd.x = 120 + a.j * 50 + Math.sin(k * Math.PI * 2) * 70; yd.y = y0 + 250 + a.j * 30 + Math.cos(k * Math.PI * 2) * 20; yd.st = 'walk'; yd.flip = Math.cos(k * Math.PI * 2) > 0; yd.tx = yd.x + (yd.flip ? -5 : 5); yd.ty = yd.y; } }
+    } else { const g = a.gi, R = GIS602[g];
+      if (g === 'coaster') { a.u = (a.u + dt * 0.16) % 1; const p = coasterPt602(a.u, y0), q = coasterPt602((a.u + 0.01) % 1, y0); yd.x = p.x; yd.y = p.y; yd.st = 'sit'; yd.flip = q.x < p.x; yd.cart602 = 1; }
+      else if (g === 'slide') { a.u = (a.u + dt * 0.12) % 1; const u = a.u, x = R.x, y = y0 + R.y; yd.cart602 = 0;
+        if (u < 0.4) { const k = u / 0.4; yd.x = x + 23; yd.y = y + 144 - k * 130; yd.st = 'walk'; yd.flip = false; yd.tx = yd.x; yd.ty = yd.y - 5; }
+        else if (u < 0.6) { const k = (u - 0.4) / 0.2, B = (p0, p1, p2, p3) => (1 - k) ** 3 * p0 + 3 * (1 - k) ** 2 * k * p1 + 3 * (1 - k) * k * k * p2 + k ** 3 * p3; yd.x = B(x + 30, x + 120, x + 30, x + 100); yd.y = B(y + 16, y + 20, y + 90, y + 118) - 2; yd.st = 'sit'; yd.flip = false; }
+        else if (u < 0.75) { yd.x = x + 112 + Math.sin(a.T * 3) * 14; yd.y = y + 130; yd.st = 'sit'; yd.swim = true; if (u < 0.62 && Math.random() < dt * 30) YD.parts.push({ x: yd.x, y: yd.y - 6, vx: (Math.random() - 0.5) * 90, vy: -80 - Math.random() * 60, life: 0.6, max: 0.6, col: '#bff3ff', size: 2.5 }); }
+        else { const k = (u - 0.75) / 0.25; yd.x = x + 112 - k * 89; yd.y = y + 130 + Math.sin(k * Math.PI) * 14; yd.st = 'walk'; yd.flip = true; yd.tx = yd.x - 5; yd.ty = yd.y; } }
+      else if (g === 'balloon') { const cx = R.x + R.w / 2; yd.x = cx; yd.y = y0 + R.y + 62 + balloonH602(t) + 48; yd.st = 'sit'; yd.flip = Math.sin(t * 0.3) > 0; yd.inBasket602 = 1; }
+      else if (g === 'palace') { a.u = (a.u + dt * 0.05) % 1; const u = a.u, dx = R.x + 85, dy = y0 + R.y + 136;
+        if (u < 0.3) { yd.hide = true; yd.x = dx; yd.y = dy; } else if (u < 0.65) { const k = (u - 0.3) / 0.35; yd.x = dx + Math.sin(k * Math.PI * 2) * 60; yd.y = dy + 8 + Math.sin(k * Math.PI) * 8; yd.st = 'walk'; yd.flip = Math.cos(k * Math.PI * 2) < 0; yd.tx = yd.x + (yd.flip ? -5 : 5); yd.ty = yd.y; } else { yd.x = dx + 30; yd.y = dy + 6; yd.st = 'sit'; yd.tr60 = u > 0.8 ? { k: 'beg', T: 1, dur: 1e9 } : null; } }
+      else if (g === 'tower') { a.u = (a.u + dt * 0.06) % 1; const cx = R.x + R.w / 2, y = y0 + R.y; if (a.u < 0.7) { yd.x = cx; yd.y = y + 27; yd.st = 'sit'; yd.flip = Math.sin(t * 0.5) > 0; } else { const k = (a.u - 0.7) / 0.3; yd.x = cx + 30; yd.y = y + R.h + 4 - Math.sin(k * Math.PI) * 4; yd.st = 'walk'; yd.flip = false; yd.tx = yd.x + 5; yd.ty = yd.y; } }
+    } }
+}
+function list602() {
+  const out = []; if (!YD) return out;
+  for (const yd of YD.dogs) { const a = yd.act; if (!a || a.k !== 'a602' || yd.hide) continue; const balloon = a.gi === 'balloon', tower = a.gi === 'tower' && a.u < 0.7, coaster = a.gi === 'coaster';
+    out.push({ y: balloon || tower || coaster ? (band602(a.band) || { y0: 0 }).y0 + (balloon ? 360 : tower ? 520 : 175) : yd.y, fx: (c, t) => {
+      if (coaster) { c.fillStyle = '#3f6df2'; c.strokeStyle = OUTLINE; c.lineWidth = 1.5; roundRect(c, yd.x - 14, yd.y - 10, 28, 12, 4); c.fill(); c.stroke(); }
+      drawYardDog(c, yd, t);
+      if (coaster || balloon) { c.fillStyle = coaster ? '#3f6df2' : '#a0703c'; c.strokeStyle = OUTLINE; c.lineWidth = 1.5; c.fillRect(yd.x - 13, yd.y - 8, 26, 9); c.strokeRect(yd.x - 13, yd.y - 8, 26, 9); }
+      if (yd.swim) { c.fillStyle = 'rgba(60,180,230,.9)'; c.beginPath(); c.ellipse(yd.x, yd.y - 3, 17, 7, 0, 0, 7); c.fill(); c.strokeStyle = 'rgba(255,255,255,.7)'; c.lineWidth = 1.2; c.beginPath(); c.ellipse(yd.x, yd.y - 4, 15, 4, 0, 0, 7); c.stroke(); } } }); }
+  for (const yd of YD.dogs) if (yd.d && yd.d.r602 && !yd.hide) out.push({ y: yd.y + 0.6, fx: (c, t) => sparkles(c, yd.x, yd.y - 18, 34, 26, t) });   // rare dogs glitter a little
+  for (const p of PETS602) out.push({ y: p.y, fx: (c, t) => drawPet602(c, p, t) });
+  return out;
+}
+
+/* ---------- 4. pets ---------- */
+let PETS602 = [];
+function setupPets602() {
+  PETS602 = []; if (!YD) return; const [y0, y1] = yRoamY();
+  pets602().forEach((p, i) => PETS602.push({ k: p.k, x: 60 + i * 70, y: y0 + 40 + i * 30, tx: 0, ty: 0, st: 'idle', T: 1 + i, dog: null, flip: false, ph: i }));
+}
+function updatePets602(dt) {
+  if (!YD) return; const [ya, yb] = yRoamY();
+  for (const p of PETS602) { p.T -= dt; const sp = { cat: 34, rabbit: 46, puffin: 22, pony: 30 }[p.k] || 30;
+    if (p.st === 'idle' && p.T <= 0) { const cand = YD.dogs.filter(d => !d.act && !d.hide && d.y > ya - 10 && d.y < yb + 10); if (cand.length && Math.random() < 0.7) { p.dog = cand[(Math.random() * cand.length) | 0]; p.st = 'go'; p.T = 9; } else { p.tx = 30 + Math.random() * 300; p.ty = ya + Math.random() * (yb - ya); p.st = 'walk'; } p.T = 9; }
+    let tx = p.tx, ty = p.ty; if (p.st === 'go' && p.dog) { tx = p.dog.x + (p.x < p.dog.x ? -22 : 22); ty = p.dog.y + 2; }
+    if (p.st === 'walk' || p.st === 'go') { const dx = tx - p.x, dy = ty - p.y, L = Math.hypot(dx, dy); if (L > 3 && p.T > 0) { const s = Math.min(L, sp * dt); p.x += dx / L * s; p.y += dy / L * s; p.flip = dx < 0; p.mv = 1; }
+      else { p.mv = 0; if (p.st === 'go' && p.dog) { p.st = 'play'; p.n = (p.n | 0) + 1; p.T = 3; p.dog.hop = 3; yardHeart(p.x, p.y - 24); yardHeart(p.dog.x, p.dog.y - 30); p.dog.flip = p.x < p.dog.x; } else { p.st = 'idle'; p.T = 2 + Math.random() * 4; } } }
+    else if (p.st === 'play') { p.mv = 0; if (p.dog) p.dog.hop = Math.abs(Math.sin(YD.t * 9)) * 4; if (p.T <= 0) { if (p.dog) p.dog.hop = 0; p.dog = null; p.st = 'idle'; p.T = 3 + Math.random() * 5; } }
+    else p.mv = 0;
+    p.x = Math.max(16, Math.min(344, p.x)); }
+}
+function drawPet602(c, p, t) {
+  const b = p.mv ? Math.abs(Math.sin(t * (p.k === 'rabbit' ? 7 : 10) + p.ph)) * (p.k === 'rabbit' ? 6 : 1.5) : p.st === 'play' ? Math.abs(Math.sin(t * 8)) * 3 : 0;
+  c.fillStyle = 'rgba(20,50,20,.22)'; c.beginPath(); c.ellipse(p.x, p.y, p.k === 'pony' ? 16 : 9, 3, 0, 0, 7); c.fill();
+  c.save(); c.translate(p.x, p.y - b); if (p.flip) c.scale(-1, 1); c.strokeStyle = OUTLINE; c.lineWidth = 1.4;
+  if (p.k === 'cat') { c.fillStyle = '#f0a04a'; c.beginPath(); c.ellipse(0, -7, 10, 6, 0, 0, 7); c.fill(); c.stroke(); c.beginPath(); c.arc(9, -13, 5.5, 0, 7); c.fill(); c.stroke();
+    c.beginPath(); c.moveTo(6, -17); c.lineTo(7, -22); c.lineTo(10, -18); c.moveTo(10, -18); c.lineTo(13, -22); c.lineTo(13, -16); c.fill(); c.stroke(); c.strokeStyle = '#f0a04a'; c.lineWidth = 3; c.beginPath(); c.moveTo(-9, -8); c.quadraticCurveTo(-18, -14 + Math.sin(t * 3) * 3, -14, -22); c.stroke();
+    c.fillStyle = '#c86a1a'; c.fillRect(-4, -12, 2, 5); c.fillRect(1, -12, 2, 5); c.fillStyle = '#1c1428'; c.fillRect(10, -14, 1.6, 1.6); }
+  else if (p.k === 'rabbit') { c.fillStyle = '#ffffff'; c.beginPath(); c.ellipse(0, -7, 8, 6.5, 0, 0, 7); c.fill(); c.stroke(); c.beginPath(); c.arc(7, -12, 4.8, 0, 7); c.fill(); c.stroke();
+    for (const dx of [5, 8.5]) { c.beginPath(); c.ellipse(dx, -21, 1.8, 6, 0.1, 0, 7); c.fill(); c.stroke(); } c.fillStyle = '#ff9ac8'; c.beginPath(); c.arc(11.4, -12, 1.2, 0, 7); c.fill(); c.fillStyle = '#fff'; c.beginPath(); c.arc(-8, -8, 3, 0, 7); c.fill(); c.fillStyle = '#1c1428'; c.fillRect(8, -14, 1.5, 1.5); }
+  else if (p.k === 'puffin') { c.fillStyle = '#1c1a24'; c.beginPath(); c.ellipse(0, -10, 7, 10, 0, 0, 7); c.fill(); c.stroke(); c.fillStyle = '#ffffff'; c.beginPath(); c.ellipse(2, -8, 4.5, 7, 0, 0, 7); c.fill(); c.beginPath(); c.arc(2, -19, 4, 0, 7); c.fill();
+    c.fillStyle = '#ff7a1a'; c.beginPath(); c.moveTo(5, -20); c.lineTo(11, -18); c.lineTo(5, -15); c.fill(); c.stroke(); c.fillStyle = '#1c1428'; c.fillRect(2, -21, 1.6, 1.6); c.fillStyle = '#ff7a1a'; c.fillRect(-3, -1, 3, 2); c.fillRect(2, -1, 3, 2); }
+  else if (p.k === 'pony') { c.fillStyle = '#a86a3a'; c.beginPath(); c.ellipse(0, -18, 15, 8, 0, 0, 7); c.fill(); c.stroke(); const lg = p.mv ? Math.sin(t * 10) * 2 : 0; c.fillRect(-11 + lg, -12, 3, 12); c.fillRect(8 - lg, -12, 3, 12); c.fillRect(-5 - lg, -12, 3, 12); c.fillRect(3 + lg, -12, 3, 12);
+    c.beginPath(); c.moveTo(10, -22); c.lineTo(16, -34); c.lineTo(23, -31); c.lineTo(18, -20); c.closePath(); c.fill(); c.stroke(); c.fillStyle = '#f6efe0'; c.beginPath(); c.ellipse(-4, -18, 5, 4, 0, 0, 7); c.fill(); c.fillStyle = '#3a2418'; c.fillRect(12, -36, 3, 12); c.fillRect(-18, -22, 4, 10); c.fillStyle = '#1c1428'; c.fillRect(18, -31, 1.6, 1.6); }
+  c.restore();
+}
+
+/* ---------- 3. outfits: extras the 6.0 costume painter does not know (crown, aurora shimmer, stars) ---------- */
+drawWear60 = (function (orig) { return function (c, yd, A, px, py, u, t) {
+  orig(c, yd, A, px, py, u, t); const w = wearOf60(dogKey60(yd)), k = OUT602.find(q => q.id === w.k); if (!k) return; const d = yd.b === 'd', x0 = 3, x1 = d ? 16 : 12, yT = d ? 8 : 7, yB = 11.6;
+  if (k.aur) { c.save(); c.globalAlpha = 0.55 + 0.25 * Math.sin(t * 3 + yd.sp); c.fillStyle = `hsl(${(t * 50 + yd.sp * 9) % 360},90%,65%)`; c.beginPath(); c.moveTo(px(x1 - 0.5), py(yT)); c.lineTo(px(x0 - 1.5), py(yB - 1.4)); c.lineTo(px(x0 + 1), py(yT + 1)); c.closePath(); c.fill(); c.restore(); }
+  if (k.stars) { c.fillStyle = '#ffd23f'; for (const [x, y] of [[x0 + 2, yT + 1], [x0 + 6, yT + 2.5], [x1 - 2, yT + 1.2]]) c.fillRect(px(x), py(y), u * 0.9, u * 0.9); }
+  if (k.tiny) { c.fillStyle = k.col; c.fillRect(px(x0), py(yT), (x1 - x0 + 1) * u, u * 0.8); }
+  if (k.crown) { const hx = px(A.hx), hy = py(A.hy) - u * 0.4, s = u * 0.95; c.fillStyle = k.crown; c.strokeStyle = OUTLINE; c.lineWidth = 1; c.beginPath(); c.moveTo(hx - 3 * s, hy); c.lineTo(hx - 3 * s, hy - 3 * s); c.lineTo(hx - 1.5 * s, hy - 1.6 * s); c.lineTo(hx, hy - 3.6 * s); c.lineTo(hx + 1.5 * s, hy - 1.6 * s); c.lineTo(hx + 3 * s, hy - 3 * s); c.lineTo(hx + 3 * s, hy); c.closePath(); c.fill(); c.stroke();
+    c.fillStyle = k.gem; c.fillRect(hx - 0.6 * s, hy - 1.6 * s, 1.2 * s, 1.2 * s); if (((t * 1.5 + yd.sp) % 2) < 0.3) { c.fillStyle = '#fff'; c.fillRect(hx + 2 * s, hy - 3.6 * s, s, s); } }
+}; })(drawWear60);
+// the dog's wear tab: phase outfits get their own section with locks (they are left out of the normal costume row)
+openDog60 = (function (orig) { return function (key, tab) {
+  orig(key, tab); if (DOGTAB60 !== 'wear') return; const card = $('#modalCard'); if (!card) return; const ids = OUT602.map(o => o.id);
+  card.querySelectorAll('[data-v6]').forEach(b => { const p = b.dataset.v6.split(':'); if ((p[0] === 'buyw' && ids.includes(p[2])) || (p[0] === 'wear' && ids.includes(p[3]))) b.remove(); });
+  const w = wearOf60(key), rows = OUT602.map(o => { const own = ownsWear60(o.id), open = phaseDone602(o.m);
+    return own ? `<button class="v6chip ${w.k === o.id ? 'on' : ''}" data-v6="wear:${key}:k:${o.id}">${MATS[o.m].ic} ${o.name}</button>` : open ? `<button class="v6chip" data-v602="out:${o.id}:${key}">${MATS[o.m].ic} ${o.name} · 🦴${fmt60(o.price)}</button>` : `<span class="v6chip lock602">🔒 ${o.name} – kláraðu ${MATS[o.m].b.toLowerCase()}in</span>`; }).join('');
+  const sec = `<div class="v6sec">💎 Fasabúningar</div><div class="v6row">${rows}</div>`, last = card.querySelector('.row:last-of-type'); if (last) last.insertAdjacentHTML('beforebegin', sec); else card.insertAdjacentHTML('beforeend', sec);
+}; })(openDog60);
+
+/* ---------- 6. rare dogs: in the yard and in the Hundabók ---------- */
+yardAll53 = (function (orig) { return function () { const out = orig(); return rare602().map(d => ({ d, mat: -1 })).concat(out); }; })(yardAll53);
+renderAlbum = (function (orig) { return function () {
+  orig(); if (bookTab53() >= 0) return; const el = $('#albumInner'); if (!el) return;
+  el.insertAdjacentHTML('beforeend', `<div class="h r602h">💎 Sjaldgæfir hundar · ${rare602().length}/${RARE602.length}</div><p class="tipsmall">Þessir fást hvergi annars staðar en í Lúxusbúðinni.</p><div class="grid">${RARE602.map(d => { const got = has602('rare602', d.id);
+    return `<button class="card special r602 ${got ? '' : 'lock'}" data-v602="rdog:${d.id}"><img src="${portraitURL(d, !got)}" alt=""><b>${got ? d.name : '???'}</b><small>${got ? d.breed : '🦴 ' + fmt60(d.price)}</small></button>`; }).join('')}</div>`);
+}; })(renderAlbum);
+function showRare602(id) {
+  const d = RARE602.find(q => q.id === id); if (!d) return; const got = has602('rare602', id); Snd.tap();
+  openModal(`<img class="bigport" src="${portraitURL(d, !got)}" alt=""><h2>${got ? d.name : 'Sjaldgæfur hundur'}</h2><p>${got ? `${d.breed}<br><i class="dline">${d.line}</i>` : `Fæst bara í 💎 Lúxusbúðinni.`}</p>
+    <div class="row">${got ? '' : `<button class="btn green small" data-v602="rare:${id}" ${canAfford(d.price) ? '' : 'disabled'}>🦴 ${fmt60(d.price)}</button>`}<button class="btn alt small" data-act="close">Loka</button></div>`);
+}
+
+/* ---------- 5. village wonders: their own district view ---------- */
+let WRAF602 = 0;
+function bestDog602() { const all = yardDogsAll60().slice(0, 60); let best = null, bh = -1; for (const e of all) { const h = hap60(e.key, e.d.id) + (e.d.r602 ? 1 : 0); if (h > bh) { bh = h; best = e; } } return best; }
+openVillage60 = (function (orig) { return function (dist) {
+  if (dist && DIST601.some(q => q.k === dist)) VDIST601 = dist; if (VDIST601 !== 'undur') return orig(dist);
+  Snd.tap(); const D = DIST601.find(q => q.k === 'undur'), open = distOpen601('undur'), parkReady = vilL60('w_park') && !VISIT && save.v60.seen.w_park !== dayNum60();
+  openModal(`<h2>🏘️ Hundaþorp</h2><div class="v601tabs">${DIST601.map(q => `<button class="btn small ${q.k === 'undur' ? 'green' : 'plain'}" data-v601="dist:${q.k}">${distOpen601(q.k) ? q.ic : '🔒'} ${q.name}</button>`).join('')}</div>
+    <canvas id="v6vil" width="360" height="240" style="width:100%;max-width:360px;border-radius:14px;display:block;margin:0 auto"></canvas>
+    <p class="tipsmall">${D.ic} <b>${D.name}</b> – ${D.txt} ${open ? 'Hvert undur er byggt einu sinni.' : distNeedTxt601(D)}</p>
+    ${parkReady ? '<div class="row"><button class="btn green small" data-v602="park">🎡 Sækja miðasöluna (🦴 2.000)</button></div>' : ''}
+    <div class="v6grid">${WON602.map(b => { const l = vilL60(b.k); return `<div class="v6card ${l ? 'on' : ''}"><b>${b.ic} ${b.name}</b>${l ? '✅ ' + b.eff() : b.eff()}
+      ${!l && open ? `<button class="btn small green" style="font-size:13px;padding:8px 6px" data-v6="vil:${b.k}" ${canAfford(b.price[0]) ? '' : 'disabled'}>🔨 Byggja · 🦴 ${fmt60(b.price[0])}</button>` : ''}</div>`; }).join('')}</div>
+    <div class="row"><button class="btn alt small" data-act="close">Loka</button></div>`);
+  const cv = $('#v6vil'); if (!cv) return; const c = cv.getContext('2d'), best = bestDog602(), t0 = performance.now(); cancelAnimationFrame(VILRAF60); cancelAnimationFrame(WRAF602);
+  const loop = () => { if (!cv.isConnected) return; drawWonders602(c, (performance.now() - t0) / 1000, best, open); WRAF602 = VILRAF60 = requestAnimationFrame(loop); }; loop();
+}; })(openVillage60);
+function drawWonders602(c, t, best, open) {
+  const se = seasonNow(), night = se.night; const g = c.createLinearGradient(0, 0, 0, 240); g.addColorStop(0, night ? '#141c4a' : '#8fd0ff'); g.addColorStop(1, night ? '#3a3f7a' : '#e8f6ff'); c.fillStyle = g; c.fillRect(0, 0, 360, 240);
+  c.fillStyle = '#7cc36b'; c.beginPath(); c.moveTo(0, 150); c.quadraticCurveTo(180, 90, 360, 150); c.lineTo(360, 240); c.lineTo(0, 240); c.fill(); c.fillStyle = '#e6d3b3'; c.fillRect(0, 196, 360, 18);
+  const lv = k => vilL60(k) > 0, ghost = (x, y, w, h, ic) => { c.save(); c.setLineDash([5, 4]); c.strokeStyle = 'rgba(42,31,61,.5)'; c.lineWidth = 2; c.strokeRect(x, y, w, h); c.restore(); c.font = '22px sans-serif'; c.textAlign = 'center'; c.fillText(ic, x + w / 2, y + h / 2 + 8); };
+  // statue of the best dog
+  if (lv('w_statue')) { c.fillStyle = '#c9a227'; c.strokeStyle = OUTLINE; c.lineWidth = 2; c.fillRect(22, 160, 80, 36); c.strokeRect(22, 160, 80, 36); c.fillRect(32, 150, 60, 12); c.strokeRect(32, 150, 60, 12);
+    if (best) { const spr = dogSprite(yardDogBreed(best.d), '#e8b830', 0); c.save(); c.imageSmoothingEnabled = false; c.translate(62, 150); c.drawImage(spr, -spr.width * 1.6, -spr.height * 3.2, spr.width * 3.2, spr.height * 3.2); c.restore();
+      c.fillStyle = OUTLINE; c.font = '900 9px system-ui'; c.textAlign = 'center'; c.fillText(String(best.d.name).slice(0, 14), 62, 182); } sparkles(c, 62, 120, 80, 60, t); }
+  else ghost(22, 110, 80, 86, '🗿');
+  // observatory
+  if (lv('w_star')) { c.fillStyle = '#e9f2ff'; c.strokeStyle = OUTLINE; c.lineWidth = 2; c.fillRect(140, 130, 80, 66); c.strokeRect(140, 130, 80, 66); c.fillStyle = '#c9d6ea'; c.beginPath(); c.arc(180, 130, 40, Math.PI, 0); c.fill(); c.stroke();
+    c.save(); c.translate(180, 112); c.rotate(-0.6 + Math.sin(t * 0.3) * 0.25); c.fillStyle = '#3a3f7a'; c.fillRect(-4, -36, 8, 30); c.restore(); c.fillStyle = '#ffd23f'; for (let i = 0; i < 6; i++) { const a = (t * 0.5 + i) % 1; c.globalAlpha = Math.sin(a * Math.PI); c.fillRect(150 + i * 12, 30 + (i * 17) % 40, 3, 3); } c.globalAlpha = 1; }
+  else ghost(140, 110, 80, 86, '🔭');
+  // amusement park: a turning ferris wheel
+  if (lv('w_park')) { const cx = 300, cy = 120, R = 46; c.strokeStyle = '#8a8a99'; c.lineWidth = 4; c.beginPath(); c.moveTo(cx - 30, 196); c.lineTo(cx, cy); c.lineTo(cx + 30, 196); c.stroke(); c.strokeStyle = '#ff4d5e'; c.lineWidth = 3; c.beginPath(); c.arc(cx, cy, R, 0, 7); c.stroke();
+    for (let i = 0; i < 8; i++) { const a = t * 0.5 + i * Math.PI / 4, x = cx + Math.cos(a) * R, y = cy + Math.sin(a) * R; c.strokeStyle = 'rgba(255,77,94,.6)'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(cx, cy); c.lineTo(x, y); c.stroke(); c.fillStyle = ['#ffd23f', '#3ddc84', '#3f6df2', '#ff7eb9'][i % 4]; c.strokeStyle = OUTLINE; c.lineWidth = 1.2; c.fillRect(x - 6, y, 12, 9); c.strokeRect(x - 6, y, 12, 9); } }
+  else ghost(254, 100, 92, 96, '🎡');
+  c.fillStyle = OUTLINE; c.font = '900 9px system-ui'; c.textAlign = 'center'; WON602.forEach((b, i) => c.fillText(b.name, [62, 180, 300][i], 226));
+  if (!open) { const D = DIST601.find(q => q.k === 'undur'); c.fillStyle = 'rgba(42,31,61,.55)'; c.fillRect(0, 0, 360, 240); c.fillStyle = '#fff'; c.font = '900 16px system-ui'; c.fillText(`🔒 ${D.ic} ${D.name}`, 180, 108); c.font = '800 11px system-ui'; c.fillText(distNeedTxt601(D).replace('🔒 ', ''), 180, 130); }
+  c.textAlign = 'left';
+}
+hap60 = (function (orig) { return function (key, id) { const S = S602(), add = ((S.vil.w_statue | 0) ? 5 : 0) + ((S.vil.w_park | 0) ? 8 : 0); return Math.max(0, Math.min(100, orig(key, id) + add)); }; })(hap60);
+tripLoot60 = (function (orig) { return function (p) {   // phase outfits are never trip finds: hide them from the draw (same seeded result as 6.01)
+  const hid = OUT602.map(o => WEAR60.indexOf(o)).filter(i => i >= 0).sort((a, b) => b - a).map(i => [i, WEAR60.splice(i, 1)[0]]); let r; try { r = orig(p); } finally { hid.reverse().forEach(([i, o]) => WEAR60.splice(i, 0, o)); } if (r && r.kind === 'coins' && vilL60('w_star')) r.coins = Math.round(r.coins * 1.25 / 10) * 10; return r; }; })(tripLoot60);
+function parkClaim602() { if (!vilL60('w_park') || VISIT || save.v60.seen.w_park === dayNum60()) return false; save.v60.seen.w_park = dayNum60(); save.coins += 2000; persist(); Snd.coin(); toast('🎡 Miðasalan í skemmtigarðinum gaf 🦴 2.000!', 2000); try { updateCoins(); } catch (e) {} return true; }
+
+/* ---------- the "💎 Lúxus" shop section ---------- */
+function luxHTML602() {
+  const card = (ic, name, txt, price, own, attr, lockTxt) => `<div class="l602c ${own ? 'own' : ''}"><i>${ic}</i><b>${name}</b><span>${txt}</span>${own ? '<em>✅ Þú átt þetta</em>' : lockTxt ? `<em class="lk">${lockTxt}</em>` : `<button class="btn small price ${canAfford(price) ? '' : 'poor'}" data-v602="${attr}">🦴 ${fmt60(price)}</button>`}</div>`;
+  let h = `<div class="sh l602h l602">💎 Lúxus</div><div class="fair lux">Fyrir þá sem eiga nóg af beinum. Fast verð, engin heppni og engir alvöru peningar. Gestir sjá allt sem þú kaupir hér.</div>`;
+  h += `<div class="sh l602h">🏰 Lúxusgarðar</div><div class="l602g">${LUX602.map(l => card(l.ic, l.name, l.txt, l.price, has602('lux602', l.k), 'lux:' + l.k)).join('')}</div><p class="tipsmall">Heill garður sem bætist neðst – raðaðu honum hvar sem er með ↕️ Raða (▲▼⭐).</p>`;
+  h += `<div class="sh l602h">🎢 Risatæki</div><div class="l602g">${GI602.map(g => card(g.ic, g.name, g.txt, g.price, has602('gi602', g.k), 'gi:' + g.k)).join('')}</div><p class="tipsmall">Risatækin fara á Risaleikvöllinn – hundarnir nota þau sjálfir.</p>`;
+  h += `<div class="sh l602h">👑 Fasabúningar</div><div class="l602g">${OUT602.map(o => card(MATS[o.m].ic, o.name, `Fyrir þá sem kláruðu ${MATS[o.m].b.toLowerCase()}in.`, o.price, ownsWear60(o.id), 'out:' + o.id, phaseDone602(o.m) ? '' : `🔒 Opnast þegar þú hefur unnið öll 100 ${MATS[o.m].b.toLowerCase()}in (${goldWon(o.m)}/100)`)).join('')}</div><p class="tipsmall">Klæddu hund í búninginn undir 🐶 Hundar → 👗 Föt.</p>`;
+  h += `<div class="sh l602h">🐾 Gæludýr</div><div class="l602g">${PET602.map(p => card(p.ic, `${p.name} – ${p.nm}`, p.txt, p.price, has602('pet602', p.k), 'pet:' + p.k)).join('')}</div>`;
+  h += `<div class="sh l602h">🌟 Undur í Hundaþorpinu</div><div class="l602g">${WON602.map(b => card(b.ic, b.name, b.eff(), b.price[0], vilL60(b.k) > 0, 'won:' + b.k, distOpen601('undur') ? '' : '🔒 ' + distNeedTxt601(DIST601.find(q => q.k === 'undur')).replace('🔒 ', ''))).join('')}</div>`;
+  h += `<div class="sh l602h">🐕 Sjaldgæfir hundar</div><div class="l602g">${RARE602.map(d => `<div class="l602c ${has602('rare602', d.id) ? 'own' : ''}"><img src="${portraitURL(d)}" alt=""><b>${d.name}</b><span>${d.breed}. ${d.line}</span>${has602('rare602', d.id) ? '<em>✅ Heima í garðinum</em>' : `<button class="btn small price ${canAfford(d.price) ? '' : 'poor'}" data-v602="rare:${d.id}">🦴 ${fmt60(d.price)}</button>`}</div>`).join('')}</div>`;
+  return `<div id="lux602">${h}</div>`;
+}
+renderShop = (function (orig) { return function () {
+  orig(); const el = $('#shopInner'); if (!el) return; const at = [...el.querySelectorAll('.sh')].find(s => s.textContent.trim() === 'Hundagarðurinn');
+  if (at) at.insertAdjacentHTML('beforebegin', luxHTML602()); else el.insertAdjacentHTML('beforeend', luxHTML602());
+}; })(renderShop);
+
+/* ---------- yard hooks ---------- */
+setup60 = (function (orig) { return function () { orig(); setup602(); setupPets602(); }; })(setup60);
+update60 = (function (orig) { return function (dt) { orig(dt); update602(dt); updatePets602(dt); }; })(update60);
+yardList60 = (function (orig) { return function () { return orig().concat(list602()); }; })(yardList60);
+yardTap60 = (function (orig) { return function (x, y) {
+  for (const b of bands602()) { const s = starPos602(b); if (Math.abs(x - s.x) < 17 && Math.abs(y - s.y) < 17) { if (VISIT) toast(b.name, 1400); else setMain60(b.id); return true; } }
+  for (const p of PETS602) if (Math.abs(p.x - x) < 18 && y > p.y - 30 && y < p.y + 6) { const P = PET602.find(q => q.k === p.k); Snd.tap(); toast(`${P.ic} ${P.nm}: ${P.txt}`, 1800); p.st = 'idle'; p.T = 0; return true; }
+  const b = bands602().find(q => y >= q.y0 && y < q.y0 + q.h);
+  if (b) { if (b.lux) { Snd.tap(); toast(`${b.lux.ic} ${b.lux.name}: ${b.lux.txt}`, 2000); return true; }
+    for (const g of gi602()) { const R = GIS602[g.k]; if (x >= R.x && x <= R.x + R.w && y >= b.y0 + R.y && y <= b.y0 + R.y + R.h) { Snd.tap(); toast(`${g.ic} ${g.name}: ${g.txt}`, 2000); return true; } } return true; }
+  return orig(x, y);
+}; })(yardTap60);
+
+/* ---------- visitors: the snapshot carries the luxury things, the downloaded copy is cleaned ---------- */
+snap60 = (function (orig) { return function () { const s = orig(), v = save.v60, pick = (f, L, key) => { const o = {}; for (const q of L) if ((v[f] || {})[q[key]]) o[q[key]] = 1; return o; };
+  s.lux602 = pick('lux602', LUX602, 'k'); s.gi602 = pick('gi602', GI602, 'k'); s.pet602 = pick('pet602', PET602, 'k'); s.rare602 = pick('rare602', RARE602, 'id'); return s; }; })(snap60);
+clean60 = (function (orig) { return function (y) { const o = orig(y); if (!y || typeof y !== 'object') return o; const pick = (f, L, key) => { const r = {}; for (const q of L) if (y[f] && y[f][q[key]]) r[q[key]] = 1; return r; };
+  o.lux602 = pick('lux602', LUX602, 'k'); o.gi602 = pick('gi602', GI602, 'k'); o.pet602 = pick('pet602', PET602, 'k'); o.rare602 = pick('rare602', RARE602, 'id');
+  const ids = LUX602.map(l => l.id).concat([GIB602.id]); if (Array.isArray(y.ord)) o.ord = y.ord.slice(0, 16).map(k => k | 0).filter((k, i, a) => ((k >= 0 && k <= YMAX) || ids.includes(k)) && a.indexOf(k) === i);
+  return o; }; })(clean60);
+
+/* ---------- clicks + style ---------- */
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('[data-v602]'); if (!b || b.disabled) return; const [a, p, q] = b.dataset.v602.split(':'); Snd.tap();
+  const shop = () => { if (document.getElementById('lux602')) { const sc = (document.getElementById('shopInner') || {}).scrollTop; renderShop(); const el = document.getElementById('shopInner'); if (el && sc != null) el.scrollTop = sc; } try { updateCoins(); } catch (er) {} };
+  if (a === 'lux') { buyLux602(p); shop(); } else if (a === 'gi') { buyGiant602(p); shop(); } else if (a === 'pet') { buyPet602(p); shop(); }
+  else if (a === 'out') { const ok = buyOut602(p); if (q) { if (ok) setWear60(q, 'k', p); openDog60(q, 'wear'); } else shop(); }
+  else if (a === 'won') { if (!distOpen601('undur')) { toast(distNeedTxt601(DIST601.find(z => z.k === 'undur')), 2200); return; } if (upVil60(p)) toast(`${VIL60.find(z => z.k === p).ic} ${VIL60.find(z => z.k === p).name} er risið í Hundaþorpinu!`, 2400); shop(); }
+  else if (a === 'rare') { const ok = buyRare602(p); if ($('#modal').classList.contains('on')) { if (ok) closeModal(); } shop(); try { if (document.getElementById('albumInner')) renderAlbum(); } catch (er) {} }
+  else if (a === 'rdog') showRare602(p);
+  else if (a === 'park') { parkClaim602(); openVillage60('undur'); }
+});
+(function () { const st = document.createElement('style'); st.textContent = `.v6grid .v6card{display:flex;flex-direction:column;min-width:0;overflow-wrap:anywhere;line-height:1.25}.v6grid .v6card b{overflow-wrap:anywhere}.v6grid .v6card .btn{min-height:34px;font-size:14px;line-height:1.15;padding:5px 8px;gap:4px;border-radius:12px;margin:6px 0 9px;white-space:normal;box-shadow:inset 0 2px 0 rgba(255,255,255,.7),0 3px 0 var(--edge),0 5px 8px rgba(25,8,55,.22)}.v6grid .v6card .btn:active{transform:translateY(2px)}.v6grid .v6card .v6small{margin-top:0}.sh.l602h{color:#ffe27a;text-shadow:0 2px 0 #7a4a00,0 0 12px rgba(255,210,60,.6)}.l602g{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:6px 0 10px}.l602c b{color:#5a3a00!important;font-size:14px;text-shadow:none!important}.l602c span{color:#3a2a10}.l602c{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 6px;border-radius:14px;border:2px solid #c9a227;background:linear-gradient(160deg,#fffbe8,#fff1c2);text-align:center;font-size:12px}
+.l602c i{font-style:normal;font-size:30px;line-height:1}.l602c img{width:64px;height:64px;image-rendering:pixelated;border-radius:10px}.l602c b{font-size:13px}.l602c span{color:#5a4a6a;line-height:1.25}.l602c em{font-style:normal;font-weight:800;color:#2e8a4a}.l602c em.lk{color:#7a6a8a;font-weight:700;font-size:11px}.l602c.own{background:linear-gradient(160deg,#eaffea,#d4f5d4);border-color:#3ddc84}
+.sh.l602{font-size:20px;background:linear-gradient(90deg,#ffe58a,#fff6c8,#ffd23f);border-radius:12px;padding:6px 10px;color:#2a1f3d}.lock602{opacity:.7;cursor:default}.card.r602{border-color:#c9a227;background:linear-gradient(160deg,#fffbe8,#ffe9a0)}.r602h{margin-top:14px}`; document.head.appendChild(st); })();
+const V602DBG = () => ({ LUX602, GI602, PET602, OUT602, RARE602, WON602, bands: bands602, buyLux: buyLux602, buyGiant: buyGiant602, buyPet: buyPet602, buyRare: buyRare602, buyOut: buyOut602, phaseDone: phaseDone602,
+  pets: () => PETS602, park: parkClaim602, best: bestDog602, luxHTML: luxHTML602, openRare: showRare602 });
+
 /* ===== Boot, canvas, input, main loop ===== */
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
 let W = 360, H = 640, DPR = 1, T = 0;
@@ -10617,7 +11029,7 @@ window.__pl = { version: VERSION, screen: () => scr, fsState: () => ({ armed: au
     winNow: () => { if (!G) return; G.s.cells = G.s.cells.map(() => null); G.s.left = 0; G.bdirty = true; }, GEAR, HELPERS, buyYard, buyGear, buyHelper, useHelper, bombTap, layout: () => L, game: () => G, equip, levelEarnings, finishLevel, bonus: () => B, yard: () => YD, setScreen, startLevel, startFinale, tapLane, makePackVis, closeModal, finaleDown, finaleUp, specialPreview, showBreeds, aimPath, view: () => ({ W, H }),
     yView: () => yView(), yardScroll, ySlots, cSlots, YARDS, buyYardLevel, buyCabinet, buyCabItem, openCabinetShop, careAction, giveTreat, yardH, FEVENTS, finaleConst: () => ({ GRAV, PEG_E, WALL_E, MULTS }), routeSpy: f => { ROUTE_SPY = f; }, blockImg: goldBlockImg, drawHouse, landBall, forceEvent: ev => { if (F) F.forceEv = ev; window.__forceEv = ev; },
     // 4.2 test hooks
-    v60: V60DBG(), v601: V601DBG(),
+    v60: V60DBG(), v601: V601DBG(), v602: V602DBG(),
     v53: { passedU, openSkips, skip53Level, yardAll53, yardDogTotal, trophies53, weekKeyOf, weeklyPick, weekKey, set: f => f(save), YD: () => YD },
     v52: { TIERS, MATS, goldDef, phaseOpen, phaseAll, nextGoldId, gUnlocked, dogMat, decodePhase, PHASE_DATA: () => PHASE_DATA, yItem },
     v533: { bonusStop, updateBonus, wheelSegAt },

@@ -1,5 +1,5 @@
 /* Betri Hundar service worker: network-first, falls back to cache when offline. */
-const CACHE = 'betri-hundar-6.03';   // bump with every release (1.0 used 'betri-hundar-v3', 1.1 'betri-hundar-1.1')
+const CACHE = 'betri-hundar-6.03b';   // bump with every release (1.0 used 'betri-hundar-v3', 1.1 'betri-hundar-1.1')
 const CORE = ['./', './index.html', './manifest.json', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));

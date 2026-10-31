@@ -10968,6 +10968,30 @@ showSettings = (function (orig) { return function () { orig(); const mc = $('#mo
 .cheat603 .btn{min-height:40px;font-size:15px;padding:0 14px;box-shadow:inset 0 2px 0 rgba(255,255,255,.7),0 3px 0 var(--edge),0 5px 8px rgba(25,8,55,.22)}
 .cheat603 small{display:block;margin-top:6px;font-size:12px;opacity:.75}`; document.head.appendChild(st); })();
 const V603DBG = () => ({ tryCheat: tryCheat603, hash: cheatHash603, fair: fairCoins603, CHEAT603 });
+/* ---------- 6.03 fix: 'Gefa að borða' gathers the dogs in the TOP yard of the player's order (Raða ▲▼⭐) ----------
+   Root cause: careAction('feed') always sent the dogs to the first owned cabinet (CSLOTS, native yard 0) in native coordinates,
+   so with a reordered yard list they ate in the default first yard, drawn as the 2nd slot, not in the yard on top. */
+function feedSpot603() {
+  const k = yardOrder601()[0] | 0, [a, b] = bandRange601(k), y0 = Math.max(a, k === 0 ? 150 : a + 40), y1 = b - 40;
+  const cab = cSlots().find(q => save.cabinets[q.id] && q.band === k);
+  if (cab) return { x: cab.x, y: cab.y, k, y0: a, y1: b };
+  const bw = ((YD && YD.bowls) || []).filter(q => q.y >= y0 && q.y <= y1);
+  const p = bw.length ? bw[0] : { x: 180, y: (y0 + y1) / 2 - 30 };
+  return { x: p.x, y: p.y, k, y0: a, y1: b };
+}
+const careAction602b = careAction;
+careAction = function (k) {
+  const r = careAction602b.apply(this, arguments);
+  if (k === 'feed' && r && YD && YD.dogs.length) {
+    const s = feedSpot603(), lo = s.y0 + 30, hi = s.y1 - 14, ob = YD.ob || [];
+    YD.dogs.forEach((yd, i) => { const a = i / Math.max(1, YD.dogs.length) * 6.28; let tx, ty;
+      for (let n = 0; n < 6; n++) { const r = 34 + (i % 3) * 16 + n * 6; tx = Math.max(24, Math.min(336, s.x + Math.cos(a + n) * r)); ty = Math.max(lo, Math.min(hi, s.y + 30 + Math.abs(Math.sin(a + n)) * r * 0.6)); if (yFree(tx, ty, ob)) break; }
+      yd.st = 'walk'; yd.goEat = true; yd.tx = tx; yd.ty = ty; yd.feed603 = s.k; });
+    YD.scroll = Math.max(0, Math.min(yView().max, yN2D601(s.y) - 260));
+  }
+  return r;
+};
+const V603FIX = () => ({ feedSpot: feedSpot603 });
 
 /* ===== Boot, canvas, input, main loop ===== */
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
@@ -11059,7 +11083,7 @@ window.__pl = { version: VERSION, screen: () => scr, fsState: () => ({ armed: au
     winNow: () => { if (!G) return; G.s.cells = G.s.cells.map(() => null); G.s.left = 0; G.bdirty = true; }, GEAR, HELPERS, buyYard, buyGear, buyHelper, useHelper, bombTap, layout: () => L, game: () => G, equip, levelEarnings, finishLevel, bonus: () => B, yard: () => YD, setScreen, startLevel, startFinale, tapLane, makePackVis, closeModal, finaleDown, finaleUp, specialPreview, showBreeds, aimPath, view: () => ({ W, H }),
     yView: () => yView(), yardScroll, ySlots, cSlots, YARDS, buyYardLevel, buyCabinet, buyCabItem, openCabinetShop, careAction, giveTreat, yardH, FEVENTS, finaleConst: () => ({ GRAV, PEG_E, WALL_E, MULTS }), routeSpy: f => { ROUTE_SPY = f; }, blockImg: goldBlockImg, drawHouse, landBall, forceEvent: ev => { if (F) F.forceEv = ev; window.__forceEv = ev; },
     // 4.2 test hooks
-    v60: V60DBG(), v601: V601DBG(), v602: V602DBG(), v603: V603DBG(),
+    v60: V60DBG(), v601: V601DBG(), v602: V602DBG(), v603: Object.assign(V603DBG(), V603FIX()),
     v53: { passedU, openSkips, skip53Level, yardAll53, yardDogTotal, trophies53, weekKeyOf, weeklyPick, weekKey, set: f => f(save), YD: () => YD },
     v52: { TIERS, MATS, goldDef, phaseOpen, phaseAll, nextGoldId, gUnlocked, dogMat, decodePhase, PHASE_DATA: () => PHASE_DATA, yItem },
     v533: { bonusStop, updateBonus, wheelSegAt },

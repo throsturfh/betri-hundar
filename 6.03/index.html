@@ -10979,19 +10979,105 @@ function feedSpot603() {
   const p = bw.length ? bw[0] : { x: 180, y: (y0 + y1) / 2 - 30 };
   return { x: p.x, y: p.y, k, y0: a, y1: b };
 }
+const free603 = (x, y, ob) => [[0, 0], [-20, 0], [20, 0], [0, -16], [0, 16]].every(([a, b]) => yFree(x + a, y + b, ob));   // a roomy spot so the dog can really reach it
 const careAction602b = careAction;
 careAction = function (k) {
   const r = careAction602b.apply(this, arguments);
   if (k === 'feed' && r && YD && YD.dogs.length) {
     const s = feedSpot603(), lo = s.y0 + 30, hi = s.y1 - 14, ob = YD.ob || [];
     YD.dogs.forEach((yd, i) => { const a = i / Math.max(1, YD.dogs.length) * 6.28; let tx, ty;
-      for (let n = 0; n < 6; n++) { const r = 34 + (i % 3) * 16 + n * 6; tx = Math.max(24, Math.min(336, s.x + Math.cos(a + n) * r)); ty = Math.max(lo, Math.min(hi, s.y + 30 + Math.abs(Math.sin(a + n)) * r * 0.6)); if (yFree(tx, ty, ob)) break; }
+      for (let n = 0; n < 14; n++) { const r = 40 + (i % 3) * 16 + n * 8; tx = Math.max(24, Math.min(336, s.x + Math.cos(a + n) * r)); ty = Math.max(lo, Math.min(hi, s.y + 30 + Math.abs(Math.sin(a + n)) * r * 0.6)); if (free603(tx, ty, ob)) break; }
       yd.st = 'walk'; yd.goEat = true; yd.tx = tx; yd.ty = ty; yd.feed603 = s.k; });
     YD.scroll = Math.max(0, Math.min(yView().max, yN2D601(s.y) - 260));
   }
   return r;
 };
 const V603FIX = () => ({ feedSpot: feedSpot603 });
+
+/* ---------- 6.03c fix: a re-ordered yard draws ONLY its own things, and every yard has the same grass ----------
+   Root cause: with a custom order (6.01 yardSegs601) each display slot re-rendered the WHOLE native yard world and only clipped it to
+   the slot, so items / empty slots / cabinets (and their 'frá …' labels) whose sprites stick out of their own band – e.g. Bakgarðurinn's
+   Skápur k0 (y 172, drawn up to ~y 90) and its Miðlungs/Lítill slots – showed through in the sky slot and in the slot above/below.
+   Grass: lawnLayer() was a top->bottom gradient (c0 -> c1 -> c2) and drawBandDeco tinted odd/even bands ±5 %, so Bakgarðurinn (the
+   top of the gradient, untinted) was a lighter shade than the others. */
+let SEG603 = null, DRAWN603 = [];
+renderYard = function () {
+  const v = yView(), t = YD ? YD.t : 0, Hy = yardH();
+  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#7fd3ff'); g.addColorStop(0.3, '#c9f0ff'); g.addColorStop(0.31, '#5cc46e'); g.addColorStop(1, '#2f8a4e');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  const segs = yardSegs601(); DRAWN603 = [];
+  if (!segs) renderYardWorld(v, t, Hy);
+  else for (const s of segs) {
+    const d1 = s.d + s.n1 - s.n0; if (d1 < v.top - 2 || s.d > v.top + v.vis + 2) continue;
+    const y0 = v.oy + s.d * v.k, y1 = v.oy + d1 * v.k;
+    ctx.save(); ctx.beginPath(); ctx.rect(0, Math.floor(y0), W, Math.ceil(y1 - y0) + (s.last ? 0 : 1)); ctx.clip();
+    YVOVR601 = s.n0 - s.d + v.top; SEG603 = s; try { renderYardWorld(yView(), t, Hy); } finally { YVOVR601 = null; SEG603 = null; }
+    ctx.restore();
+  }
+  if (v.max > 0) {
+    const ph = yPanelH(), track = H - ph - 16, sc = YD ? Math.max(0, Math.min(YD.scroll || 0, v.max)) : 0, bh = Math.max(40, track * v.vis / Hy), by = 8 + (track - bh) * sc / v.max;
+    ctx.fillStyle = 'rgba(42,31,61,.35)'; roundRect(ctx, W - 7, 8, 4, track, 2); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,.85)'; roundRect(ctx, W - 8, by, 6, bh, 3); ctx.fill();
+  }
+};
+renderYardWorld = function (v, t, Hy) {
+  ctx.save(); ctx.translate(v.ox, v.oy); ctx.scale(v.k, v.k);
+  // sky, hills, lawn with mowing stripes and a path
+  drawYardBG50(ctx, t, Hy);
+  for (let k = 1; k <= save.yardLvl; k++) drawBandDeco(ctx, k, t);
+  drawBands50(ctx, t); drawDecoSky60(ctx, t); drawAreas60(ctx, t); drawStars60(ctx, t);
+  if (save.yardLvl < YMAX) {   // a sign at the bottom: the next yard (tap -> Garðarnir)
+    const y0 = YARDS[save.yardLvl].h, N = YARDS[save.yardLvl + 1];
+    ctx.save(); ctx.setLineDash([8, 6]); ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 2.5; roundRect(ctx, 14, y0 + 8, YW - 28, 46, 14); ctx.stroke(); ctx.restore();
+    ctx.fillStyle = 'rgba(42,31,61,.55)'; roundRect(ctx, 14, y0 + 8, YW - 28, 46, 14); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = '900 13px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(`🔒 ${N.name} – stærri garður fyrir 🦴 ${N.price.toLocaleString('de-DE')}`, 180, y0 + 31);
+  }
+  // items + cabinets + dogs + the owner, depth-sorted by their ground line; empty slots only while "Sjá allt laust" is on
+  const show = !!(YD && YD.show);
+  const list = ySlots().filter(sl => save.yardSlots[sl.id] || show).map(sl => ({ y: sl.fence === 'v' ? 0 : sl.y, sl }))
+    .concat(cSlots().filter(c => save.cabinets[c.id] || show).map(c => ({ y: c.y, cab: c })))
+    .concat(YD ? YD.dogs.filter(d => (!d.act || d.act.k === 'agi') && d.y > v.top - 40 && d.y < v.top + v.vis + 140).map(d => ({ y: d.y, dog: d })) : []).concat(YD && YD.owner ? [{ y: YD.owner.y, own: YD.owner }] : []).concat(yardList50()).concat(yardList53()).concat(yardList531()).concat(yardList60()).sort((a, b) => a.y - b.y);
+  if (SEG603) { const s = SEG603; for (let i = list.length - 1; i >= 0; i--) { const o = list[i], y = o.sl ? o.sl.y : o.cab ? o.cab.y : o.y; if (!(y >= s.n0 && y < s.n1)) list.splice(i, 1); } DRAWN603.push({ k: SEG603.k, n0: SEG603.n0, n1: SEG603.n1, ys: list.map(o => o.sl ? ['s', o.sl.id, o.sl.y] : o.cab ? ['c', o.cab.id, o.cab.y] : ['o', '', o.y]) }); }   // 6.03c: only this band's own things
+  if (YD && YD.session) drawHoop(ctx, 180, 330, t);
+  for (const o of list) {
+    if (o.fx) { o.fx(ctx, t); continue; }
+    if (o.dog) { drawYardDog(ctx, o.dog, t); continue; }
+    if (o.own) { drawOwner(ctx, o.own, t); continue; }
+    if (o.cab) {
+      const c = o.cab, id = save.cabinets[c.id];
+      if (id) { const p0 = YD && YD.pop[c.id] != null ? Math.min(1, (t - YD.pop[c.id]) / 0.5) : 1, sc = p0 < 1 ? easeOutBack(p0) : 1;
+        ctx.save(); ctx.translate(c.x, c.y); ctx.scale(sc, sc); ctx.translate(-c.x, -c.y); drawCabinet(ctx, c.x, c.y, id, t, cSlots().filter(q => save.cabinets[q.id]).indexOf(c)); ctx.restore(); }
+      else emptySlotMark(c, { name: 'Skápareitur', short: 'Skápur', col: '#ffd23f' }, CABS[0].price, t);
+      continue;
+    }
+    const sl = o.sl, id = save.yardSlots[sl.id];
+    if (id) {
+      const it = placed(sl, id), p0 = YD && YD.pop[sl.id] != null ? Math.min(1, (t - YD.pop[sl.id]) / 0.5) : 1, sc = p0 < 1 ? easeOutBack(p0) : 1;
+      ctx.save(); ctx.translate(it.x, it.y); ctx.scale(sc, sc); ctx.translate(-it.x, -it.y); drawYardItem(ctx, it, t); ctx.restore();
+    } else emptySlotMark(sl, YSIZE[sl.size], yChoices(sl)[0].price, t);
+  }
+  drawYardFX50(ctx, t, v); drawYardFX53(ctx, t); drawTop531(ctx, t); drawDecoTop60(ctx, t);
+  if (YD) { for (const h of YD.hearts) { ctx.globalAlpha = Math.max(0, 1 - h.t / 1.4); ctx.font = '16px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('❤️', h.x, h.y); } ctx.globalAlpha = 1; drawParts(YD.parts); }
+  ctx.restore();
+};
+
+const lawnLayer602c = lawnLayer;
+lawnLayer = function (Hy, se) {   // one even grass colour over every yard (the middle tone of the season)
+  const C = SEASON_COL[se.s], keep = C.slice(); C[0] = C[2] = C[1];
+  try { return lawnLayer602c(Hy, se); } finally { C[0] = keep[0]; C[2] = keep[2]; }
+};
+const drawBandDeco602c = drawBandDeco;
+drawBandDeco = function (c, k, t) {   // skip only the ±5 % band tint (the first fillRect of drawBandDeco), keep hedge, gate and sign
+  let first = true; const f = c.fillRect; c.fillRect = function () { if (first) { first = false; return; } return f.apply(this, arguments); };
+  try { return drawBandDeco602c(c, k, t); } finally { delete c.fillRect; }
+};
+function lawnBands603() {   // average lawn colour in the middle of every owned yard band (test helper)
+  const Hy = yardH(), cv = lawnLayer(Hy, seasonNow()), c = cv.getContext('2d'), S = cv.width / YW, out = [];
+  for (let k = 0; k <= (save.yardLvl | 0); k++) { const [a, b] = bandRange601(k), y = Math.round(((a + b) / 2) * S), d = c.getImageData(0, y, cv.width, 40).data; let r = 0, g = 0, bl = 0, n = d.length / 4;
+    for (let i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; bl += d[i + 2]; } out.push([k, Math.round(r / n), Math.round(g / n), Math.round(bl / n)]); }
+  return out;
+}
+const V603C = () => ({ seg: () => SEG603, drawn: () => DRAWN603, lawn: lawnBands603 });
 
 /* ===== Boot, canvas, input, main loop ===== */
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
@@ -11083,7 +11169,7 @@ window.__pl = { version: VERSION, screen: () => scr, fsState: () => ({ armed: au
     winNow: () => { if (!G) return; G.s.cells = G.s.cells.map(() => null); G.s.left = 0; G.bdirty = true; }, GEAR, HELPERS, buyYard, buyGear, buyHelper, useHelper, bombTap, layout: () => L, game: () => G, equip, levelEarnings, finishLevel, bonus: () => B, yard: () => YD, setScreen, startLevel, startFinale, tapLane, makePackVis, closeModal, finaleDown, finaleUp, specialPreview, showBreeds, aimPath, view: () => ({ W, H }),
     yView: () => yView(), yardScroll, ySlots, cSlots, YARDS, buyYardLevel, buyCabinet, buyCabItem, openCabinetShop, careAction, giveTreat, yardH, FEVENTS, finaleConst: () => ({ GRAV, PEG_E, WALL_E, MULTS }), routeSpy: f => { ROUTE_SPY = f; }, blockImg: goldBlockImg, drawHouse, landBall, forceEvent: ev => { if (F) F.forceEv = ev; window.__forceEv = ev; },
     // 4.2 test hooks
-    v60: V60DBG(), v601: V601DBG(), v602: V602DBG(), v603: Object.assign(V603DBG(), V603FIX()),
+    v60: V60DBG(), v601: V601DBG(), v602: V602DBG(), v603: Object.assign(V603DBG(), V603FIX(), V603C()),
     v53: { passedU, openSkips, skip53Level, yardAll53, yardDogTotal, trophies53, weekKeyOf, weeklyPick, weekKey, set: f => f(save), YD: () => YD },
     v52: { TIERS, MATS, goldDef, phaseOpen, phaseAll, nextGoldId, gUnlocked, dogMat, decodePhase, PHASE_DATA: () => PHASE_DATA, yItem },
     v533: { bonusStop, updateBonus, wheelSegAt },

@@ -11240,6 +11240,50 @@ careAction = (function (orig) { return function (k) {
 let ROAM604 = null;
 yRoamY = (function (orig) { return function () { const R = ROAM604; if (R && !VISIT && YD && yardOrder601()[0] === R.k) return [R.a, R.b]; ROAM604 = null; return orig(); }; })(yRoamY);
 
+/* ===== 6.04b: never lose the board picture / blocks after the browser drops canvas memory =====
+   Chrome (Android) and Safari may throw away the pixels of offscreen canvases while the game is in the background or memory
+   is short ("context lost"). Every picture here is drawn ONCE into a cached canvas (board blocks, dog portrait, backdrop,
+   block tiles, sprites…), so after such a loss the board showed only the bare green frame with a few live-drawn blocks.
+   Fix: (1) listen for contextlost / contextrestored on every 2D canvas, (2) on returning to the app (visibilitychange,
+   pageshow, focus) and (3) a cheap watchdog that samples one pixel of the board layer + portrait, then drop every cache so
+   everything is redrawn from the game state. The game state itself was never touched – progress is safe. */
+const V604B = { resets: 0, lost: 0, last: '' };
+function gfxReset604b(why) {
+  V604B.resets++; V604B.last = why || '';
+  for (const o of [PORTRAITS, GBLK, SPR, SPK, BADGE]) for (const k of Object.keys(o)) delete o[k];
+  BG = null; MENU_BG = null; LAWN = null;
+  if (G) { G.bc = null; G.bdirty = true; }
+}
+let RESET604B_T = 0;
+const askReset604b = why => { if (RESET604B_T) return; RESET604B_T = setTimeout(() => { RESET604B_T = 0; gfxReset604b(why); }, 30); };
+(function () {
+  try {
+    const P = HTMLCanvasElement.prototype, gc = P.getContext;
+    P.getContext = function (type, ...a) {
+      const c = gc.call(this, type, ...a);
+      if (c && type === '2d' && !this.__l604b) { this.__l604b = 1;
+        this.addEventListener('contextlost', () => { V604B.lost++; askReset604b('lost'); });
+        this.addEventListener('contextrestored', () => askReset604b('restored')); }
+      return c;
+    };
+  } catch (e) {}
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') askReset604b('visible'); });
+  window.addEventListener('pageshow', () => askReset604b('pageshow'));
+})();
+// watchdog: a filled cell whose pixel in the cached board layer is transparent (or a blank portrait) means the pixels were lost
+function check604b() {
+  try {
+    if (!G || !G.bc || G.bdirty || G.won) return false; const s = G.s, i = s.cells.findIndex(Boolean); if (i < 0) return false;
+    const pxs = G.bc.cv.width / s.w, x = ((i % s.w) + 0.5) * pxs | 0, y = (((i / s.w) | 0) + 0.5) * pxs | 0;
+    let bad = G.bc.ctx.getImageData(x, y, 1, 1).data[3] === 0;
+    const pc = G.dog && PORTRAITS[G.dog.id]; if (!bad && pc && pc.getContext) bad = pc.getContext('2d').getImageData(pc.width >> 1, pc.height >> 1, 1, 1).data[3] === 0;
+    if (bad) { gfxReset604b('watchdog'); return true; }
+  } catch (e) {}
+  return false;
+}
+setInterval(() => { if (document.visibilityState !== 'hidden') check604b(); }, 1500);
+const V604BDBG = () => ({ V604B, reset: gfxReset604b, check: check604b });
+
 /* ===== Boot, canvas, input, main loop ===== */
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
 let W = 360, H = 640, DPR = 1, T = 0;
@@ -11330,7 +11374,7 @@ window.__pl = { version: VERSION, screen: () => scr, fsState: () => ({ armed: au
     winNow: () => { if (!G) return; G.s.cells = G.s.cells.map(() => null); G.s.left = 0; G.bdirty = true; }, GEAR, HELPERS, buyYard, buyGear, buyHelper, useHelper, bombTap, layout: () => L, game: () => G, equip, levelEarnings, finishLevel, bonus: () => B, yard: () => YD, setScreen, startLevel, startFinale, tapLane, makePackVis, closeModal, finaleDown, finaleUp, specialPreview, showBreeds, aimPath, view: () => ({ W, H }),
     yView: () => yView(), yardScroll, ySlots, cSlots, YARDS, buyYardLevel, buyCabinet, buyCabItem, openCabinetShop, careAction, giveTreat, yardH, FEVENTS, finaleConst: () => ({ GRAV, PEG_E, WALL_E, MULTS }), routeSpy: f => { ROUTE_SPY = f; }, blockImg: goldBlockImg, drawHouse, landBall, forceEvent: ev => { if (F) F.forceEv = ev; window.__forceEv = ev; },
     // 4.2 test hooks
-    v60: V60DBG(), v601: V601DBG(), v602: V602DBG(), v603: Object.assign(V603DBG(), V603FIX(), V603C()), v604: V604DBG(),
+    v60: V60DBG(), v601: V601DBG(), v602: V602DBG(), v603: Object.assign(V603DBG(), V603FIX(), V603C()), v604: V604DBG(), v604b: V604BDBG(),
     v53: { passedU, openSkips, skip53Level, yardAll53, yardDogTotal, trophies53, weekKeyOf, weeklyPick, weekKey, set: f => f(save), YD: () => YD },
     v52: { TIERS, MATS, goldDef, phaseOpen, phaseAll, nextGoldId, gUnlocked, dogMat, decodePhase, PHASE_DATA: () => PHASE_DATA, yItem },
     v533: { bonusStop, updateBonus, wheelSegAt },

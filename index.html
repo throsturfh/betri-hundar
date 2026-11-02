@@ -3838,7 +3838,7 @@ const PL = (function () {
 'use strict';
 /* ===== DOM screens, modals, fullscreen, persistence ===== */
 const $ = s => document.querySelector(s);
-const VERSION = '6.05';   // Betri Hundar 6.05 (shown on the home screen; bump sw.js CACHE together with this)
+const VERSION = '6.06';   // Betri Hundar 6.05 (shown on the home screen; bump sw.js CACHE together with this)
 const SAVE_KEY = 'packleader.v2';
 /* 4.3 save safety. All versions (1.0 … 4.3, different folders) share this origin and the key packleader.v2, and every
    version writes its WHOLE in-memory save. A tab/home-screen app of any version left open with older progress could
@@ -11622,6 +11622,233 @@ careAction = function (k) { const r = _care605.apply(this, arguments);
 const V605DBG = () => ({ V605, GROUND605, BOWL605, pos: pos605 });
 
 
+/* ===== Betri Hundar 6.06 – collapsible yard menu, every yard keeps its own dogs (clip + clamp), lighter drawing ===== */
+
+/* ---------- 1. the yard's bottom menu can be folded away (state kept in localStorage 'bh.ypc606') ---------- */
+const PC606K = 'bh.ypc606';
+let PC606 = (() => { try { return localStorage.getItem(PC606K) === '1'; } catch (e) { return false; } })();
+function setPC606(v) {
+  PC606 = !!v; try { localStorage.setItem(PC606K, PC606 ? '1' : '0'); } catch (e) {}
+  try { Snd.tap(); } catch (e) {}
+  updateYardPanel();
+}
+const _uyp606 = updateYardPanel;
+updateYardPanel = function () { const r = _uyp606.apply(this, arguments); try { deco606(); } catch (e) {} return r; };
+function deco606() {
+  const el = document.getElementById('yardPanel'); if (!el) return;
+  el.classList.toggle('ypc606', PC606);
+  let b = el.querySelector(':scope > .yp606t');
+  if (!b) { b = document.createElement('button'); b.type = 'button'; b.className = 'yp606t'; el.prepend(b); }
+  b.innerHTML = PC606 ? `<span>▲ Sýna valmynd</span><small>🦴 ${(save.coins | 0).toLocaleString('de-DE')}</small>` : '<span>▼ Fela valmynd</span>';
+  b.setAttribute('aria-expanded', PC606 ? 'false' : 'true'); b.setAttribute('aria-label', PC606 ? 'Sýna valmynd' : 'Fela valmynd');
+  b.onclick = e => { e.stopPropagation(); setPC606(!PC606); };
+}
+(function () { const st = document.createElement('style'); st.textContent = `
+.ypanel{position:relative}
+.yp606t{position:absolute;top:-32px;left:12px;height:32px;min-width:44px;padding:0 14px;border:0;border-radius:14px 14px 0 0;background:rgba(84,66,150,.96);color:#fff;font:900 13px system-ui,sans-serif;box-shadow:0 -3px 10px rgba(15,6,40,.3);pointer-events:auto;display:flex;align-items:center;gap:10px;cursor:pointer;touch-action:manipulation}
+.yp606t small{font-weight:800;opacity:.9}
+.ypanel.ypc606{padding:0;border-radius:18px 18px 0 0;background:transparent;box-shadow:none}
+.ypanel.ypc606>:not(.yp606t){display:none!important}
+.ypanel.ypc606>.yp606t{position:static;width:100%;height:40px;border-radius:18px 18px 0 0;justify-content:center;font-size:14px;padding-bottom:env(safe-area-inset-bottom,0)}`; document.head.appendChild(st); })();
+
+/* ---------- 2. every yard keeps its own dogs ----------
+   Root cause: the dogs roamed one big native range (yRoamY) over ALL normal yards, and their sprites stand up to ~45 px above
+   their feet. With the yards drawn per display slot (6.01 order / 6.02 luxury bands, clipped per slot) a dog near the top of a
+   yard had its head cut by the slot edge (it looked like it was under the yard above), and a dog that walked over the native
+   seam was drawn in the slot of a different yard. Fix: each dog (and the owner) belongs to one yard band (b606); its walk targets,
+   bowls and position are clamped inside that band with room for the whole sprite, and feeding moves it into the fed yard. */
+let BL606 = null, BLK606 = '';
+function bands606() {   // native y ranges of every yard band: normal yards 0..L + luxury / giant bands
+  const L = save.yardLvl | 0, ex = bands602(), key = L + ':' + ex.map(b => b.id + '@' + b.y0).join(',');
+  if (BL606 && BLK606 === key) return BL606;
+  const out = [];
+  for (let k = 0; k <= L; k++) { const [a, b] = bandRange601(k); out.push({ k, a, b, lux: false, g: k === 0 ? 190 : a + 24 }); }
+  for (const b of ex) out.push({ k: b.id, a: b.y0, b: b.y0 + b.h, lux: true, g: b.y0 + ((typeof GROUND605 !== 'undefined' && GROUND605[b.lux ? b.k : 'giant']) || 40) });
+  BL606 = out; BLK606 = key; return out;
+}
+function bandAt606(y, normalOnly) {
+  const B = bands606(); let last = B[0];
+  for (const q of B) { if (normalOnly && q.lux) continue; if (y >= q.a && y < q.b) return q; if (!q.lux) last = q; }
+  return y < B[0].a ? B[0] : last;   // the sky above -> first yard, the 'bigger yard' footer -> the last normal yard
+}
+const band606 = k => bands606().find(q => q.k === k) || null;
+function sprH606(yd) {   // how far the dog's sprite stands above its feet (incl. a little bob)
+  try { const s = dogSprite(yd.b, yd.d.fur || '#c98a4b', 0), u = 2 * (yd.d.big || 1) * ((YD && YD.ds) || 1); return s.height * u + 4; } catch (e) { return 40; }
+}
+function lim606(o, h) {   // [lo, hi] for the feet of a dog / the owner inside its own band
+  const q = band606(o.b606); if (!q) return null;
+  let lo = q.lux ? Math.max(q.g, q.a + h + 6) : Math.max(q.g, q.a + 24 + h), hi = q.b - 4;
+  if (!q.lux && q.k === (save.yardLvl | 0)) hi = Math.min(hi, yRoamY606()[1]);
+  if (lo > hi) lo = hi = (q.a + q.b) / 2;
+  return [lo, hi];
+}
+const yRoamY606 = () => { try { return yRoamY(); } catch (e) { return [190, 535]; } };
+const free606 = d => !(d.act || (d.use && d.use.ph === 'do') || busy531(d) || d.hide);
+function assign606() {
+  if (!YD) return;
+  for (const yd of YD.dogs) { if (yd.b606 == null) yd.b606 = bandAt606(yd.hy, true).k; const L = lim606(yd, sprH606(yd)); if (!L) continue;
+    const out = y => y < L[0] || y > L[1];
+    if (out(yd.hy)) [yd.hx, yd.hy] = fit606(yd.hx, yd.hy, L, YD.ob); if (!yd.act) { if (out(yd.y)) [yd.x, yd.y] = fit606(yd.x, yd.y, L, YD.ob); if (out(yd.ty)) [yd.tx, yd.ty] = fit606(yd.tx, yd.ty, L, YD.ob); } }
+  const o = YD.owner; if (o && o.b606 == null) { o.b606 = bandAt606(o.y, true).k; const L = lim606(o, 56); if (L) { o.y = Math.max(L[0], Math.min(L[1], o.y)); o.ty = Math.max(L[0], Math.min(L[1], o.ty)); } }
+}
+const _enter606 = enterYard;
+enterYard = function () { const r = _enter606.apply(this, arguments); try { assign606(); } catch (e) {} return r; };
+const _target606 = yardTarget;
+yardTarget = function (yd, ob) {
+  const r = _target606(yd, ob); if (!r || yd.b606 == null) return r;
+  const L = lim606(yd, sprH606(yd)); if (!L) return r;
+  return fit606(r[0], r[1], L, ob || YD.ob);
+};
+function fit606(x, y, L, ob) {   // clamp a point into [L0, L1] and keep it off items / signs (yFree), like yardTarget does
+  const cy = Math.max(L[0], Math.min(L[1], y)); if (!ob || yFree(x, cy, ob)) return [x, cy];
+  for (let i = 1; i <= 24; i++) { const d = i * 8; for (const yy of [cy + d, cy - d]) if (yy >= L[0] && yy <= L[1] && yFree(x, yy, ob)) return [x, yy]; }
+  for (let k = 0; k < 20; k++) { const xx = 26 + Math.random() * 308, yy = L[0] + Math.random() * (L[1] - L[0]); if (yFree(xx, yy, ob)) return [xx, yy]; }
+  return [x, cy];
+}
+const _bowl606 = pickBowl50;
+pickBowl50 = function (yd) {
+  if (!YD || !YD.bowls || yd.b606 == null) return _bowl606(yd);
+  const q = band606(yd.b606), all = YD.bowls; if (!q) return _bowl606(yd);
+  YD.bowls = all.filter(b => b.y >= q.a && b.y < q.b);   // only the bowls of its own yard
+  try { const r = _bowl606(yd); if (r) { const L = lim606(yd, sprH606(yd)); if (L) yd.ty = Math.max(L[0], Math.min(L[1], yd.ty)); } return r; } finally { YD.bowls = all; }
+};
+function clamp606(dt) {
+  if (!YD || YD.session) return;
+  for (const yd of YD.dogs) {
+    if (yd.b606 == null) yd.b606 = bandAt606(yd.hy, true).k;
+    if (!free606(yd)) continue;
+    let L = lim606(yd, sprH606(yd)); if (!L) continue;
+    if (yd.y < L[0] - 30 || yd.y > L[1] + 30) { const q = bandAt606(yd.y); if (q && q.k !== yd.b606) { yd.b606 = q.k; L = lim606(yd, sprH606(yd)) || L; yd.hy = yd.y; } }   // a ride / event put it in another yard: it now lives there (no teleport)
+    if (yd.st === 'walk') { if (yd.ty < L[0] || yd.ty > L[1]) [yd.tx, yd.ty] = fit606(yd.tx, yd.ty, L, YD.ob); if (yd.tx < 22 || yd.tx > 338) yd.tx = Math.max(22, Math.min(338, yd.tx)); }
+    if (yd.y < L[0] || yd.y > L[1]) { const c = Math.max(L[0], Math.min(L[1], yd.y)), d = c - yd.y; yd.y = Math.abs(d) > 30 ? c : yd.y + Math.sign(d) * Math.min(Math.abs(d), 90 * dt + 0.5); }
+    if (yd.hy < L[0] || yd.hy > L[1]) [yd.hx, yd.hy] = fit606(yd.hx, yd.hy, L, YD.ob);
+  }
+  const o = YD.owner;
+  if (o) { if (o.b606 == null) o.b606 = bandAt606(o.y, true).k; const L = lim606(o, 56);
+    if (L) { if (o.ty < L[0] || o.ty > L[1]) o.ty = L[0] + Math.random() * (L[1] - L[0]); if (o.y < L[0] || o.y > L[1]) o.y = Math.max(L[0], Math.min(L[1], o.y)); } }
+}
+const _uy606 = updateYard;
+updateYard = function (dt) { _uy606(dt); try { clamp606(dt); } catch (e) {} };
+// feeding: the dogs that go eat move into the fed yard (they hop in at its top, like 6.04 did for the luxury yards) and live there
+const _care606 = careAction;
+careAction = function (k) {
+  const r = _care606.apply(this, arguments);
+  if (k === 'feed' && r && YD && YD.dogs.length) { try {
+    const s = feedSpot603(), q = s && band606(s.k);
+    if (q) YD.dogs.forEach((yd, i) => { if (!yd.goEat || yd.act) return; const was = yd.b606; yd.b606 = q.k; const L = lim606(yd, sprH606(yd)); if (!L) return;
+      yd.ty = Math.max(L[0], Math.min(L[1], yd.ty));
+      if (was !== q.k || yd.y < L[0] || yd.y > L[1]) { yd.x = Math.max(30, Math.min(330, yd.tx + (i % 2 ? 26 : -26))); yd.y = Math.max(L[0], Math.min(L[1], Math.min(yd.ty - 30, L[0] + 20))); }
+      yd.hx = yd.tx; yd.hy = yd.ty; });
+  } catch (e) {} }
+  return r;
+};
+
+/* ---------- 3. lighter drawing: draw only what is inside the part of the yard being painted ----------
+   Each display slot of a re-ordered yard re-runs the whole yard drawing clipped to the slot. Everything outside the visible
+   native window of that pass was painted and then thrown away by the clip: all 7 hedges / gates / stepping stones, every item
+   and empty-slot mark of every yard, every luxury band + its sign, the whole lawn bitmap and the sky. WIN606 = the native
+   y window of the current pass; drawers whose output lies completely outside it are skipped (pixel-identical result). */
+const P606 = { on: true, frames: 0 };
+let WIN606 = null;
+const _bandDeco606 = drawBandDeco;
+drawBandDeco = function (c, k, t) {
+  if (WIN606 && P606.deco !== false && k >= 1 && YARDS[k]) { const y0 = YARDS[k - 1].h, y1 = YARDS[k].h; if (y1 < WIN606[0] || y0 - 24 > WIN606[1]) return; }
+  return _bandDeco606(c, k, t);
+};
+const _bg606 = drawYardBG50;
+drawYardBG50 = function (c, t, Hy) {
+  const w = P606.bg !== false && WIN606; if (!w || w[0] < 150 || w[1] > Hy - 24) return _bg606(c, t, Hy);
+  const lw = lawnLayer(Hy, seasonNow()), S = lw.height / Hy, sy = Math.max(0, Math.floor(w[0] * S)), ey = Math.min(lw.height, Math.ceil(w[1] * S));
+  if (ey > sy) { c.save(); roundRect(c, 0, 0, YW, Hy, 18); c.clip(); c.drawImage(lw, 0, sy, lw.width, ey - sy, 0, sy / S, YW, (ey - sy) / S); c.restore(); }   // same clip edge as the full drawing   // the same pixels as the full lawn, only the visible rows
+};
+const _bands50_606 = drawBands50;
+drawBands50 = function (c, t) {
+  if (WIN606 && P606.course !== false && save.yardLvl >= 5) { try { const C = COURSE(); if (C.cy + C.ry + 40 < WIN606[0] || C.cy - C.ry - 60 > WIN606[1]) return; } catch (e) {} }
+  return _bands50_606(c, t);
+};
+const _areas606 = drawAreas60;
+drawAreas60 = function (c, t) {
+  const w = P606.areas !== false && WIN606; if (!w) return _areas606(c, t);
+  try { _drawAreas602(c, t); } catch (e) {}
+  for (const b of bands602()) { if (b.y0 + b.h < w[0] || b.y0 > w[1]) continue;
+    c.save(); c.beginPath(); c.rect(0, b.y0, YW, b.h); c.clip(); if (b.lux) drawLux602(c, b, t); else drawGiantBand602(c, b, t); c.restore(); sign602(c, b); }
+};
+// seasonNow() is asked ~30x per frame (new Date each time): one answer per second is enough (SEASON_FORCE still wins at once)
+const _season606 = seasonNow; let SEA606 = null;
+seasonNow = function (d) {
+  if (d) return _season606(d);
+  const s = (Date.now() / 1000) | 0, f = SEASON_FORCE;
+  if (SEA606 && SEA606.s === s && SEA606.f === f) return SEA606.r;
+  const r = _season606(); SEA606 = { s, f, r }; return r;
+};
+// the yard world of one pass: as 6.03c, plus the window cull of items / cabinets / empty slots (their sprites stand above their y)
+renderYardWorld = function (v, t, Hy) {
+  WIN606 = null;
+  if (P606.on) { let lo = v.top - 4, hi = v.top + H / v.k + 4; if (SEG603) { lo = Math.max(lo, SEG603.n0 - 2); hi = Math.min(hi, SEG603.n1 + 2); } WIN606 = [lo, hi]; }
+  try { return ryw606(v, t, Hy); } finally { WIN606 = null; }
+};
+const inWin606 = (y, up) => !WIN606 || P606.items === false || (y + 16 >= WIN606[0] && y - up <= WIN606[1]);
+function ryw606(v, t, Hy) {
+  ctx.save(); ctx.translate(v.ox, v.oy); ctx.scale(v.k, v.k);
+  drawYardBG50(ctx, t, Hy);
+  for (let k = 1; k <= save.yardLvl; k++) drawBandDeco(ctx, k, t);
+  drawBands50(ctx, t); drawDecoSky60(ctx, t); drawAreas60(ctx, t); drawStars60(ctx, t);
+  if (save.yardLvl < YMAX) {
+    const y0 = YARDS[save.yardLvl].h, N = YARDS[save.yardLvl + 1];
+    if (inWin606(y0 + 54, 60)) {
+      ctx.save(); ctx.setLineDash([8, 6]); ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 2.5; roundRect(ctx, 14, y0 + 8, YW - 28, 46, 14); ctx.stroke(); ctx.restore();
+      ctx.fillStyle = 'rgba(42,31,61,.55)'; roundRect(ctx, 14, y0 + 8, YW - 28, 46, 14); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.font = '900 13px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(`🔒 ${N.name} – stærri garður fyrir 🦴 ${N.price.toLocaleString('de-DE')}`, 180, y0 + 31);
+    }
+  }
+  const show = !!(YD && YD.show), list = [];
+  for (const sl of ySlots()) if (save.yardSlots[sl.id] || show) list.push({ y: sl.fence === 'v' ? 0 : sl.y, sl });
+  for (const c of cSlots()) if (save.cabinets[c.id] || show) list.push({ y: c.y, cab: c });
+  if (YD) { const a = v.top - 40, b = v.top + v.vis + 140; for (const d of YD.dogs) if ((!d.act || d.act.k === 'agi') && d.y > a && d.y < b) list.push({ y: d.y, dog: d }); if (YD.owner) list.push({ y: YD.owner.y, own: YD.owner }); }
+  for (const f of [yardList50, yardList53, yardList531, yardList60]) { const q = f(); for (let i = 0; i < q.length; i++) list.push(q[i]); }
+  list.sort((a, b) => a.y - b.y);
+  if (SEG603) { const s = SEG603; for (let i = list.length - 1; i >= 0; i--) { const o = list[i], y = o.sl ? o.sl.y : o.cab ? o.cab.y : o.y; if (!(y >= s.n0 && y < s.n1)) list.splice(i, 1); } DRAWN603.push({ k: SEG603.k, n0: SEG603.n0, n1: SEG603.n1, ys: list.map(o => o.sl ? ['s', o.sl.id, o.sl.y] : o.cab ? ['c', o.cab.id, o.cab.y] : ['o', '', o.y]) }); }
+  if (YD && YD.session) drawHoop(ctx, 180, 330, t);
+  let filledIdx = null;
+  for (const o of list) {
+    if (o.fx) { o.fx(ctx, t); continue; }
+    if (o.dog) { drawYardDog(ctx, o.dog, t); continue; }
+    if (o.own) { drawOwner(ctx, o.own, t); continue; }
+    if (o.cab) {
+      const c = o.cab, id = save.cabinets[c.id]; if (!inWin606(c.y, 150)) continue;
+      if (id) { const p0 = YD && YD.pop[c.id] != null ? Math.min(1, (t - YD.pop[c.id]) / 0.5) : 1, sc = p0 < 1 ? easeOutBack(p0) : 1;
+        if (!filledIdx) filledIdx = cSlots().filter(q => save.cabinets[q.id]);
+        ctx.save(); ctx.translate(c.x, c.y); ctx.scale(sc, sc); ctx.translate(-c.x, -c.y); drawCabinet(ctx, c.x, c.y, id, t, filledIdx.indexOf(c)); ctx.restore(); }
+      else emptySlotMark(c, { name: 'Skápareitur', short: 'Skápur', col: '#ffd23f' }, CABS[0].price, t);
+      continue;
+    }
+    const sl = o.sl, id = save.yardSlots[sl.id];
+    if (sl.fence !== 'v' && !inWin606(sl.y, Math.max(160, (sl.h || 0) * 2 + 60))) continue;
+    if (id) {
+      const it = placed(sl, id), p0 = YD && YD.pop[sl.id] != null ? Math.min(1, (t - YD.pop[sl.id]) / 0.5) : 1, sc = p0 < 1 ? easeOutBack(p0) : 1;
+      ctx.save(); ctx.translate(it.x, it.y); ctx.scale(sc, sc); ctx.translate(-it.x, -it.y); drawYardItem(ctx, it, t); ctx.restore();
+    } else emptySlotMark(sl, YSIZE[sl.size], yChoices(sl)[0].price, t);
+  }
+  drawYardFX50(ctx, t, v); drawYardFX53(ctx, t); drawTop531(ctx, t); drawDecoTop60(ctx, t);
+  if (YD) { for (const h of YD.hearts) { ctx.globalAlpha = Math.max(0, 1 - h.t / 1.4); ctx.font = '16px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('❤️', h.x, h.y); } ctx.globalAlpha = 1; drawParts(YD.parts); }
+  ctx.restore();
+}
+function paint606(on) {   // test hook: paint the yard once (no update) with the culls on / off and return a pixel hash
+  const k = P606.on; P606.on = !!on; ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.imageSmoothingEnabled = false;
+  try { renderYard(); } finally { P606.on = k; }
+  const d = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height).data; let h1 = 0, h2 = 0, n = 0;
+  for (let i = 0; i < d.length; i += 4) { const v = d[i] * 65536 + d[i + 1] * 256 + d[i + 2]; h1 = (h1 * 31 + v) >>> 0; h2 = (h2 + v * ((i >> 2) % 997 + 1)) % 2147483647; }
+  return h1 + ':' + h2;
+}
+function diff606(A = false, B = true) {   // test hook: number of pixels that differ between culls on and off for the current state
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.imageSmoothingEnabled = false; const W0 = ctx.canvas.width, H0 = ctx.canvas.height, k = P606.on;
+  P606.on = A; renderYard(); const a = ctx.getImageData(0, 0, W0, H0).data; P606.on = B; renderYard(); const b = ctx.getImageData(0, 0, W0, H0).data; P606.on = k;
+  let n = 0, mx = 0, bb = null; for (let i = 0; i < a.length; i += 4) { const d = Math.abs(a[i] - b[i]) + Math.abs(a[i + 1] - b[i + 1]) + Math.abs(a[i + 2] - b[i + 2]); if (d > 0) { n++; if (d > mx) mx = d; const p = i >> 2, x = p % W0, y = (p / W0) | 0; bb = bb ? [Math.min(bb[0], x), Math.min(bb[1], y), Math.max(bb[2], x), Math.max(bb[3], y)] : [x, y, x, y]; } }
+  return { n, mx, bb, total: a.length / 4 };
+}
+const V606DBG = () => ({ paint: paint606, diff: diff606, P606, bands: bands606, bandAt: bandAt606, lim: lim606, sprH: sprH606, pc: () => PC606, setPC: setPC606, win: () => WIN606 });
+
 /* ===== Boot, canvas, input, main loop ===== */
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
 let W = 360, H = 640, DPR = 1, T = 0;
@@ -11683,6 +11910,7 @@ document.addEventListener('dblclick', e => e.preventDefault());
 let last = performance.now();
 const FS = { n: 0, work: 0, maxWork: 0, gaps: 0, maxGap: 0, reset() { this.n = this.work = this.maxWork = this.gaps = this.maxGap = 0; } }; // frame-time stats (for tests)
 function frame(now) {
+  if (document.hidden) { last = now; requestAnimationFrame(frame); return; }   // 6.06: nothing to paint while the app is in the background
   const w0 = performance.now(), gap = now - last;
   const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now; T += dt;
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.imageSmoothingEnabled = false;
@@ -11712,7 +11940,7 @@ window.__pl = { version: VERSION, screen: () => scr, fsState: () => ({ armed: au
     winNow: () => { if (!G) return; G.s.cells = G.s.cells.map(() => null); G.s.left = 0; G.bdirty = true; }, GEAR, HELPERS, buyYard, buyGear, buyHelper, useHelper, bombTap, layout: () => L, game: () => G, equip, levelEarnings, finishLevel, bonus: () => B, yard: () => YD, setScreen, startLevel, startFinale, tapLane, makePackVis, closeModal, finaleDown, finaleUp, specialPreview, showBreeds, aimPath, view: () => ({ W, H }),
     yView: () => yView(), yardScroll, ySlots, cSlots, YARDS, buyYardLevel, buyCabinet, buyCabItem, openCabinetShop, careAction, giveTreat, yardH, FEVENTS, finaleConst: () => ({ GRAV, PEG_E, WALL_E, MULTS }), routeSpy: f => { ROUTE_SPY = f; }, blockImg: goldBlockImg, drawHouse, landBall, forceEvent: ev => { if (F) F.forceEv = ev; window.__forceEv = ev; },
     // 4.2 test hooks
-    v60: V60DBG(), v601: V601DBG(), v602: V602DBG(), v603: Object.assign(V603DBG(), V603FIX(), V603C()), v604: V604DBG(), v604b: V604BDBG(), v605: V605DBG(),
+    v60: V60DBG(), v601: V601DBG(), v602: V602DBG(), v603: Object.assign(V603DBG(), V603FIX(), V603C()), v604: V604DBG(), v604b: V604BDBG(), v605: V605DBG(), v606: V606DBG(),
     v53: { passedU, openSkips, skip53Level, yardAll53, yardDogTotal, trophies53, weekKeyOf, weeklyPick, weekKey, set: f => f(save), YD: () => YD },
     v52: { TIERS, MATS, goldDef, phaseOpen, phaseAll, nextGoldId, gUnlocked, dogMat, decodePhase, PHASE_DATA: () => PHASE_DATA, yItem },
     v533: { bonusStop, updateBonus, wheelSegAt },

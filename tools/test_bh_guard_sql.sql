@@ -55,23 +55,23 @@ select (:'same_shape'::jsonb->>'coins')::int = 80000 and (:'same_shape'::jsonb->
   \quit 1
 \endif
 
-/* instant multi-billion update is not stored */
+/* a large offline jump on an unsealed row is stored whole */
 update public.players set last_played = now() where player_id = 'player-existing';
-select public.player_put('{"player_id":"player-existing","name":"Leikmaður","coins":2000000000,"boards_won":39,"stars":70,"dogs":39,"ack_rev":0}'::jsonb, null) as jumped \gset
-select (:'jumped'::jsonb->>'coins')::int < 100000 as ok_jump \gset
+select public.player_put('{"player_id":"player-existing","name":"Leikmaður","coins":1800000000,"boards_won":140,"stars":420,"dogs":180}'::jsonb, null) as jumped \gset
+select (:'jumped'::jsonb->>'coins')::int = 1800000000 and (:'jumped'::jsonb->>'boards_won')::int = 140 and (:'jumped'::jsonb->>'stars')::int = 420 and (:'jumped'::jsonb->>'dogs')::int = 180 as ok_jump \gset
 \if :ok_jump
-  \echo OK coin jump clamped
+  \echo OK offline jump stored whole
 \else
-  \echo FAIL coin jump
+  \echo FAIL offline jump
   \echo :jumped
   \quit 1
 \endif
 
-/* new identity cannot be born at multi-billion coins or 500 boards */
-select public.player_put('{"player_id":"brand-new","name":"Nyr","coins":2000000000,"boards_won":500,"stars":99999,"dogs":9000,"yard":{"p53":{"won":[10000000,10000000],"st":999999}}}'::jsonb, 'device-key-0123456789abcd') as born \gset
-select (:'born'::jsonb->>'coins')::int = 20000000 and (:'born'::jsonb->>'boards_won')::int = 100 and (:'born'::jsonb->>'stars')::int = 400 and (:'born'::jsonb->>'dogs')::int = 400 as ok_born \gset
+/* a new row is not capped either; its device key is stored */
+select public.player_put('{"player_id":"brand-new","name":"Nyr","coins":1800000000,"boards_won":500,"stars":900,"dogs":300,"yard":{"p53":{"won":[100,100,80],"st":700}}}'::jsonb, 'device-key-0123456789abcd') as born \gset
+select (:'born'::jsonb->>'coins')::int = 1800000000 and (:'born'::jsonb->>'boards_won')::int = 500 and (:'born'::jsonb->>'sealed')::boolean = false as ok_born \gset
 \if :ok_born
-  \echo OK new row clamped
+  \echo OK new row uncapped
 \else
   \echo FAIL new row
   \echo :born
@@ -108,9 +108,9 @@ select :other_before = :other_after as other_ok \gset
   \quit 1
 \endif
 
-/* stale reupload without ack cannot restore the snapshot */
-select public.player_put('{"player_id":"player-existing","name":"Leikmaður","coins":2000000000,"boards_won":100,"stars":300,"dogs":100,"wins":37,"losses":61,"ack_rev":0,"yard":{"p53":{"won":[100],"st":300,"dogs":[100]}}}'::jsonb, null) as stale \gset
-select (:'stale'::jsonb->>'coins')::int = 0 and (:'stale'::jsonb->>'boards_won')::int = 0 and (:'stale'::jsonb->>'stars')::int = 0 and (:'stale'::jsonb->>'dogs')::int = 0 as ok_stale \gset
+/* a stale upload cannot restore the sealed row, even when it echoes the generation */
+select public.player_put('{"player_id":"player-existing","name":"Leikmaður","coins":1800000000,"boards_won":100,"stars":300,"dogs":100,"wins":37,"losses":61,"ack_rev":99,"yard":{"p53":{"won":[100],"st":300,"dogs":[100]}}}'::jsonb, null) as stale \gset
+select (:'stale'::jsonb->>'sealed')::boolean = true and (:'stale'::jsonb->>'coins')::int = 0 and (:'stale'::jsonb->>'boards_won')::int = 0 and (:'stale'::jsonb->>'stars')::int = 0 and (:'stale'::jsonb->>'dogs')::int = 0 as ok_stale \gset
 \if :ok_stale
   \echo OK stale upload frozen
 \else
@@ -119,31 +119,22 @@ select (:'stale'::jsonb->>'coins')::int = 0 and (:'stale'::jsonb->>'boards_won')
   \quit 1
 \endif
 
-/* acked upload is limited to the post-reset burst, and a second call does not stack it */
-select public.player_put('{"player_id":"player-existing","name":"Leikmaður","coins":2000000000,"boards_won":100,"stars":300,"dogs":100,"ack_rev":1}'::jsonb, null) as acked \gset
-select (:'acked'::jsonb->>'boards_won')::int = 8 and (:'acked'::jsonb->>'coins')::int between 1000000 and 1005000 as ok_ack \gset
-\if :ok_ack
-  \echo OK acked burst
+/* the other player's offline progress is still accepted after the reset */
+select public.player_put('{"player_id":"someone-else","name":"Annar","coins":999999,"boards_won":80,"stars":200,"dogs":80}'::jsonb, null) as other_play \gset
+select (:'other_play'::jsonb->>'coins')::int = 999999 and (:'other_play'::jsonb->>'boards_won')::int = 80 and (:'other_play'::jsonb->>'sealed')::boolean = false as ok_other_play \gset
+\if :ok_other_play
+  \echo OK other player offline progress stored
 \else
-  \echo FAIL acked burst
-  \echo :acked
-  \quit 1
-\endif
-select public.player_put('{"player_id":"player-existing","name":"Leikmaður","coins":2000000000,"boards_won":100,"ack_rev":1}'::jsonb, null) as again \gset
-select (:'again'::jsonb->>'boards_won')::int = (:'acked'::jsonb->>'boards_won')::int and (:'again'::jsonb->>'coins')::int = (:'acked'::jsonb->>'coins')::int as ok_again \gset
-\if :ok_again
-  \echo OK burst does not stack
-\else
-  \echo FAIL stack
-  \echo :again
+  \echo FAIL other player progress
+  \echo :other_play
   \quit 1
 \endif
 
-/* direct table write from the anon role is frozen the same way */
+/* direct table write from the anon role cannot undo the seal */
 set role anon;
-update public.players set coins = 2000000000, boards_won = 100, stars = 300, dogs = 100 where player_id = 'player-existing';
+update public.players set coins = 1800000000, boards_won = 100, stars = 300, dogs = 100, name = 'Renamed' where player_id = 'player-existing';
 reset role;
-select coins < 2000000 and boards_won <= 8 as ok_direct from public.players where player_id = 'player-existing' \gset
+select coins = 0 and boards_won = 0 and stars = 0 and dogs = 0 and name = 'Leikmaður' and sealed as ok_direct from public.players where player_id = 'player-existing' \gset
 \if :ok_direct
   \echo OK direct anon update cannot restore the snapshot
 \else
@@ -170,7 +161,14 @@ select has_function_privilege('anon', 'public.player_put(jsonb,text)', 'execute'
 \endif
 
 /* cloud write key and reset generation */
-select public.cloud_put('ABCD2345', 'write-key-24-characters', '{"coins":1000,"stars":{"1":2}}'::jsonb) as made \gset
+select public.cloud_put('ABCD2345', 'write-key-24-characters', '{"coins":1800000000,"stars":{"1":3},"album":["lotta"]}'::jsonb) as made \gset
+select (data->>'coins')::int = 1800000000 as cloud_kept from public.cloud_saves where code = 'ABCD2345' \gset
+\if :cloud_kept
+  \echo OK unsealed cloud balance stored whole
+\else
+  \echo FAIL unsealed cloud balance
+  \quit 1
+\endif
 select public.cloud_put('ABCD2345', 'not-the-key-012345678', '{"coins":5,"stars":{}}'::jsonb) as denied \gset
 \if :denied
   \echo FAIL wrong cloud key was accepted
@@ -179,7 +177,7 @@ select public.cloud_put('ABCD2345', 'not-the-key-012345678', '{"coins":5,"stars"
   \echo OK wrong cloud key rejected
 \endif
 select public.bh_admin_reset('player-existing', 'ABCD2345') as reset_cloud \gset
-select public.cloud_put('ABCD2345', 'write-key-24-characters', '{"coins":2000000000,"stars":{"1":9},"guardRev":0}'::jsonb) as stale_cloud \gset
+select public.cloud_put('ABCD2345', 'write-key-24-characters', '{"coins":1800000000,"stars":{"1":9},"guardRev":99}'::jsonb) as stale_cloud \gset
 \if :stale_cloud
   \echo FAIL stale cloud write accepted
   \quit 1

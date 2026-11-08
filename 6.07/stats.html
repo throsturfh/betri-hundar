@@ -97,7 +97,6 @@ function view(x) {
     est = cp >= 0;
   }
   while (won.length < 10) won.push(0); while (dogs.length < 10) dogs.push(0);
-  won = won.map(v => Math.max(0, Math.min(100, num(v)))); dogs = dogs.map(v => Math.max(0, Math.min(400, num(v)))); st = Math.max(0, Math.min(4000, num(st)));
   const tot = dogs.reduce((a, v) => a + v, 0), done = (won[cp + 1] | 0) >= 100;
   const label = `${PH[cp + 1][0]} ${done ? 100 : b} / 100${done ? ' ✓' : ''}`;
   const score = (cp + 1) * 1000 + (done ? 100 : b) * 10 + (won[cp + 1] | 0) / 100;
@@ -120,7 +119,7 @@ function overall(v, y) {
   const yards = Math.max(0, Math.min(20, s5 ? num(s5.yl) - 1 : num(y.lvl))); add('Garðar keyptir', yards, yards * W.yard);
   const cabs = s5 ? Math.max(0, Math.min(50, num(s5.cab))) : y.cabs && typeof y.cabs === 'object' ? Object.keys(y.cabs).length : 0; add('Skápar', cabs, cabs * W.cab);
   const gear = y.gear && typeof y.gear === 'object' ? Object.keys(y.gear).length : 0; add('Hundar með búnað', gear, gear * W.gear);
-  const dw = Math.min(5000, num(x.daily_won)), dp = Math.min(5000, Math.max(0, num(x.daily_played) - dw)); add('Daglegar þrautir leystar', dw, dw * W.dw); add('Daglegar þrautir reyndar', dp, dp * W.dp);
+  const dw = num(x.daily_won), dp = Math.max(0, num(x.daily_played) - dw); add('Daglegar þrautir leystar', dw, dw * W.dw); add('Daglegar þrautir reyndar', dp, dp * W.dp);
   if (s5) { const wk = Math.max(0, Math.min(520, num(s5.wkw))); add('Vikuáskoranir leystar', wk, wk * W.wk);
     const mg = Math.max(0, Math.min(1e5, num(s5.mg))); add('Smáleikir spilaðir', mg, mg * W.mg);
     const sh = Math.max(0, Math.min(1e4, num(s5.sh))), shw = Math.max(0, Math.min(sh, num(s5.shw))); add('Hundasýningar', sh, sh * W.sh); add('Sigrar á hundasýningu', shw, shw * W.shw);

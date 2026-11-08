@@ -27,9 +27,13 @@ function playerKey() {
 }
 let BH_BLOCKED = false;
 function adoptAccountReset(serverRow) {
-  const next = BHG.adoptServerRev(save, serverRow);
+  const wipe = !!(serverRow && (serverRow.sealed || BHG.isEmptyReset(serverRow)));
+  const next = BHG.adoptServerRev(save, serverRow, Date.now(), wipe ? {
+    mintId: (crypto.randomUUID ? crypto.randomUUID() : 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10)),
+    mintKey: cloudCode(24),
+  } : {});
   if (!next) return false;
-  if (BHG.isEmptyReset(serverRow)) {
+  if (wipe) {
     for (const k of Object.keys(save)) delete save[k];
     Object.assign(save, next);
     try { ensureEcon(save); } catch (e) {}
@@ -41,14 +45,14 @@ function adoptAccountReset(serverRow) {
     setTimeout(() => { try { statsSync(true); } catch (e) {} }, 80);
     return true;
   }
-  save.guardRev = next.guardRev; save.guardAt = next.guardAt; persist();
+  save.resetEpoch = next.resetEpoch; persist();
   return false;
 }
-savePayload = (function (orig) { return function () { const d = orig(); delete d.playerKey; d.guardRev = save.guardRev | 0; return d; }; })(savePayload);
+savePayload = (function (orig) { return function () { const d = orig(); delete d.playerKey; d.resetEpoch = save.resetEpoch | 0; return d; }; })(savePayload);
 mergeSaves = (function (orig) { return function (mine, other) {
   if (typeof BHG !== 'undefined' && BHG.shouldBlockStaleMerge(mine, other)) return mine;
   const r = orig(mine, other);
-  if (r && other && (other.guardRev | 0) > (r.guardRev | 0)) r.guardRev = other.guardRev | 0;
+  if (r && other && (other.resetEpoch | 0) > (r.resetEpoch | 0)) r.resetEpoch = other.resetEpoch | 0;
   return r;
 }; })(mergeSaves);
 keepBackup = (function (orig) { return function (raw) {
@@ -65,13 +69,9 @@ offerRestore = (function (orig) { return function (manual) {
 }; })(offerRestore);
 adoptForeign = (function (orig) { return function (d, cloud) {
   BH_BLOCKED = false;
-  if (d && BHG.shouldBlockCloud(save, d, cloud && cloud.rev)) { BH_BLOCKED = true; try { toast('Eldri vistun var hunsuð eftir núllstillingu.', 2800); } catch (e) {} return false; }
+  if (d && BHG.shouldBlockStaleMerge(save, d)) { BH_BLOCKED = true; try { toast('Eldri vistun var hunsuð eftir núllstillingu.', 2800); } catch (e) {} return false; }
   return orig(d, cloud);
 }; })(adoptForeign);
-manualRestore = (function (orig) { return function (board, coins) {
-  if (Number(coins) > BHG.BH.ABS_COIN_MAX) coins = BHG.BH.ABS_COIN_MAX;
-  return orig(board, coins);
-}; })(manualRestore);
 const statsSyncLegacy = statsSync;
 statsSync = function (now) {
   if (save.statsOff || !save.playerName || (typeof VISIT !== 'undefined' && VISIT)) return;
@@ -79,8 +79,7 @@ statsSync = function (now) {
   STATS.timer = setTimeout(() => { loadStatsCfg().then(c => statsCfgOk(c) ? checkYardCol().then(() => c) : c).then(c => {
     if (!statsCfgOk(c)) return;
     const row = statsPayload(); STATS.last = row;
-    const body = Object.assign({}, row, { ack_rev: save.guardRev | 0 });
-    supa('rpc/player_put', { p_row: body, p_key: playerKey() }).then(r => {
+    supa('rpc/player_put', { p_row: row, p_key: playerKey() }).then(r => {
       if (r.status === 404) { statsSyncLegacy(true); return null; }
       if (!r.ok) { STATS.err = r.status; return null; }
       return r.json();
@@ -108,7 +107,7 @@ cloudLoad = (function () { return function (codeIn) {
 setTimeout(() => { try { statsSync(true); } catch (e) {} }, 400);
 `;
 if (!html.includes('window.__pl = ')) throw new Error('injection point missing');
-html = html.replace('v606: V606DBG(),', 'v606: V606DBG(), v607: () => ({ rev: save.guardRev | 0, fair: fairCoins603 }),');
+html = html.replace('v606: V606DBG(),', 'v607: () => ({ epoch: save.resetEpoch | 0, fair: fairCoins603 }), v606: V606DBG(),');
 html = html.replace('window.__pl = ', client + '\nwindow.__pl = ');
 fs.writeFileSync(path.join(dst, 'index.html'), html);
 let sw = fs.readFileSync(path.join(dst, 'sw.js'), 'utf8');
@@ -116,10 +115,6 @@ sw = sw.replace("const CACHE = 'betri-hundar-6.06';", "const CACHE = 'betri-hund
 fs.writeFileSync(path.join(dst, 'sw.js'), sw);
 let stats = fs.readFileSync(path.join(dst, 'stats.html'), 'utf8');
 stats = stats.replace("const GAME = '../6.04/';", "const GAME = './';");
-stats = stats.replace('while (won.length < 10) won.push(0); while (dogs.length < 10) dogs.push(0);',
-  'while (won.length < 10) won.push(0); while (dogs.length < 10) dogs.push(0);\n  won = won.map(v => Math.max(0, Math.min(100, num(v)))); dogs = dogs.map(v => Math.max(0, Math.min(400, num(v)))); st = Math.max(0, Math.min(4000, num(st)));');
-stats = stats.replace('const dw = num(x.daily_won), dp = Math.max(0, num(x.daily_played) - dw);',
-  'const dw = Math.min(5000, num(x.daily_won)), dp = Math.min(5000, Math.max(0, num(x.daily_played) - dw));');
 fs.writeFileSync(path.join(dst, 'stats.html'), stats);
 const sql = fs.readFileSync(path.join(root, 'sql/6.07_anticheat.sql'), 'utf8');
 const one = sql.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\s+/g, ' ').trim();

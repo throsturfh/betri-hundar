@@ -3838,7 +3838,7 @@ const PL = (function () {
 'use strict';
 /* ===== DOM screens, modals, fullscreen, persistence ===== */
 const $ = s => document.querySelector(s);
-const VERSION = '6.06';   // Betri Hundar 6.05 (shown on the home screen; bump sw.js CACHE together with this)
+const VERSION = '6.07';   // Betri Hundar 6.07 (shown on the home screen; bump sw.js CACHE together with this)
 const SAVE_KEY = 'packleader.v2';
 /* 4.3 save safety. All versions (1.0 … 4.3, different folders) share this origin and the key packleader.v2, and every
    version writes its WHOLE in-memory save. A tab/home-screen app of any version left open with older progress could
@@ -11934,13 +11934,235 @@ try { history.replaceState({ pl: 0 }, ''); history.pushState({ pl: 1 }, ''); } c
 window.addEventListener('popstate', () => { if (scr !== 'home') { goBack(); try { history.pushState({ pl: 1 }, ''); } catch (e) {} } });
 if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
 // test/debug hook (read-only helpers)
+
+/*BH_GUARD_BEGIN*/
+/* Betri Hundar 6.07 reset guard.
+   The leaderboard is client-authoritative. This module does not cap coins, boards, or rewards.
+   It only describes two server facts the 6.07 client also honours:
+   - a device key, once stored for a row, is required on later writes
+   - an admin reset seals that one row so a later anon write cannot change its progress
+   Legacy rows have no secret owner: the player id is public. Sealing is how a targeted
+   reset stays sealed. It does not prove who earned a balance. */
+(function (root, factory) {
+  const api = factory();
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  root.BHG = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+  function num(v) {
+    const n = typeof v === 'number' ? v : typeof v === 'string' && v.trim() !== '' ? Number(v) : NaN;
+    if (!Number.isFinite(n)) return 0;
+    return Math.floor(n);
+  }
+  function iso(ms) { return new Date(ms).toISOString(); }
+  function fairReportedCoins(d) {
+    d = d || {};
+    return Math.max(0, num(d.coins) - Math.max(0, num(d.cheatBones)));
+  }
+  function yardEmpty(y) {
+    if (y == null || typeof y !== 'object') return true;
+    const p = y.p53;
+    if (p && typeof p === 'object') {
+      if (Array.isArray(p.won) && p.won.some(v => num(v) > 0)) return false;
+      if (num(p.st) > 0) return false;
+    }
+    return true;
+  }
+  function isEmptyReset(row) {
+    return !!(row && (row.sealed || (num(row.sync_rev) > 0 && num(row.boards_won) === 0 && num(row.coins) === 0 && num(row.stars) === 0 && num(row.dogs) === 0 && yardEmpty(row.yard))));
+  }
+  function guardPlayerRow(oldRow, newRow, opt) {
+    opt = opt || {};
+    const now = opt.now != null ? opt.now : Date.now();
+    if (!newRow || typeof newRow !== 'object' || Array.isArray(newRow)) return { reject: 'row', reasons: ['row'] };
+    const id = String(newRow.player_id == null ? '' : newRow.player_id);
+    if (id.length < 1 || id.length > 64) return { reject: 'player_id', reasons: ['player_id'] };
+    if (oldRow && String(oldRow.player_id) !== id) return { reject: 'player_id', reasons: ['player_id'] };
+    if (opt.storedKey && opt.key !== opt.storedKey) return { reject: 'key', reasons: ['key'] };
+    const name = String(newRow.name == null ? (oldRow && oldRow.name) || '' : newRow.name).replace(/[\u0000-\u001f]/g, '').slice(0, 30);
+    if (!oldRow) {
+      const row = Object.assign({}, newRow, { player_id: id, name, sealed: false, sync_rev: 0, reset_at: null, last_played: iso(now) });
+      return { row, reject: null, frozen: false, reasons: [] };
+    }
+    if (oldRow.sealed) {
+      const row = Object.assign({}, oldRow, { last_played: iso(now) });
+      return { row, reject: null, frozen: true, reasons: ['sealed'] };
+    }
+    const row = Object.assign({}, oldRow, newRow, {
+      player_id: id, name, sealed: false, sync_rev: num(oldRow.sync_rev),
+      reset_at: oldRow.reset_at || null, first_seen: oldRow.first_seen || iso(now), last_played: iso(now),
+    });
+    return { row, reject: null, frozen: false, reasons: [] };
+  }
+  function guardCloudPut(existing, input) {
+    const code = String(input && input.code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const key = String(input && input.key || '');
+    const data = input && input.data;
+    if (code.length < 8 || code.length > 12) return { ok: false, error: 'code' };
+    if (key.length < 16) return { ok: false, error: 'key' };
+    if (!data || typeof data !== 'object' || Array.isArray(data)) return { ok: false, error: 'data' };
+    if (JSON.stringify(data).length > 400000) return { ok: false, error: 'size' };
+    if (!existing) return { ok: true, code, key, data, reset_gen: 0 };
+    if (existing.wkey !== key) return { ok: false, error: 'key' };
+    if (num(existing.reset_gen) > 0) return { ok: false, error: 'sealed' };
+    return { ok: true, code, key, data, reset_gen: 0 };
+  }
+  function cloneState(state) {
+    return JSON.parse(JSON.stringify(state || { players: {}, clouds: {}, backups: [] }));
+  }
+  function adminReset(state, playerId, cloudCode, nowMs) {
+    const s = cloneState(state);
+    const row = s.players[playerId];
+    if (!row) return { ok: false, error: 'missing', state: s };
+    const now = nowMs != null ? nowMs : Date.now();
+    const rev = num(row.sync_rev) + 1;
+    const backup = { id: (s.backups.length || 0) + 1, player_id: playerId, at: iso(now), player: JSON.parse(JSON.stringify(row)), cloud: null };
+    if (cloudCode) {
+      const code = String(cloudCode).toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (s.clouds[code]) {
+        backup.cloud = JSON.parse(JSON.stringify(s.clouds[code]));
+        s.clouds[code] = Object.assign({}, s.clouds[code], {
+          reset_gen: num(s.clouds[code].reset_gen) + 1,
+          updated_at: iso(now),
+          data: { coins: 0, stars: {}, album: [], v: 2 },
+        });
+      }
+    }
+    s.players[playerId] = Object.assign({}, row, {
+      board_reached: 1, boards_won: 0, stars: 0, wins: 0, losses: 0,
+      daily_played: 0, daily_won: 0, dogs: 0, coins: 0, yard: null,
+      sealed: true, sync_rev: rev, reset_at: iso(now), last_played: iso(now),
+    });
+    s.backups.push(backup);
+    return { ok: true, sync_rev: rev, backup_id: backup.id, state: s };
+  }
+  function adoptServerRev(save, serverRow, nowMs, opt) {
+    opt = opt || {};
+    const rev = serverRow && num(serverRow.sync_rev);
+    if (!save || !serverRow || !(rev > num(save.resetEpoch))) return null;
+    const now = nowMs != null ? nowMs : Date.now();
+    if (serverRow.sealed || isEmptyReset(serverRow)) {
+      return {
+        coins: 0, stars: {}, album: [], tips: {}, daily: {}, mute: !!save.mute, speed: save.speed || 1, v: 2, econ: 1,
+        playerId: opt.mintId || null, playerKey: opt.mintKey || null, playerName: save.playerName,
+        nameAsked: !!(save.nameAsked || save.playerName), statsOff: !!save.statsOff, owner: save.owner,
+        resetEpoch: rev,
+      };
+    }
+    return Object.assign({}, save, { resetEpoch: rev });
+  }
+  function shouldBlockStaleMerge(mine, other) {
+    if (!mine || !other || typeof other !== 'object') return false;
+    return num(mine.resetEpoch) > num(other.resetEpoch);
+  }
+  function backupPreference(existingSave, incomingSave) {
+    const er = existingSave && num(existingSave.resetEpoch);
+    const ir = incomingSave && num(incomingSave.resetEpoch);
+    if (ir > er) return 'incoming';
+    if (er > ir) return 'existing';
+    return 'score';
+  }
+  return {
+    num, fairReportedCoins, yardEmpty, isEmptyReset, guardPlayerRow, guardCloudPut, adminReset, adoptServerRev,
+    shouldBlockStaleMerge, backupPreference,
+  };
+});
+/*BH_GUARD_END*/
+/* ===== 6.07 reset generation. Published clients keep playing; this build adopts a server reset instead of merging it away. ===== */
+function playerKey() {
+  if (!save.playerKey || String(save.playerKey).length < 16) {
+    save.playerKey = cloudCode(24);
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {}
+  }
+  return save.playerKey;
+}
+let BH_BLOCKED = false;
+function adoptAccountReset(serverRow) {
+  const wipe = !!(serverRow && (serverRow.sealed || BHG.isEmptyReset(serverRow)));
+  const next = BHG.adoptServerRev(save, serverRow, Date.now(), wipe ? {
+    mintId: (crypto.randomUUID ? crypto.randomUUID() : 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10)),
+    mintKey: cloudCode(24),
+  } : {});
+  if (!next) return false;
+  if (wipe) {
+    for (const k of Object.keys(save)) delete save[k];
+    Object.assign(save, next);
+    try { ensureEcon(save); } catch (e) {}
+    try { grantLevelDogs(save); } catch (e) {}
+    persist();
+    try { if (typeof renderHome === 'function' && scr === 'home') renderHome(); } catch (e) {}
+    try { updateCoins(); } catch (e) {}
+    try { toast('Leikurinn var núllstilltur á þessu tæki.', 3200); } catch (e) {}
+    setTimeout(() => { try { statsSync(true); } catch (e) {} }, 80);
+    return true;
+  }
+  save.resetEpoch = next.resetEpoch; persist();
+  return false;
+}
+savePayload = (function (orig) { return function () { const d = orig(); delete d.playerKey; d.resetEpoch = save.resetEpoch | 0; return d; }; })(savePayload);
+mergeSaves = (function (orig) { return function (mine, other) {
+  if (typeof BHG !== 'undefined' && BHG.shouldBlockStaleMerge(mine, other)) return mine;
+  const r = orig(mine, other);
+  if (r && other && (other.resetEpoch | 0) > (r.resetEpoch | 0)) r.resetEpoch = other.resetEpoch | 0;
+  return r;
+}; })(mergeSaves);
+keepBackup = (function (orig) { return function (raw) {
+  let best = null; try { best = readJSON(BK_BEST); } catch (e) {}
+  const pref = BHG.backupPreference(best && best.save, raw);
+  if (pref === 'existing') return;
+  if (pref === 'incoming') { try { localStorage.setItem(BK_BEST, JSON.stringify({ at: Date.now(), ver: VERSION, save: raw })); } catch (e) {} return; }
+  return orig(raw);
+}; })(keepBackup);
+offerRestore = (function (orig) { return function (manual) {
+  const i = typeof backupInfo === 'function' ? backupInfo(manual) : null;
+  if (i && BHG.shouldBlockStaleMerge(save, i.b.save)) { if (manual) try { toast('Eldra afrit var hunsað eftir núllstillingu.', 2400); } catch (e) {} return false; }
+  return orig(manual);
+}; })(offerRestore);
+adoptForeign = (function (orig) { return function (d, cloud) {
+  BH_BLOCKED = false;
+  if (d && BHG.shouldBlockStaleMerge(save, d)) { BH_BLOCKED = true; try { toast('Eldri vistun var hunsuð eftir núllstillingu.', 2800); } catch (e) {} return false; }
+  return orig(d, cloud);
+}; })(adoptForeign);
+const statsSyncLegacy = statsSync;
+statsSync = function (now) {
+  if (save.statsOff || !save.playerName || (typeof VISIT !== 'undefined' && VISIT)) return;
+  clearTimeout(STATS.timer);
+  STATS.timer = setTimeout(() => { loadStatsCfg().then(c => statsCfgOk(c) ? checkYardCol().then(() => c) : c).then(c => {
+    if (!statsCfgOk(c)) return;
+    const row = statsPayload(); STATS.last = row;
+    supa('rpc/player_put', { p_row: row, p_key: playerKey() }).then(r => {
+      if (r.status === 404) { statsSyncLegacy(true); return null; }
+      if (!r.ok) { STATS.err = r.status; return null; }
+      return r.json();
+    }).then(res => {
+      if (!res) return;
+      if (res.ok === false) { STATS.err = res.error || 'rejected'; return; }
+      STATS.sent++; STATS.err = null;
+      try { adoptAccountReset(res); } catch (e) {}
+    }).catch(e => { STATS.err = String(e && e.message || e); });
+  }).catch(() => {}); }, now ? 0 : 1500);
+};
+cloudLoad = (function () { return function (codeIn) {
+  const code = normCode(codeIn);
+  if (code.length !== 8) { try { toast('Kóðinn er 8 stafir (t.d. ABCD-2345)', 2200); } catch (e) {} return Promise.resolve(false); }
+  CLOUD_ST.busy = true;
+  return supa('rpc/cloud_get', { p_code: code }).then(r => r.ok ? r.json() : Promise.reject(new Error('http ' + r.status))).then(res => {
+    CLOUD_ST.busy = false;
+    if (!res || !res.d) { try { toast('Engin vistun fannst með þessum kóða', 2400); } catch (e) {} return false; }
+    const adopted = adoptForeign(res.d, { code: code, key: res.k, at: Date.now(), rev: res.rev | 0 });
+    if (!adopted) { if (!BH_BLOCKED) try { toast('Vistunin er skemmd', 2000); } catch (e) {} return false; }
+    try { closeModal(); toast('Vistunin er komin! 🐾 Ekkert sem þú áttir fyrir tapaðist.', 3000); } catch (e) {}
+    return true;
+  }).catch(e => { CLOUD_ST.busy = false; CLOUD_ST.err = String(e.message || e); try { toast(/404|nocfg/.test(CLOUD_ST.err) ? 'Skýið er ekki tilbúið enn – notaðu textakóða.' : 'Tókst ekki að tengjast – reyndu aftur.', 2600); } catch (e2) {} return false; });
+}; })();
+setTimeout(() => { try { statsSync(true); } catch (e) {} }, 400);
+
 window.__pl = { version: VERSION, screen: () => scr, fsState: () => ({ armed: autoFsArmed, wanted: fsWanted, on: !!fsEl() }), game: () => G, finale: () => F, layout: () => L, laneX, fview: () => fView(), launch: () => LAUNCH, save: () => save,
   // 3.5 test/screenshot helpers
   dbg: { progScore, mergeSaves, offerRestore, persist, STATS, statsPayload, statsSync, statsCfgOk, breedFirstBoard, ECON, enterYard, drawTiltCaption: () => F && F.captionDrawn, showDog, startBonus, bonusSpin, bonusKind, slotOdds, WHEEL, YSLOTS, YITEMS, yChoices, toggleYardFree, openSlot, OWNERS, TIERS, nextLevelId, isUnlocked, albumDogs, customPortraits: () => Object.keys(CUSTOM_PORTRAIT),
     winNow: () => { if (!G) return; G.s.cells = G.s.cells.map(() => null); G.s.left = 0; G.bdirty = true; }, GEAR, HELPERS, buyYard, buyGear, buyHelper, useHelper, bombTap, layout: () => L, game: () => G, equip, levelEarnings, finishLevel, bonus: () => B, yard: () => YD, setScreen, startLevel, startFinale, tapLane, makePackVis, closeModal, finaleDown, finaleUp, specialPreview, showBreeds, aimPath, view: () => ({ W, H }),
     yView: () => yView(), yardScroll, ySlots, cSlots, YARDS, buyYardLevel, buyCabinet, buyCabItem, openCabinetShop, careAction, giveTreat, yardH, FEVENTS, finaleConst: () => ({ GRAV, PEG_E, WALL_E, MULTS }), routeSpy: f => { ROUTE_SPY = f; }, blockImg: goldBlockImg, drawHouse, landBall, forceEvent: ev => { if (F) F.forceEv = ev; window.__forceEv = ev; },
     // 4.2 test hooks
-    v60: V60DBG(), v601: V601DBG(), v602: V602DBG(), v603: Object.assign(V603DBG(), V603FIX(), V603C()), v604: V604DBG(), v604b: V604BDBG(), v605: V605DBG(), v606: V606DBG(),
+    v60: V60DBG(), v601: V601DBG(), v602: V602DBG(), v603: Object.assign(V603DBG(), V603FIX(), V603C()), v604: V604DBG(), v604b: V604BDBG(), v605: V605DBG(), v607: () => ({ epoch: save.resetEpoch | 0, fair: fairCoins603 }), v606: V606DBG(),
     v53: { passedU, openSkips, skip53Level, yardAll53, yardDogTotal, trophies53, weekKeyOf, weeklyPick, weekKey, set: f => f(save), YD: () => YD },
     v52: { TIERS, MATS, goldDef, phaseOpen, phaseAll, nextGoldId, gUnlocked, dogMat, decodePhase, PHASE_DATA: () => PHASE_DATA, yItem },
     v533: { bonusStop, updateBonus, wheelSegAt },

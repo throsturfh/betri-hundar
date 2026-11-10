@@ -3838,7 +3838,7 @@ const PL = (function () {
 'use strict';
 /* ===== DOM screens, modals, fullscreen, persistence ===== */
 const $ = s => document.querySelector(s);
-const VERSION = '6.07';   // Betri Hundar 6.07 (shown on the home screen; bump sw.js CACHE together with this)
+const VERSION = '6.08';   // Betri Hundar 6.07 (shown on the home screen; bump sw.js CACHE together with this)
 const SAVE_KEY = 'packleader.v2';
 /* 4.3 save safety. All versions (1.0 … 4.3, different folders) share this origin and the key packleader.v2, and every
    version writes its WHOLE in-memory save. A tab/home-screen app of any version left open with older progress could
@@ -12155,6 +12155,37 @@ cloudLoad = (function () { return function (codeIn) {
   }).catch(e => { CLOUD_ST.busy = false; CLOUD_ST.err = String(e.message || e); try { toast(/404|nocfg/.test(CLOUD_ST.err) ? 'Skýið er ekki tilbúið enn – notaðu textakóða.' : 'Tókst ekki að tengjast – reyndu aftur.', 2600); } catch (e2) {} return false; });
 }; })();
 setTimeout(() => { try { statsSync(true); } catch (e) {} }, 400);
+
+
+/*BH608_BEGIN*/
+/* 6.08: server rate/consistency guard. On clamped/rejected sync, keep the local save and keep playing. */
+statsSync = (function (orig) { return function (now) {
+  if (save.statsOff || !save.playerName || (typeof VISIT !== 'undefined' && VISIT)) return;
+  clearTimeout(STATS.timer);
+  STATS.timer = setTimeout(() => { loadStatsCfg().then(c => statsCfgOk(c) ? checkYardCol().then(() => c) : c).then(c => {
+    if (!statsCfgOk(c)) return;
+    const row = statsPayload(); STATS.last = row;
+    const key = (typeof playerKey === 'function') ? playerKey() : null;
+    const req = key ? supa('rpc/player_put', { p_row: row, p_key: key }) : Promise.resolve({ ok: false, status: 404 });
+    req.then(r => {
+      if (!key || r.status === 404) { try { return orig(true); } catch (e) { return null; } }
+      if (!r.ok) { STATS.err = r.status; return null; }
+      return r.json();
+    }).then(res => {
+      if (!res || typeof res !== 'object') return;
+      if (res.ok === false) { STATS.err = res.error || 'rejected'; return; }
+      STATS.sent++; STATS.err = null;
+      if (res.clamped) {
+        try { STATS.clamped = (STATS.clamped | 0) + 1; } catch (e) {}
+        /* Keep playing with the local save. Do not wipe progress. */
+        return;
+      }
+      try { if (typeof adoptAccountReset === 'function') adoptAccountReset(res); } catch (e) {}
+    }).catch(e => { STATS.err = String(e && e.message || e); });
+  }).catch(() => {}); }, now ? 0 : 1500);
+}; })(statsSync);
+try { if (typeof dbg === 'object' && dbg) dbg.v608 = () => ({ clamped: STATS.clamped | 0, err: STATS.err || null }); } catch (e) {}
+/*BH608_END*/
 
 window.__pl = { version: VERSION, screen: () => scr, fsState: () => ({ armed: autoFsArmed, wanted: fsWanted, on: !!fsEl() }), game: () => G, finale: () => F, layout: () => L, laneX, fview: () => fView(), launch: () => LAUNCH, save: () => save,
   // 3.5 test/screenshot helpers

@@ -3838,7 +3838,7 @@ const PL = (function () {
 'use strict';
 /* ===== DOM screens, modals, fullscreen, persistence ===== */
 const $ = s => document.querySelector(s);
-const VERSION = '6.08';   // Betri Hundar 6.07 (shown on the home screen; bump sw.js CACHE together with this)
+const VERSION = '6.09';   // Betri Hundar 6.07 (shown on the home screen; bump sw.js CACHE together with this)
 const SAVE_KEY = 'packleader.v2';
 /* 4.3 save safety. All versions (1.0 … 4.3, different folders) share this origin and the key packleader.v2, and every
    version writes its WHOLE in-memory save. A tab/home-screen app of any version left open with older progress could
@@ -3991,8 +3991,6 @@ function adoptStored() {
   mergeSaves(save, stored); ensureEcon(save); grantLevelDogs(save);
   if (typeof renderHome === 'function' && scr === 'home') try { renderHome(); } catch (e) {}
 }
-let verTaps = 0, verT = 0;
-document.addEventListener('click', e => { if (!e.target.closest || !e.target.closest('#hVer')) return; const n = performance.now(); verTaps = n - verT < 900 ? verTaps + 1 : 1; verT = n; if (verTaps >= 5) { verTaps = 0; showManualRestore(); } });
 window.addEventListener('storage', e => { if (e.key === SAVE_KEY) adoptStored(); });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) adoptStored(); });
 /* restore: from the best backup (offered automatically when it has clearly more progress), or by hand */
@@ -4009,18 +4007,6 @@ function offerRestore(manual) {
 }
 let RESTORE_SRC = false;
 function doRestore() { const i = backupInfo(RESTORE_SRC); if (!i) return; mergeSaves(save, JSON.parse(JSON.stringify(i.b.save))); ensureEcon(save); grantLevelDogs(save); persist(); closeModal(); toast('Framvindan er komin aftur! 🐾', 2600); if (scr === 'home') renderHome(); }
-/* hidden manual restore (tap the version label 5 times): board reached + nammi, e.g. from the owner's stats page */
-function showManualRestore() {
-  openModal(`<h2>🛠️ Endurheimta framvindu</h2><p>Sláðu inn borðið sem þú varst komin(n) í. Öll borð á undan teljast unnin (★) og hundarnir þeirra koma í albúmið.</p>
-    <input id="rsBoard" class="namein" type="number" min="1" max="${PL.LEVELS.length}" placeholder="Borð (t.d. 61)"><input id="rsCoins" class="namein" type="number" min="0" placeholder="Nammi (valfrjálst)">
-    <div class="row"><button class="btn green" data-act="mrestore-ok">Endurheimta</button><button class="btn alt small" data-act="restore-backup">Úr afriti</button><button class="btn plain small" data-act="close">Hætta við</button></div>`);
-}
-function manualRestore(board, coins) {
-  board = Math.max(1, Math.min(PL.LEVELS.length, board | 0)); if (!board) return false;
-  for (const l of PL.LEVELS) if (l.id < board && !save.stars[l.id]) { save.stars[l.id] = 1; save.firstClear[l.id] = true; }
-  if (coins > 0) save.coins = Math.max(save.coins || 0, coins | 0);
-  grantLevelDogs(save); persist(); closeModal(); toast(`Framvinda endurheimt: borð ${board} opið 🐾`, 2600); if (scr === 'home') renderHome(); return true;
-}
 /* 3.5: 'Byrja upp á nýtt' (settings) – deletes every key the game stores (packleader.v2 save, the old packleader.v1
    save it would otherwise migrate from again, the packleader.daily cache) and reloads to a fresh game at home. */
 const STORE_PREFIX = 'packleader';
@@ -4462,10 +4448,9 @@ function bindUI() {
     if (b.dataset.owner != null) { pickOwner(+b.dataset.owner); return; }
     if (b.dataset.act === 'owner-ok') { confirmOwner(); return; }
     if (b.dataset.act === 'name-ok') { confirmName(); return; }
-    if (b.dataset.act === 'restore-yes' || b.dataset.act === 'restore-backup') { if (b.dataset.act === 'restore-backup') RESTORE_SRC = true; if (b.dataset.act === 'restore-backup' && !backupInfo(true)) { toast('Ekkert afrit fannst', 1800); return; } doRestore(); return; }
+    if (b.dataset.act === 'restore-yes') { doRestore(); return; }
     if (b.dataset.act === 'restore-no') { const i = backupInfo(); if (i) save.restoreDeclined = progScore(i.b.save); persist(); closeModal(); return; }
     if (b.dataset.act === 'restore-ask') { offerRestore(true); return; }
-    if (b.dataset.act === 'mrestore-ok') { manualRestore(+document.getElementById('rsBoard').value, +document.getElementById('rsCoins').value); return; }
     if (b.dataset.act === 'name-skip') { skipName(); return; }
     if (b.dataset.act === 'name-edit') { showNamePicker(true); return; }
     if (b.dataset.act === 'stats-toggle') { toggleStats(); return; }

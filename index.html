@@ -463,6 +463,9 @@ table.odds tr.sum td { font-weight: 1000; border-top: 2px solid var(--ink); }
 .prog .pg.mat-nls b { color: #3ee6a0; } .prog .pg.mat-nls i::after { background: linear-gradient(90deg, #1a3a5a, #3ee6a0, #c9a6ff); }
 .ltabs button.mat-sts, .goldtile.mat-sts, .btn.goldbtn.mat-sts, .btn.mat-sts { background: radial-gradient(circle at 30% 30%, #fff3b0 0 8%, transparent 9%), radial-gradient(circle at 75% 60%, #fff 0 5%, transparent 6%), linear-gradient(#5a4aa8, #3a2a7a 60%, #1e1450) !important; color: #fff3b0 !important; border-color: #3a2a7a !important; --edge: #3a2a7a; }
 .prog .pg.mat-sts b { color: #ffcf4a; } .prog .pg.mat-sts i::after { background: linear-gradient(90deg, #3a2a7a, #ffcf4a, #fff3b0); }
+.ltabs button.mat-edm, .goldtile.mat-edm, .btn.goldbtn.mat-edm, .btn.mat-edm { background: radial-gradient(circle at 30% 30%, #fff 0 8%, transparent 9%), linear-gradient(#7ad8ff, #2a6a8a 60%, #0a3048) !important; color: #e8fbff !important; border-color: #1a4a6a !important; --edge: #1a4a6a; }
+.prog .pg.mat-edm b { color: #7ad8ff; } .prog .pg.mat-edm i::after { background: linear-gradient(90deg, #0a3048, #7ad8ff, #e8fbff); }
+
 
 /* 5.2: tiers above Ragnarök (material phases) */
 .tbadge.ghard { background: linear-gradient(var(--tc), #120c2a); color: var(--tk); box-shadow: 0 0 0 1px rgba(255,255,255,.5) inset; }
@@ -3838,7 +3841,7 @@ const PL = (function () {
 'use strict';
 /* ===== DOM screens, modals, fullscreen, persistence ===== */
 const $ = s => document.querySelector(s);
-const VERSION = '6.09';   // Betri Hundar 6.07 (shown on the home screen; bump sw.js CACHE together with this)
+const VERSION = '7.0';   // Betri Hundar 6.07 (shown on the home screen; bump sw.js CACHE together with this)
 const SAVE_KEY = 'packleader.v2';
 /* 4.3 save safety. All versions (1.0 … 4.3, different folders) share this origin and the key packleader.v2, and every
    version writes its WHOLE in-memory save. A tab/home-screen app of any version left open with older progress could
@@ -4885,7 +4888,7 @@ function renderProgress() {
   const cp = typeof curPhase === 'function' ? curPhase() : -1, go = cp >= 0, N = PL.LEVELS.length, M = go ? MATS[cp] : null;
   const gw = go ? goldWon(cp) : 0, gcur = go ? (gw >= N ? N : nextGoldId(cp)) : 0;
   // 5.3: the count = every dog living in the yard (normal + every material variant of every phase)
-  const gd = matDogCount(); let hp = cp; for (let m = 0; m <= NMAT; m++) if (Object.keys(phS(m).gdogs).length) hp = Math.max(hp, m);
+  const gd = matDogCount(); let hp = cp; for (let m = 0; m <= 12; m++) if (Object.keys(phS(m).gdogs).length) hp = Math.max(hp, m);
   const ND = PL.DOGS.length, dTot = ND * (2 + Math.max(0, hp)), dHave = Math.min(dg, ND) + gd;
   const barG = (a, b, lab, ic, p) => `<div class="pg${go ? ' gold' + (cp ? ' mat mat-' + M.k : '') : ''}"><span>${ic} ${lab}</span><b>${a} / ${b}</b><i style="--p:${Math.round(p * 100)}%"></i></div>`;
   el.innerHTML = (go ? barG(gcur, N, M.b, M.ic, gw / N) : bar(lv, N, 'Borð', '🏁')) + (go || gd ? barG(dHave, dTot, 'Hundar', '🐶', dHave / dTot) : bar(dg, ND, 'Hundar', '🐶')) + bar(yd, ySlots().length, 'Garður', '🌳');
@@ -4962,7 +4965,7 @@ function yardFilterHTML() {   // 4.3: "Sýna:" breed filter, breeds sorted by ho
   const all = albumDogs().filter(d => save.album.includes(d.id)), tot = yardAll53().length; if (tot < 2) return '';
   const cnt = {}; for (const d of all) cnt[d.breed] = (cnt[d.breed] || 0) + 1; const fam = all.filter(d => d.family).length, f = save.yardFilter || '';
   const opt = (v, t) => `<option value="${v.replace(/"/g, '&quot;')}"${v === f ? ' selected' : ''}>${t}</option>`;
-  const mats = [0, 1, 2, 3, 4, 5, 6, 7, 8].map(m => [m, PL.DOGS.filter(d => hasVar53(d.id, m)).length]).filter(q => q[1]);
+  const mats = Array.from({length: 13}, (_, i) => i).map(m => [m, PL.DOGS.filter(d => hasVar53(d.id, m)).length]).filter(q => q[1]);
   return `<label class="yfilter">🐾 Sýna: <select id="yFilter">${opt('', `Alla hundana (${tot})`)}${mats.length ? opt('n', `Venjulegu hundana (${all.length})`) + mats.map(([m, n]) => opt('m' + m, `${MATS[m].ic} ${MAT_DN[m]}hundana (${n})`)).join('') : ''}${fam ? opt('fam', `Fjölskylduhundana (${fam})`) : ''}${Object.keys(cnt).filter(b => cnt[b] > 1).sort((a, b) => cnt[b] - cnt[a] || a.localeCompare(b, 'is')).map(b => opt(b, `${b} (${cnt[b]})`)).join('')}${Object.keys(cnt).some(b => cnt[b] === 1) ? `<optgroup label="Aðrar tegundir">${Object.keys(cnt).filter(b => cnt[b] === 1).sort((a, b) => a.localeCompare(b, 'is')).map(b => opt(b, b)).join('')}</optgroup>` : ''}</select></label>`;
 }
 function updateYardPanel() {
@@ -7921,10 +7924,10 @@ function ensure50(d) {   // (literals only – runs while the save loads, before
   for (const k of ['gs', 'gskip', 'gfirst', 'gdogs', 'agBest', 'agDay', 'show', 'care', 'mini', 'miniBest', 'careDay']) v[k] = v[k] && typeof v[k] === 'object' ? v[k] : {};
   v.medals = Object.assign({ g: 0, s: 0, b: 0 }, v.medals || {});
   v.bowl = typeof v.bowl === 'number' ? Math.max(0, Math.min(1, v.bowl)) : 1;   // how full the food bowls are (0..1)
-  v.ltab = v.ltab === 'gold' || /^m[1-8]$/.test(v.ltab || '') ? v.ltab : '';
+  v.ltab = v.ltab === 'gold' || /^m\d+$/.test(v.ltab || '') ? v.ltab : '';
   // 5.2: eight material phases after gold (1 Platína … 8 Stjörnusteinn) – same fields as gold, one object per phase
   v.mats = v.mats && typeof v.mats === 'object' ? v.mats : {};
-  for (let m = 1; m <= 8; m++) { const o = v.mats[m] = v.mats[m] && typeof v.mats[m] === 'object' ? v.mats[m] : {}; for (const k of ['gs', 'gskip', 'gfirst', 'gdogs']) o[k] = o[k] && typeof o[k] === 'object' ? o[k] : {}; }
+  for (let m = 1; m <= 12; m++) { const o = v.mats[m] = v.mats[m] && typeof v.mats[m] === 'object' ? v.mats[m] : {}; for (const k of ['gs', 'gskip', 'gfirst', 'gdogs']) o[k] = o[k] && typeof o[k] === 'object' ? o[k] : {}; }
   v.mph = Math.max(0, Math.min(8, v.mph | 0));   // highest material phase started (0 = none)
   v.moff = v.moff && typeof v.moff === 'object' ? v.moff : {};   // material phase m offered by popup once (Ekki núna -> button stays on home)
   return d;
@@ -7940,7 +7943,8 @@ const MATS = [
   { k: 'dem', pre: 'demants', n: 'Demantur', b: 'Demantsborð', ic: '💎', a: '#b8ecff', b2: '#ffffff', d: '#3d97b8', ink: '#0d3a4d', gem: '#d8f6ff', dog: 'demantskraga og regnbogaglit', tint: 'rgba(184,236,255,.16)' },
   { k: 'svd', pre: 'svartdemants', n: 'Svartur demantur', b: 'Svartdemantsborð', ic: '🖤', a: '#3a3a4a', b2: '#b8b8d0', d: '#0a0a10', ink: '#ffffff', gem: '#22222c', dog: 'svartdemantskraga og dökkt glit', tint: 'rgba(20,20,30,.22)' },
   { k: 'nls', pre: 'norðurljósasteins', n: 'Norðurljósasteinn', b: 'Norðurljósasteinsborð', ic: '🌌', a: '#3ee6a0', b2: '#c9a6ff', d: '#1a3a5a', ink: '#ffffff', gem: '#6fe0c0', dog: 'norðurljósakraga og dansandi ljós', tint: 'rgba(62,230,160,.14)', aur: true },
-  { k: 'sts', pre: 'stjörnusteins', n: 'Stjörnusteinn', b: 'Stjörnusteinsborð', ic: '🌟', a: '#ffcf4a', b2: '#fff3b0', d: '#3a2a7a', ink: '#2a1a5a', gem: '#ffe680', dog: 'stjörnukraga og stjörnuregn', tint: 'rgba(80,60,160,.20)', star: true }];
+  { k: 'sts', pre: 'stjörnusteins', n: 'Stjörnusteinn', b: 'Stjörnusteinsborð', ic: '🌟', a: '#ffcf4a', b2: '#fff3b0', d: '#3a2a7a', ink: '#2a1a5a', gem: '#ffe680', dog: 'stjörnukraga og stjörnuregn', tint: 'rgba(80,60,160,.20)', star: true },
+  { k: 'edm', pre: 'demanta', n: 'Eilífðardemantur', b: 'Demantaborð', ic: '💠', a: '#7ad8ff', b2: '#e8fbff', d: '#1a4a6a', ink: '#0a2430', gem: '#bff3ff', dog: 'eilífðardemantskraga og djúpt glit', tint: 'rgba(122,216,255,.16)', edm: true }];
 MATS.forEach((M, m) => { M.Pre = M.pre[0].toUpperCase() + M.pre.slice(1); M.mult = 0.5 + 0.25 * m; M.first = 250 + 125 * m; });
 const NMAT = MATS.length - 1;
 const phS = m => (m | 0) === 0 ? save.v5 : save.v5.mats[m];   // per-phase store: gs (stars), gskip, gfirst, gdogs
@@ -8642,13 +8646,13 @@ function cleanYard(y) {
   const known = new Set(albumDogs().map(d => d.id)), dogs = (Array.isArray(y.dogs) ? y.dogs : []).filter(id => typeof id === 'string' && known.has(id)).slice(0, 150);
   for (const id of dogs) { const g = y.gear && y.gear[id]; if (!g) continue; const o = {}; for (const t of ['b', 'c', 'h']) if (GEAR.some(q => q.id === g[t] && q.t === t)) o[t] = g[t]; gear[id] = o; }
   const gd = {}; for (const id of Array.isArray(y.gd) ? y.gd : []) if (dogs.includes(id)) gd[id] = true;
-  const md = {}; if (y.md && typeof y.md === 'object') for (const id in y.md) if (dogs.includes(id) && Number.isInteger(y.md[id]) && y.md[id] >= 1 && y.md[id] <= 8) md[id] = y.md[id];   // 5.2 material dog variants
-  const mg = {}; for (let m = 0; m <= 8; m++) { const src = y.mg && Array.isArray(y.mg[m]) ? y.mg[m] : null; const ids = src ? src.filter(id => dogs.includes(id)) : m === 0 ? Object.keys(gd) : Object.keys(md).filter(id => md[id] === m); if (ids.length) mg[m] = ids; }   // 5.3 (older rows: derived from gd/md)
+  const md = {}; if (y.md && typeof y.md === 'object') for (const id in y.md) if (dogs.includes(id) && Number.isInteger(y.md[id]) && y.md[id] >= 1 && y.md[id] <= NMAT) md[id] = y.md[id];   // 5.2 material dog variants
+  const mg = {}; for (let m = 0; m <= NMAT; m++) { const src = y.mg && Array.isArray(y.mg[m]) ? y.mg[m] : null; const ids = src ? src.filter(id => dogs.includes(id)) : m === 0 ? Object.keys(gd) : Object.keys(md).filter(id => md[id] === m); if (ids.length) mg[m] = ids; }   // 5.3 (older rows: derived from gd/md)
   return { lvl, slots, cabs, dogs, gear, gd, md, mg, owner: Number.isInteger(y.owner) && y.owner >= 0 && y.owner < 20 ? y.owner : null, name: String(y.name || '').replace(/[<>&"]/g, '').slice(0, 30) || 'Leikmaður' };
 }
 /* 5.33: the true numbers of a (cleaned) yard: every dog = the normal dogs + every gold / material variant (was capped
    at 100 = only the normal dogs); items = the decoration slots in use */
-function visitTotals(y) { let n = y.dogs.length; for (let m = 0; m <= 8; m++) n += (y.mg[m] || []).length; return { dogs: n, items: Object.keys(y.slots).length }; }
+function visitTotals(y) { let n = y.dogs.length; for (let m = 0; m <= NMAT; m++) n += (y.mg[m] || []).length; return { dogs: n, items: Object.keys(y.slots).length }; }
 /* 5.33: one row per player in the list. Rows with the same name AND an identical yard (same level, items, cabinets,
    dogs) are the same player on two devices / an old copy -> merged (the most complete snapshot is shown). An empty
    starter yard (no items, at most 1 dog) with the same name and the same owner look as a real yard is an abandoned
@@ -8682,13 +8686,13 @@ const VISIT_FIELDS = ['yardLvl', 'yardSlots', 'cabinets', 'album', 'gear', 'owne
 function startVisit(raw) {
   const y = cleanYard(raw); if (!y) { toast('Garðurinn fannst ekki', 1600); return; }
   if (VISIT) endVisit(false); persist();
-  const stash = {}; for (const f of VISIT_FIELDS) stash[f] = save[f]; stash.gdogs = save.v5.gdogs; stash.care = JSON.stringify(save.v5.care || {}); stash.mg = {}; for (let m = 1; m <= 8; m++) stash.mg[m] = save.v5.mats[m].gdogs;
+  const stash = {}; for (const f of VISIT_FIELDS) stash[f] = save[f]; stash.gdogs = save.v5.gdogs; stash.care = JSON.stringify(save.v5.care || {}); stash.mg = {}; for (let m = 1; m <= NMAT; m++) stash.mg[m] = save.v5.mats[m].gdogs;
   VISIT = { stash, name: y.name, tot: visitTotals(y) };
-  Object.assign(save, { yardLvl: y.lvl, yardSlots: y.slots, cabinets: y.cabs, album: y.dogs.length ? y.dogs : stash.album.slice(0, 4), gear: y.gear, owner: y.owner, yardFilter: '', dogBone: {} }); { const o0 = {}; for (const id of y.mg[0] || []) o0[id] = 1; save.v5.gdogs = o0; } for (let m = 1; m <= 8; m++) { const o = {}; for (const id of y.mg[m] || []) o[id] = 1; save.v5.mats[m].gdogs = o; }
+  Object.assign(save, { yardLvl: y.lvl, yardSlots: y.slots, cabinets: y.cabs, album: y.dogs.length ? y.dogs : stash.album.slice(0, 4), gear: y.gear, owner: y.owner, yardFilter: '', dogBone: {} }); { const o0 = {}; for (const id of y.mg[0] || []) o0[id] = 1; save.v5.gdogs = o0; } for (let m = 1; m <= NMAT; m++) { const o = {}; for (const id of y.mg[m] || []) o[id] = 1; save.v5.mats[m].gdogs = o; }
   closeModal(); YD = null; LAWN = null; if (scr === 'yard') enterYard(); else setScreen('yard'); if (YD) YD.scroll = 0; updateYardPanel(); toast(`Velkomin(n) í garðinn hjá ${y.name}! 👋`, 2200);
 }
 function endVisit(rerender) {
-  if (!VISIT) return; const s = VISIT.stash; for (const f of VISIT_FIELDS) save[f] = s[f]; save.v5.gdogs = s.gdogs; if (s.care) save.v5.care = JSON.parse(s.care);   /* 5.33: the visited dogs' care entries are not kept */ if (s.mg) for (let m = 1; m <= 8; m++) save.v5.mats[m].gdogs = s.mg[m] || {}; VISIT = null; LAWN = null;
+  if (!VISIT) return; const s = VISIT.stash; for (const f of VISIT_FIELDS) save[f] = s[f]; save.v5.gdogs = s.gdogs; if (s.care) save.v5.care = JSON.parse(s.care);   /* 5.33: the visited dogs' care entries are not kept */ if (s.mg) for (let m = 1; m <= NMAT; m++) save.v5.mats[m].gdogs = s.mg[m] || {}; VISIT = null; LAWN = null;
   if (rerender !== false && scr === 'yard') { YD = null; enterYard(); }
 }
 function visitPanel50(el) {
@@ -8860,7 +8864,7 @@ document.addEventListener('click', e => { const b = e.target.closest('[data-skip
 function skipLegend53(m) { const o = openSkips(m); return o.length ? `<div class="legend skip53l">⏭️ Sleppt: ${o.map(i => `<b>${i}</b>`).join(', ')} – bíða þín (vinna þarf öll 100 til að klára)</div>` : ''; }
 
 /* ---------- 1. separate material dogs ---------- */
-const MAT_DN = ['Gull', 'Platínu', 'Safír', 'Smaragðs', 'Rúbín', 'Demants', 'Svartdemants', 'Norðurljósa', 'Stjörnu'];
+const MAT_DN = ['Gull', 'Platínu', 'Safír', 'Smaragðs', 'Rúbín', 'Demants', 'Svartdemants', 'Norðurljósa', 'Stjörnu', 'Demanta'];
 const VDOG = {};
 function variantDog(d, m) { const k = d.id + '@' + m; return VDOG[k] || (VDOG[k] = Object.assign({}, d, { name: MAT_DN[m] + ' ' + d.name, mat: m, baseName: d.name })); }
 const hasVar53 = (id, m) => { const S = phS(m); return !!(S && S.gdogs && S.gdogs[id]); };
@@ -9147,7 +9151,7 @@ function wkSnap53() { const k = weekKey(), w = myWeek(k); return w && w.n ? { w:
 function p53Snap() {
   const cp = curPhase(), won = [PL.LEVELS.filter(l => save.stars[l.id] > 0).length], dogs = [save.album.length]; let st = Object.values(save.stars || {}).reduce((a, v) => a + (+v || 0), 0);
   for (let m = 0; m <= NMAT; m++) { won.push(goldWon(m)); dogs.push(Object.keys(phS(m).gdogs).filter(k => phS(m).gdogs[k]).length); st += goldStars(m); }
-  return { cp, b: cp >= 0 ? (goldWon(cp) >= 100 ? 100 : nextGoldId(cp)) : (won[0] >= 100 ? 100 : nextLevelId()), won, dogs, st, tot: dogs.reduce((a, v) => a + v, 0), sk: openSkips(-1).length + [0, 1, 2, 3, 4, 5, 6, 7, 8].reduce((a, m) => a + openSkips(m).length, 0) };
+  return { cp, b: cp >= 0 ? (goldWon(cp) >= 100 ? 100 : nextGoldId(cp)) : (won[0] >= 100 ? 100 : nextLevelId()), won, dogs, st, tot: dogs.reduce((a, v) => a + v, 0), sk: openSkips(-1).length + Array.from({length: NMAT + 1}, (_, i) => i).reduce((a, m) => a + openSkips(m).length, 0) };
 }
 function mgSnap53(al) { const o = {}; for (let m = 0; m <= NMAT; m++) { const ids = al.filter(id => hasVar53(id, m)); if (ids.length) o[m] = ids; } return o; }
 
@@ -12171,6 +12175,682 @@ statsSync = (function (orig) { return function (now) {
 }; })(statsSync);
 try { if (typeof dbg === 'object' && dbg) dbg.v608 = () => ({ clamped: STATS.clamped | 0, err: STATS.err || null }); } catch (e) {}
 /*BH608_END*/
+
+
+/* ===== Betri Hundar 7.0 ===== */
+/* 7.0 Eilífðardemantur boards (phase 9) – GENERATED by tools/make_phase70.js. */
+const PHASE70 = {"1":{"f":"////////////////////+B//+D//+f//+U7/+U7/+0v//0n//8j//8jf//if//Pf///f//5f//vf////////////////////","c":"YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYWWWWWWWWWWWWWWWWWWYYYYYYWWWWWWWWWWWWWWWWWWYYYYYYWWWWWWWWWWWWYYYYYYWWWWWWWWWWWWWYYYYYYWWCCYYYYWWCCWWWWYYYYYYWWCYYWWCWWWWYYYYYYWWCYYWWCWWWWYYYYYYWWWCYYWWCWWWWYYYYYYWWWWWYYWWWWWWYYYYYYWWWWWWYYWWWWWYYYYYYWWWWWWYYCWWWYYYYYYWWWWWWYYYYCWWYYYYYYWWWWCWWWWYYYYWWYYYYYYWWWWCCWWWWCYCCYWWYYYYYYWWWWWWWWWWWYYWWYYYYYYWWWWWWWWWWYYYYWWYYYYYYWWWWWWWWWWWWWWWWWWYYYYYYWWWWWWWWWWWWWWWWWWYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY","fc":"YWC","l":"W7l W4l Y14l Y14l W14l Y14l W14l Y14l Y14l Y14l Y14l Y14l Y14l Y13l W14l W14l W14l Y12l W14l W11l Y14l W7l | W14l Y14l Y14l W14l W14l W14l W14l W14l Y14l Y14l Y14l W12l Y14l W14l W14l Y14l Y14l Y14l C4l C4l W14l C4l W14l C4l C4l","s":4},"2":{"f":"////gAA9gAMlgSG9gSGBgd6BgSSBrOcNpgBNu/51o0JFl/5piP8R/c+Bx3/5/73pg/n5g/HBh//hg//Bg//BgAABgAAB////","c":"OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOYYOOOOYYYYOOOOOOYYYYOOYYYYYYYYOOYYYYOOOOOYYYYYYOOOOOOOOOOOOOOOONNNYYYYYOOOOOOOONNYOOOOOOONNNOOOOYOOOOOOOOOOYYOOOOOOOOOOOOYOYYYOOOOOOOYYYOYYYYONNNOOOOOOOOYOOOYYYYONNOOOYYOYYYYYONNNOOOYYYYYYYOOOOYYYYYYYYYYYYOOOOYYYYYYYYYYOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO","fc":"OYN","l":"Y9l Y3l O9l O5l Y13l O11l Y13l O10l O14l O9l O14l Y5l Y2l Y9l Y11l Y8l N4l O14l O10l Y8l Y6l N4l O14l Y12l O13l Y11l N4l Y2l | Y2l O14l Y2l N4l N4l O9l Y8l Y9l Y8l N4l N4l Y11l Y9l N4l Y8l Y5l O14l N2l Y9l N2l O13l Y2l N2l O11l Y12l Y3l N2l Y10l Y13l O14l Y10l Y9l Y13l O8l Y7l Y13l Y11l Y9l Y12l N2l Y7l Y2l Y12l","s":3},"3":{"f":"////gAA5v//9r/BVqBCtqBHFr/f/oAaHoASHo+D/oiAFoiAFo+B9v//9v4Htu37tuwDts37tv4H9v//9oAAFv//9gAAB////","c":"OOOOOOOOOOOOOOOOOOOOOOOOORRROOCCCCCCCCCCCCCCCCRCRCOOCNNNNNNNNRRROOCNNRRRROOCNNRRRCOOCNNNNNNNNRRRYYYYYYYOOCRRYCYOOCRYCYOOCPPPPPYYYYYYYOOCPPCOOCPPCOOCPPPPPBBBBBOOCPPPPPPPPPPPPPPBWWWBOOCPNNNNPPPBWWBOOCPNNPPPPPPPPBWWBOOCPNNPPBWWBOOPNNPPPPPPPPBWWBOOPNNNNNPPPBWWWBOOPPPPPPPPPPPPPPPBBBBBOOCCOOCCCCCCCCCCCCCCCCCCCCOOOOOOOOOOOOOOOOOOOOOOOOOOO","fc":"PRONYBWC","l":"N11l C4l N8l Y13l O11l B8l B9l P2l P10l O6l P12l C12l R6l W7l P2l P9l R6l C11l W13l O8l K6l B14l C11l C11l C3l C3l P4l C8l N9l C10l P14l C10l | W9l O12l K10l C10l K9l C12l O8l N14l O3l C3l C10l Y1l O10l P3l C12l R2l C10l R6l O10l C3l B7l C12l | P14l O11l P8l O10l R11l P14l R6l N14l C3l O8l P12l Y8l C10l"},"4":{"f":"///////3wOcrzwDX3//73f+733973/Z73f+73ee77b237b233efb3ef73u+73v/73byb2/Db+P8fj//x///5wGMJ///5////","c":"OOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDDDDDDDDDDDDDDDOODDDDDDDDDDOODDDDDDDDDDOODDGGGGGGGGGGGGGGGGDDOODDGDOOOWWWWWWWDGDDOODDGDDOOWDDDDWDDGDDOODDGDDOOOWDDWDDGDDOODDGDDCWDCCDWCDDGDDOODDGDDCWDDWCDDGDDOODDGDDCWDDWCDDGDDOODDGDDCWDDWCDDGDDOODDGDDCWDDWCDDGDDOODDGDDCWDDWCDDDGDDOODDGDDCWDDDWCDDGDDOODDGDDWDCDWWDDDDDGDDOODDGDWDDWDDDGDDOODDGWWDDWDDDGDDOODDDGWWDDDDDDGDDDOOGGGGGGGGGGGGGGGGOOWWWWWWWWWOOOOOYYYYYYOOWWOOYYOOWWWWWWWWWOOOOOYYYYYYOOOOOOOOOOOOOOOOOOOOOOOOO","fc":"OGWDYC","l":"G14l D10l D11l D13l W5l D12l W2l W12l Y5l | G6d Y10d G8l G13l D10l Y4l D14l D11l G7l Y7l O8l Y4l D14l C4l W11l G14l C4l C4l O8l O9l O9l D8l G18l C4l | W14l G6l O17d D11l D14d O7l O11l D11l W14l O7l W14d C4l C4l C13l O9l D12l O8l C3l D14l O12l C15l Y4l C3l Y11l D14l D10l O10l O8l C3l","s":3},"5":{"f":"AAAYBg8kP//+ZglGOAkkPg8cMjwEMn4EP8OEIkJEL//0IAAEIDwEIEIEPkJ8IqVMIttMIr1MIqVMIv9M/gBPv//9kAD/////","c":"WWRRWWWWWWRRRCRCCCCCWCCWCWCCCCWRCRRWWWCWRRRWWWWCOOOOWWWWWWCCOOPPPPCCOOPPPPPPCCOOOOPPPPPPCCPPPPCCPPPPPPPPPPPPPPPPCCCCWWWWCCWWCYYYYYWWRRRRCYYWWWWRRCYYWWWWWWRRCYYWWWWWWRRCYYWWWWRRCYYWWWWWWWWRRCRRYYYYYRRRRRRRCRRRRRRRRRRRRRRCCRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR","fc":"WPRYOC","l":"O12l P9l W6d P10l Y8l R6l R7l C14d G2l O13l G2l O14l N5l C12l W12l C9l G2l | D2l W14l R12l O13d D2l D8d C17d P10l G5l C13l N8l P9l Y14l W12l P8l C10l G2l R9l C12l C13l | N11d D2l Y14l W14l N14l P14d Y2l G2l R14l D2d W14l C13d R4l R10l R14l C17l R14l C11l C9l P8l C13l C10d C14l"},"6":{"f":"///////hwfwhwgI/xAHzz//z1Pgz5f+z5/6z/46/z46vz46rz/6rzfyz/fizhQCzhf+zhAAzh//zgAfjgAQDgAQDgAf/////","c":"OOOOOOOOOOOOOOOOOOOOOOOOOPPPPPPPPPPPPPPPPPPOOPPPPPPPPPOOPPPPYYYYOOPPPPPPYYOOPPOOOOOOOOOOOOOOYYOOPPOPPPPPOYYOOPPOPBBBBBPKKKOYYOOPPOPBPPPPPBPKOYYOOBBBBOPBPPBPKOYYYYOOBBOPBPPBPKOBBBOOBBOPBPPBPKOBBOOBBOPBPPPPPBPKOBBOOBBOPBBBBBPKOBBOOBBBBOKPPPPPKOBBOOOKKOBBOOOKKKKKKKKKKOBBOOOOBBOOOOOOOOOOOOOOOOBBOOBBBBBBBOOBBOOBBOOBBBBBBBBBBOOOOOOOOOOOOOOOOOOOOOOOOO","fc":"POYBK","l":"K3l R2l K3l O6l K3l B14l O14l K3l R5l O10l K3d R2l K3l O14l K3l P12l O9l Y8l K3d R6l Y2l K3l O8l R3l K3l P2l K4d B14l K3l B8l Y7l O14l K3l K3l | K3l K3l K3l K3l P14l R6d P9l K3d K3l R6l K2l R2l K2l K2l P14l K2d K2l K2l R6l O10l K2d K2l K2l P14l K2l K2l K2l K2l O14l K2l K2l O14l K2l K2l K2l K2l Y5l K2l P8l K3l K2l K2l K2l Y8d O14l K2l P9l K2d K2l K2l K2l K2l | K2l K2l O10l K2l B14l K2l B14l O2l K2l O12l K4l K4l R7l K2l P14l K4l R3l B14l Y9l K2l B14l K2l","s":4},"7":{"f":"////gAB/gABDgABDj/5/iAOPiAPzj///gHzLg/+rgk8rgk73+/vLy/8fyn5/yg//y/znyxzny/zn+/z/nATDlATDnAf/////","c":"PPPPPPPPPPPPPPPPPPPPPPPPPGGGGGGPPGGPPGGPPWWWWWWWWWWWGGGGGGPPWWPPPPPPPWWPPPPPPPPWWWWWWWWWWWWWWWWPPPPPWWWWWWWWPPPYYYYYYYWWWWWWPPPYCYWWWWWPPPYCYWCWWWWPPPPYYYYYYYYYYYWWWWPPPPYYGGGGGGGWWWPPPPPPYYGCCCGCCPPPPPPPPYYGGKKKKPPPPPPPPYYGKKKKKGKKPPPPPPYYGKKGKKPPPPPPYYGKKKKKGKKPPPPPPYYYYGGGGGGGKKPPPPPPPPPPPKKPPPPPPKKPPPPPPPKKKKPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP","fc":"PYWGKC","l":"K6l K6l G12l W8l C3l C3l C7 P11l K6l C8d K4l C3l P14l P14l C6l P14l C4 C3l C6l K5d C2 C7l | C2l G6 K5 G6 C2l K5d P14 G11l G12l P14 Y12l C2l G9l P14l P1l W13d K5l W2l P14d P14l C5l C2d P14l Y14l C6l | G7 Y14l P14l P14l G14l P14d W14d C2l W14d P14l C2l C5l W14l C4l C2l W14l K4 K4l C2d W7l C7l C8l C2l C2l C6l C2l C6 C6l C2l","s":3},"8":{"f":"////////////5JAH5JH/5PH/5AHv5X2v/X2//0H/8UGP8UGP/33///3/4gAH4/wH4wT/4/yH/8CH+kCH68D/////////////","c":"OOOOOOOOOOOOOOOOOOOOOOOOOKKKKKKKKKKKKKKKKKKKKKKOOKYYYYCCOOOOCCCCCCCCCCKOOKYYOOCKOOKYYOORRRRRRRKOOKYYOOOORDDKKKRKOOKYYRDDKKRKOOKYYDDDDDDRDKKRKOOKYYYYDDDDDDRDKKKRKOOKCDDDDDDRDDDDDRKOOKCDDDRDDRKOOKCDDDRDDRKOOKDDDDDDDDDDDRDDDDDRKOOKDDDDDDDDDDDDRRRRRRRKOOKDDCKOOKDDPPPPPPPCKOOKDDPPKKKKKKKOOKDDPPPPPPPKKKOOKDDDDKKKKKKKOOKPPPKKKKKOOKPPKKKKKKKKKKKOOKPPPCCCCCCCCCCCCCCCCCKOOKKKKKKKKKKKKKKKKKKKKKKOOOOOOOOOOOOOOOOOOOOOOOOO","fc":"KDYRPOC","l":"D8l P3l Y14l K14l O8l Y14d K14l O9l D2l C3l P8l R5l C3l D10 D7l O11l C3l C3l O7l Y10l C3 C3d C3 O6l K14l C3l R5d C3l C3l O7l P7l C3l D14l K2l C3l D14l C3l | K14l P3 O12l P3l P4 C4l P9l C4l R5d C3 P3l C5d P8l K14l O10l C5l D14d C3d D14l K14l C3l | P6l K14l O5l P6l C3l R5l O11l C3l P5l R5l R6l R4l C2l R4l R4l O6l G3l C4l R2l D14l C2l R2l C2l O14l K14l C2 R4l K14l C4l","s":4},"9":{"f":"/////8f//+Yz/+Yz4OYz4OY/4Pou/+Pr//8P/4EVvoFvsoWHsocd/pl5gOGhgf/BhhkBCGYBCJ//C3//DEMBAEMBAH//AAAA","c":"NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNYYYYYYYYYNNOOOOOOOOONNYYYYNNORRRRRRRONNYYYYNNORRONNYYYYNNORRONNYYYYYYNNORRONNNYYBBBNORRRRRRRONYYYYYBBRNOOOOOOOOOKKKKKKBBBRNNNNNNNNNKKKRNNNNNNKKKKKKRRNNNNKKKKKRRNNNNKKKKKKRRNNNNNNNKKKKKKRRRNKKKKKRRNKKKKKKKKKRRRNKKKKRRKKKRRRKKRRRRRRRRRRRRRKKKWWWWWWNNNNNNNNNKKWWNNWWNNWWWWWWNNNNNNNNN","fc":"KOYRNWB","l":"B2l O5l W12d W5l Y5l B2l Y7l B2l B2 N13l O5l R10d R14d B2l B2l Y11l R2l B2l B2 B5l N14l B3d B2l N11l B3l B3l N6l B2d N14l Y6l B2d K14l B7l B7l O11l O11d R14l B6l N7l B2l B2l B7l R7l B2l R14l | B7l B2l K12l K8l N14l Y6l Y5l Y7l B7d N9l R14l B2l B2l Y5l B2l B6l B7d | O6d B7l O7l B2l K14l R14l B2l N12l N8l Y11d N7l B2l B2l B2l B2l B2d O10l B7l K14l W14l B2l B6d N9l O10l B2l","s":4},"10":{"f":"///////////z44Az44Az/v/z//gzzghb0QiP0QiP0TyP4SyH4iyH4jxH/ghH//gnv+AfoCAfoCABv+ABn+fxkCcJv//9////","c":"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBOOOOOBOOOOOOOOOOOBBBBBOOBOOBBBBBOOBOOBBBBBOOOOOOOOOOOOOOOOBBBBKKKKKKKKKKKKWBBBBKRRRKWWBBBBKRRKWWBBBBKRRKWWBBBBKRRGGKGWWBBBBKRRGKGWWBBBKRRGKGWWBBBKRRGGKGWWBBBKRRRRRKWWBBBKKKKKKKKKKKKWWBBBDDDDDDDDDWWBBBBDDBBBBBBDDBBDDDDDDDDDBBRRRRRRRRRRKKKKKBBRRRRKKBBRRRRRRRRRRRRRKKKKKKKBBBBBBBBBBBBBBBBBBBBBBBBB","fc":"BWKRODG","l":"O4l O14 K10l Y2 D11l R14l B14l B14l B14l B14l Y2l O13l Y8 R14d O10l | D14l C2l W14l O14l R14l B14l C2l Y2l W3l C2d W7l R14l C2l W13 C2l B14l O9d C2l C2l O13l C2l B14l G12l B14l C2 O3 C2l B14l K13l D6l C3l O7 K14l C8l | Y8l B14l B14l K14l W11l K6l C7l G9l Y7d C2l Y4l G11l Y7d Y9l O6 R14l C2l"},"11":{"f":"////kAH/rALjw/wzvQvzgQn7wfoP4AeH//6H//+B//4A4E49//4///4zwH/zuAhziPh/+Jh/4P/HvwD53//58P81/+/5////","c":"WWWWWWWWWWWWWWWWWWWWWWWWWWWDDDDDDDWWWWWWWWDDWWWWOOOOOOWWDDWWWWWWOOWWWWDDDWWOOWWWWWDDWWWOOOOOOWWDDWWRWWCCCWDWWRRWWWWWWWWWWWCCWWWWRKRRRRRRRRRRRCCCWWRKKKKKKKKKKKRNWRKNKRNWWWWWWRKKKKKKKKKKKRNWKKKWWWRRRRRRRRRRRRRNWKKWWWNNNGGGGGGWKKWWWWWGGWKKWWWWWWWGGWKKKKWWWWWWWWGGWWWWWWWWWWWWWGGGGGGWWWWWWWWWWWWWWWWWWWNNNNWWWWWWWWRRRRWWWNWNNNNWRRRRRWWWWNNNNNNNNNWWRRRRRRRWWWWWWWWWWWWWWWWWWWWWWWWWW","fc":"WGNDORKC","l":"D7l O5l N3l D6l W14l C3 D7l O2l C3d W12l W8l G2l C3l N7l C3l W9l G2l C3l O2l C2d W13l W13l G2l C2d K11l G2l C2l N10l | G2l Y2d C2l G2l K14l W12l G2d W12l O2l D9l K8l O5 R2l R10l C2l C2d C2l G2l W8l C2l C2l W7l O2 C2l O2l R14l C2d O2l C2l C2l W10l C2d O2d C2l W3l W12l W7l W12l G2l C2l O2l C2l C2d C2l W8l C4 C2 W12l O4d C2l C3l C2l W14l | O5l G2 W9l N9d R14d N10d O6l C2l G2l C2l N6d O6d W9l C2l G2l C2l O2l D10d G3l R14l C2l C2l O2l C2d N9l C4d G2l W9l C2d C2l C2l K6l C2 G3l","s":4},"12":{"f":"////////////////8AAP///v///v/uBv/uBv/+Bv+n/v+kBP/8BP8v/P8v/P8sbP8sbP8//P8IBP8P/P////////////////","c":"KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKCCCCCCCCCCCCCCCCCCCCKKKKCRRRRRRRRRRRRRRRRRRCKKKKCRRCKKKKCRYYYYYYYYYYYYYYYRCKKKKCRYCCCCYYWWWWWWWYRCKKKKCRYCWCYYWYRCKKKKCRYCWCYYWYRCKKKKCRYCCCCYYWYRCKKKKCRYWYYYYYYYYYYRCKKKKCRYWYWRCKKKKCRYYYYYYWRCKKKKCRWKKKKKKKKKKRCKKKKCRWKRRRRRKKKKRCKKKKCRWKRRKKKRCKKKKCRWKRRKKKRCKKKKCRWWKRRRRRKKKKRCKKKKCRKKRCKKKKCRKKKKKKKKKKRCKKKKCRRRRRRRRRRRRRRRRRRCKKKKCCCCCCCCCCCCCCCCCCCCKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK","fc":"KCYRW","l":"D2l D2l Y12l D2l C10l R9l D2l K14l K14l K14l K14l Y14l W5l D3l C8l D4l R6l Y10l C14l K9l K12l | D3l K3l R14d K8l K7l K13l W9 C14l R9l B2l K14l W5l B2d K8l R12l K14l D2l R14l B2l D2 B2l | B2l K7l K14l D5l W4d K14d W5l K14l W9l W6l W8l R11l C13l B2l R4l D10l C4l B2d C13l B2l R14l B2l B2l R10l Y14l C12l K14l K14l B2l B2l B2l","s":4},"13":{"f":"////////3wD7/AA/7//3z//zzDwzr//1z/+zzACzzACzz/+zz//zrNs1raW1nZm5nNt5n+e5n//5n//5v+/1sCgT4BgT///z","c":"BBBBBBBBBBBBBBBBBBBBBBBBBCCCCCCCBBBBBBBBWWWWWWWBBCCCCBBBBWWWWBBCCBBBBBBWWBBCBRRRRRRRRRRRRRRRRBWBBBRPPPPPDDDDPPPPPRBBBBRPPPPPPRBBBBRPPPPPPPPPPPPPPRBBBBRGGGGGGGGGGGGPRBBBBRGGDRBBBBRGGDRBBBBRGGGGGGGGGGGGYRBBBBRWWWWWWWWWYYYYYRBBBBRWWWWWWYYRBBBBRWWWWWWYYRBBBBRWWWWWWYYRBBBBRWWWWWWYYDRBBBBRDWWWWWWYYYDRBBBBRDDDDDDDDDDDDDDRBBBBRRRRRRRRRRRRRRRRBBBBBBBBBBBBCCCCCCCCBBBBBBCCBBBBBBCCBBBBBBBBBBBBBBCCCCCCCCBB","fc":"WCGRYPBD","l":"P7l R6l G5l B11l W11l D7d D3l Y2l D8d Y2l D8l Y2l B12l R1l D3l D3 B6l D3 D3l Y2l D3 D7l Y2l D3l Y2l P10d D3l W2l Y2l | P11l B14d W14l R7l C13l C2 Y2l D7l P6l D3l Y2d W14l D3l C12l R7l Y2l D3l G10l D3l Y2l R8l D5l B10l R9l G9l D8l Y2l D3d R10l Y2l D3l Y2d | C7 P11l B10l Y2l B10l R14l B7l B6l B9l Y2l B6l D3l G14l D9l B7l B9l B12l Y2d P6l Y4l B8l D2l Y6 B6l D7l Y2l W14l B6l P12l G7l B7l Y2l","s":4},"14":{"f":"////////3wD7/AA/7//3z//zzDwzr//1z/+zzACzzACzz/+zz//zrNs1raW1nZm5nNt5n+e5n//5n//5v+/1sCgT4BgT///z","c":"WWWWWWWWWWWWWWWWWWWWWWWWWBBBBBBBWWWWWWWWNNNNNNNWWBBBBWWWWNNNNWWBBWWWWWWNNWWBWRRRRRRRRRRRRRRRRWNWWWRDDDDDYYYYDDDDDRWWWWRDDDDDDRWWWWRDDDDDDDDDDDDDDRWWWWROOOOOOOOOOOODRWWWWROOYRWWWWROOYRWWWWROOOOOOOOOOOOKRWWWWRNNNNNNNNNKKKKKRWWWWRNNNNNNKKRWWWWRNNNNNNKKRWWWWRNNNNNNKKRWWWWRNNNNNNKKYRWWWWRYNNNNNNKKKYRWWWWRYYYYYYYYYYYYYYRWWWWRRRRRRRRRRRRRRRRWWWWWWWWWWWWBBBBBBBBWWWWWWBBWWWWWWBBWWWWWWWWWWWWWWBBBBBBBBWW","fc":"NBORKDWY","l":"D7l R6l O5l W11l N11l Y7d Y3l K2l Y8d K2l Y8l K2l W12l R1l Y3l Y3 W6l Y3 Y3l K2l Y3 Y7l K2l Y3l K2l D10d Y3l N2l K2l | D11l W14d N14l R7l B13l B2 K2l Y7l D6l Y3l K2d N14l Y3l B12l R7l K2l Y3l O10l Y3l K2l R8l Y5l W10l R9l O9l Y8l K2l Y3d R10l K2l Y3l K2d | B7 D11l W10l K2l W10l R14l W7l W6l W9l K2l W6l Y3l O14l Y9l W7l W9l W12l K2d D6l K4l W8l Y2l K6 W6l Y7l K2l N14l W6l D12l O7l W7l K2l","s":4},"15":{"f":"////gAABv//9v//9tP8Nt//tt3xtvvx9vf99vyb9vyT9vf/9v8G9tqBtty/tt0jttKittHitt//tsAANv//9v//9gAAB////","c":"DDDDDDDDDDDDDDDDDDDDDDDDDDDRRRRRRRRRRRRRRRRRRRRDDRBBBBBBBBBBBBBBBBBBRDDRBKKKKKKWWWBRDDRBKBKRRKKKWBBWBBBRDDRBKKRRKKKWWBBRDDRBKRRRRKKKWWBBBRDDRBKRRKKKKKWWWWBBBRDDRBKRRKKKKWBBBBRDDRBKRRKKKWBBBBRDDRBKRRKKKKKKWWWBBBBRDDRBKRRKKKWBBBBRDDRBKKKKBBBRDDRBKKKKKKKKKBBBRDDRBBKKKKKBBBRDDRBBKKKKBBRDDRBBKKKKKBBRDDRBBBBBBBBKKKKKBBBRDDRBBRDDRBBBBBBBBBBBBBBBBBBRDDRRRRRRRRRRRRRRRRRRRRDDDDDDDDDDDDDDDDDDDDDDDDDDD","fc":"RKBDW","l":"K12l R9l W5l R14l B14l K10l R10l D10l G7l R9l D11l D16l O3l G7l G2 W5l W5l G8d D10l R10l W4l N3l K14l B12l G7l G8l O2d W4l G6l R8l O2l B14l G2l W10l G2 N2l O2l | O2l G2l R12l R8l O2l G2l O2l K14l O2l R10l R5l O2l D12l W6l D8l D7l G2l D6l O2l G2d N2l G2l D8l B12l G5l | K14l D9l G2 K7l B13d B14l B14l O2l B14l G2 W9 G2 K14l N2l G9l B9l B10l G2l D10l G2l","s":3},"16":{"f":"////////////////8GYP//EP8El/8ElP/9J/8JQP8XuP8qVP/udP9/jP9Ih//P/P9+TP9CTP9Cf/9CAP////////////////","c":"YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYDDDDDDDDDDDDDDDDDDDDYYYYDCCCCCCCCNNCCCCCCCCDYYYYDCNNNNCDYYYYDKKKKKKKNNNCDYYYYDKKNNDDDDDYYYYDKKNNDDDYYYYDKKKKKKKNNDDDDDYYYYDCNNNCDYYYYDCNNNNNNNNCDYYYYDCNNNNNNCDYYYYDDDDNNNNNNNNCDYYYYDDDNNKKKKKNNCDYYYYDDDKKDDDDDYYYYDDDDKKKKKWWWWDDDYYYYDCYYYYYYWWDDDYYYYDCYYWWDDDYYYYDCYYWWWWDDDDDYYYYDCYYCDYYYYDCCYYYYYYCCCCCCCCCCDYYYYDDDDDDDDDDDDDDDDDDDDYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY","fc":"YNDWKC","l":"W4l O2l Y10l W5l Y3l Y13l K14l D14l D14l O2l O2l N8l O2l N2l Y14 Y4l Y14l D14l N8l Y6l N7l Y12l N7l N9l O3l Y9l D14l Y14l | N2l Y6l Y14l D12l N6l N8l O2l D14l Y11l Y7l N8d D12l W7l C6 | C6l K14l C6l W4l Y14l Y11l C6l O3l D14l D12l W4l C6 O2l K4l W3d W3l C6l N5l N10l Y14l N3l C5l O2d N7l Y8l C5l N6l G3l N8l Y6l N6l Y14l Y6l C5d","s":4},"17":{"f":"8AAAkP/gkIAgkIAgkIAg8P/gBAAgCgBwEQDYEX+YEMOYIX7MImZsImZsIn5sJD88GCEYH6EAEKEAH6EAH6HwESGIISGEPz/8","c":"NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNKKKKKKKKKKKKKKKKNNNNNKKKKKKKKKKKKKKNGGGGNKKKKKKNGGNKKKKKKNGGNKKKKKKNGGGGNKKKKKKGGGGGGKKKKKKGGKKYYYYYYGGYYGGYYYYYYGGDDDDDDGGDDDDDDGGDDDDGGDDDDDDDDGGGGGGDDDDDD","fc":"KNGDY","l":"K14l N12l Y14l G2d D4l D10l G15l D13 G14l D12l D9l G14l D4d N4l G15 W10l G15l N14l G14d G14l G14l | N12l W8l O4l R9l G14l G14l R4 N10l R8 K14l N14l D11l N14l G14l D8l G14l D11l G2l D3l G14 G14l | W2l W2l K14l W11l K14l K7l N14l G14l W7l W8l Y4l G12l G14l","s":4},"18":{"f":"/////4H//77/////9xLv9yjv/9P//v9//73//+e/95nf/5n/+//v9sOf/aX/+8P/8mY/2efb3gB73gB73//79CQv+//f////","c":"YYYYYYYYYYYYYYYYYYYYYYYYYDDDDDDDPPDDDDDDDYYDPPPPDPPPPPPPPDPPPPDYYDPPPPDPPPPPPPPPPDPPPPDYYDPPPDPPPPDPPPDYYDPPPDPPPPDPPPDYYDPPPPPDPPPPPDPPPPPDYYDPDDDDDRPPPPRDDDDDPDYYDDPPPPDRRRRRRDPPPPDDYYDPPPDDPRRRRRRPPWWPDYYDPPPDPRRRRPPPWPDYYDPDPDDPRRRRPWPWWPDYYDPDDDPRRRRRRRRPWWWPDYYDPDDPPRRPWWPPDYYDPPDPPRRRRPWWPPPDYYDPPPPPRRRRPPWWPPDYYDDPPRRRRPWPDDYYDDPPPPPPPPPPPDDYYDPDPPPPDPDYYDPDPPPPDPDYYDDPPPPPPPPPPPPPPPPDDYYDDPPPPPPDDYYDDPPPPPPPPPPPPPPPPDDYYYYYYYYYYYYYYYYYYYYYYYYY","fc":"PYDRW","l":"D14l Y6l R12l D14l P13l Y11l D14l P14l Y11l P11l P11l R8l D14l P11l D14l D14l | R6l D8l P10l K2l P14l P14l K2l P14l W6d P8l K2l K2l Y14 K2l Y12l K2l P9l P10l K2l K2l K2 C2l | K2l Y12l R14l D14l P8l P7l W6l C2l Y14l K2l C2l K2d Y10l W6l P14l D14l C2l W6l K2l Y8l Y14l C2l K2l P10l C2l K2l P11l R7l R9l C2l K2l K2l P8l C2l P11l K2 C2l K2l","s":4},"19":{"f":"/////////wP/4yHH4yHH7//39zzv5//v5+fv/zz35//n/+f/////57/n73/37/v37+f37//37//35//n4//H////////////","c":"OOOOOOOOOOOOOOOOOOOOOOOOOKKKKKKKKKKKKKKKKKKKKKKOOKKKKKKKKKKKKKKKKOOKKKKKKKKKKOOKKKKKKKKKKOOKKKRKKKKRKKKKRKKRKKKOOKKKKKKKKKKKKKKKKOOKRRKKKKKKKKKKKKRRRKOOKRRRKKKKKKKKRRRRKOOKRRRRRKKKKKKRRRRKOOKRRRKKKKKKKKKKRRRKOOKKRRRRKKKKKKKKRRRRKKOOKKKKKRRKKKKKKKKRRKKKKKOOKKKRKKKKKNNNKRKKKOOKKKRRKKNNNNNNKRRKKKOOKKKRRKKNNNNNNKRRKKKOOKKKRKRKNNNNKRRRKKKOOKKKRKKRKNNNNKRRRRKKKOOKKKRKRKRKNNKRRRRRKKKOOKKKRKKKRKKRRRRRKKKOOKKKRRKKRRRRRRKKKOOKKKKKKKKRRRRRRKKKKKKKKOOKKKKKKKKKKKKKKKKKKKKKKOOOOOOOOOOOOOOOOOOOOOOOOO","fc":"KNRO","l":"C2d R13l K14l R14l R10l R4l K14l O6l R8l R8l K14l R5l | N2d N7d C2l N2l K14l K14l C2l K14l K14d C10l K14l R8l O6l R12l K14l K14l N2l O7l C2 K14l O6l O10l O9l O10l O13l | N2l N2l K12l O11l N7l K14l R14l N3l N14l K4l O11l K14l C2 K14l K14l K14l K14l C2 C2d O7l C2l C2l C2l C12l K14l C4l C2l C2 K14l O9l C2l","s":4},"20":{"f":"////////////////8B8P99yP99xP9txP9t9P9v6P9+b/9H/f98Nf8Odf8X7f8ULf/6Vf+X5f+QBf/wB/////////////////","c":"DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDKKKKKKKKKKKKKKKKKKKKDDDDKRRRRRRRRRRRRRRRRRRKDDDDKRRRWWWRKDDDDKRYYYYYRRWWRKDDDDKRYCCCYRRWWRKDDDDKRYCCYRRWWRKDDDDKRYCCYRRWWWWRKDDDDKRYCCYRNNRRWRKDDDDKRYCCCYRRNWDDDRKDDDDKRYYRRRRWWWDDRKDDDDKRYYYYYKWDDRKDDDDKRKKKKNKDDRKDDDDKRKNKNNKNKDDRKDDDDKRKKKKDDRKDDDDKRWWWWKKKKDDRKDDDDKRWWKKKKKKDDRKDDDDKRWWDDRKDDDDKRWWWWDDDRKDDDDKRRRRRRRRRRRRRRRRRRKDDDDKKKKKKKKKKKKKKKKKKKKDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD","fc":"DRYKWCN","l":"O2l O2l D13l D11l O2l O3l O2l R8l D14l D14l O2l W4l W3l O2l D14l W3l D14l R11l D14l O2d K10l P2l N6l R8l P2l N4l | Y12l O2l D14l K14l K14l D14l N3l D14l R14d D14l K9l R14l O2l R14 K9l Y2l O2l N3l K8l R14l O3l C5l C5 D2l Y8l K11l P2l W3l | K14l O2l C4l D14l W3l D14l R14d D14l W3l W3l W3l R13l O2l W4d W3l D14l C4l W2l O2d P2l O2l W5l K11l O2l K6l P2l N4l C4l N3l"},"21":{"f":"f8A/3k/tv///rS/2oyx1oZx1oZ/1oZg14O/1sP/d7UK3+kJ9/MI/7cI3+f4f+WAf+UAffV4//LIvtnJ/rR7ev///gN////f/","c":"WWWWWWWWWWWWWWWWWWWWWWYYYYYYYWWWWWWYWWWYYWYYYYYYYYWWYWWWYWWWWYOOOOOYWWWWYWWWYOOYWYWWYWWWYOOYWYWWYWWWYOOOOOYWYWWYWWWYYWYWWWYWWWYYYYYYYWYWWWWWWWWWWWWWWWWYWWWWWWWWWWWWWWWWWWWWWWWWRRWWWWWYWWWWWWWRRRWWWWYWWWWWWWRYRWWWYWWWWWWWWWWWRYRWWWYWWWWWWRYRWWWWWWWWWRYRWWWWWWWWWWWWWWRRRWWWYWWWWWWWWWWRWWWWWWWWWWWRWWYWWWYWWWWWWWWRRRWWWYYYYWWYYYYYYYWRYYYYRRWWWWWWWWRRRRRRRRWWWWWWWWWWWWWWWWWWWWWWWW","fc":"WYRO","l":"Y12l W5l O7d Y6l W13l Y12l Y11l R9l R9l W14l Y10l W14l W12l O4l W14l W14l | Y12 Y10l R9l Y5d O6l Y10l W11l R9l W14l Y12l B3l W14l W11l W12l B2 | B2d O6l B2l O7d W10l O2 B2l B2l B2d W14l B2l B2 B2d R8d B2l B2 O8l B2d W14l B2l B2l O2d B2d W4l B2l W12l B2 B2l B2 B2l B2l W10l W14l B2l W13l Y9l B2l B2 B2d B2l Y11l B2l W10l B2l W14d B2l Y10l W12l B2l W14l B2l B2l B2d B2l","s":3},"22":{"f":"////////////////8GZ/8aXf8////iRP/udP/2XP/9vP/ufP//dP/v/v/p/v+pbv/pbv+//v+AQv8Afv////////////////","c":"RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRDDDDDDDDDDDDDDDDDDDDRRRRDKKKKKKKKKKKKKKKKKKDRRRRDKNNNNYYYKDRRRRDKNNNNNNYYKDRRRRDKDNDDNDDNDDNYYYKDRRRRDKWWNNNNKDRRRRDKWNDNNNNNNNKDRRRRDKWNDNRRRRNDKDRRRRDKWNDNRRRRRRNDKDRRRRDKWNDNNRRNNNDKDRRRRDKWNDNRRRRRRRDKDRRRRDKWNNNNNNRWWWWWWKDRRRRDKWWNNNRWRRRDWKDRRRRDKWWNNWRRDWKDRRRRDKWWWNNWRRDWKDRRRRDKWDDNNNNDWRRDDWKDRRRRDKWWWKDRRRRDKWWWWWWKDRRRRDKKKKKKKKKKKKKKKKKKDRRRRDDDDDDDDDDDDDDDDDDDDRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR","fc":"RKNDWY","l":"R14l R14l N11l D14l K10l W11 K10l R13l R14l R14l R14l N11l N6l R14l R14l R14l N12l O2l R14l | O2l R14l N6d K11l K13l K6l D10l D9l R14l O2l D6l R10l D9 W11l | W9l R11l N13d K6l O2 D14l D14l W11l N13l Y2l W9l K1l D13l D14l R14l O2d Y2l D14d R14l O2d K11l Y3l Y3l Y3l Y3l R14l Y3l Y3l Y2l Y2l","s":3},"23":{"f":"////nwAxv//7sf/pscDvv//vn/+v9H8//P//n//7/////P///H///MH/3MN73P+73/973H477//38//PuP8djwDxh//h////","c":"DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDNNNNNDDDDDDDDDDCCCDDDDNNDDDDDDDDDDCCDDDNNDDDDCCDDDDDNNNNNDDOOOOOODOCCDNDDDDDDDDDDDDDDDDCCDNDDDDDODDDDDDDCCCDNDNNNNDODDDDDDDDDDDDDNNDNNDDDDWWWWWWWWDDDNNNDNNNNDWWDDWWWWWWWWWWDNNNDDDDDWWDDDDDDDNNWWWDDNDDDWWWNDDDDDDDNNNWWWDDDDWWNNDDDDNONWWDDDWWNNDDDDNONWWDDWWNNDDDDDDDDNNNWWDDWWNONNNDDDDDDNNONWWDDWWNNNNNNNNNNWWDDDWWWNNOOOOOOOONNWWWDDDDWWWWNNNNNNNNWWWWDDDDDWWWWWWWWWWDDDDDWWWWWWDDDDDDWWWWWWWWDDDDDDDDDDDDDDDDDDDDDDDDDDDD","fc":"NWDCO","l":"B8l D7l D14l W12l D7l N14l C5l D14l N8l D9l N14l W8l D6l P5l D12l P7l | O8 W6l O7l B2l N3l O7l B2l P2l D14l P2l D12l D14l P2l B2l P2l W10l N14l W8l D11l D8l B2l P2 B2l P2l | O8 C5 W9l N14l P2d P2l P2l W12l D14l P2l D6l P2l C5l D6l D7l P2d N14l D9l C2l D11l C4l D12l D8l D11l D7l W8l D12l W2l P2l P2l W8l N14l W9d P8d B2l P2l P2l P2l B8l W9l D14l P2l","s":3},"24":{"f":"f7/flf6lr//rVn/Vlk3lrn/rVvzVloTl7v/r/oHV/oHl7//r34PV3YOl7/8r///V/f/lqwD7U/+tlYHtqv8LUr/VlUql7/f7","c":"RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRROOOOOOOOOOORRRRRRRROYYYYOOOORRRRRRROYYOOORRRRRRRROYYYYOOOORRRRRRRROBBBBBBORRRRRRROBBORRRRRRRRROBBBBBBRRORRRRRRRRRRRORRORRRRRBBBRRORRORRRRRBBRROOOOOOOOOOORRRRRRBBRRRRRRRRRRRRRBBRRRRRRRRRRRBBRRRRBBBBBBBRRRRRRRRRRRRRBRRRRRRBRRRRRRRRRRRRBBBBBBBBBBRRRRRRRROOORRRRRRRROOOOOOOOOORRRRRRROOOOORRRRRRRROOOOOOORRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR","fc":"OBRY","l":"W4l R14l R14l W6l R9l R14l W5l R10l R14l Y6d Y3l B10l Y3l R12l Y3l Y3l W2l R11l Y3l Y9d R11l Y3l B5l Y3l Y3l R7l Y2l Y2l | Y2l B12d O13l B3l Y6l O14l Y2d Y7 O13l B13l Y2l O14l O14l R7l Y9l Y2 R13l Y2l Y8l Y2l Y8l R7l O14l R9l O14l R12l Y2 R11l | W2l R12l B9l O14l R9l W2 R6l R7l R10l Y2l R9l R9l Y2l W2d R9l R11l R12l R12l R2l Y9l","s":3},"25":{"f":"////////////////////+R///H+/+L5/+n5f/X//+/////n//////////////w///ww///w///w/////////////////////","c":"DDDDDDDDDDDDDDDDDDDDDDDDDOOOOOOOOOOOOOOOOOOOOOODDODDDDDDDDDDDDDDDDDDDDODDODBBBBBBBBBBBBBBBBBBDODDODBWWWBWWWWWWWWWWWWBDODDODBWWWBBBBBBWWBDODDODBBWWWBDDDBBBWBDODDODBWWWBDDBBBWBDODDODBWWWBDWDBBBBDODDODBWWWWBDWWDBBDBBBDODDODBWWWWWWBDWWDDDBBBDODDODBWWWBBBBDWWWDBBBDODDODBWBBDDDDDDWWWWDBBBDODDODBBDDDBBBBBDDDDDDBBDODDODBBDDBWWWWWBBBBBBBBDODDODBBDBWWCCCCCCBBDODDODBBDBWWCCBBDODDODBBDBWWWWWBCCBBDODDODBBDDBBBBBBCCBBDODDODBBBBBBBBBBCCCCCCBBDODDODBBBBBBBBBBBBBBBBBBDODDODDDDDDDDDDDDDDDDDDDDODDOOOOOOOOOOOOOOOOOOOOOODDDDDDDDDDDDDDDDDDDDDDDDD","fc":"DBWCO","l":"B3l O13l B8l O11d O11l D14l B8l W10l B13l B10l W12l O6l D14l D8l B14l | Y2l O8l O6l B12l D12l B14l D14l Y2d D14l B13l Y2d D6l Y2d C2l O12l D10l C2 D14l O8l D12l W13l D14l B11l D14l C2d B14l C2l | Y2l Y2l D14l D14l W11l O11l O6l W14l W14l Y2l C2l D6l C2 C2l B14l C2l C2l B14l C2l C2 D14l C2l Y2l C2 C2l D6l D10l C2l C2 B2 C2","s":4},"26":{"f":"H//4EAAIH/f4AAgAH/4AEAIeEAISEAIeEAIAEf4gElbQFOfQGXtoFkPoEH54H/6YAAE+D/9SCASSCAQeCAQAD/wAAAAAAAAA","c":"KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKRRRRRRRRRRRRRROOOORROORROOOORRRRRRRRWWRWRRRWWRWWWRRRRWWRWWWWRRRWWWWRWWWWRRRRRWWWWWRRRRRRRKKWWRRRRRRRRRRRRKKWKKNNNNNNNNNNNNNNKKKNNNNKNNNNNNNNNNNNNNNNNNNN","fc":"KWRNO","l":"O12l K12l K8l R14l N14l C11d K14l K17 K16l R11l C7l K15l K18l N17l K10l K3l K8 C6l K9l | K14l O9l W14l R14d W14l R14l C7l R14l W14l K8l N14l K14l W14l K16l W14l K15l R14 C9l W15l | K14l O4l C9l W3l O6l N8l O3l K16d O12d W14d K18l","s":4},"27":{"f":"/////////////////+AP+C//+//f/+xf8g/f8/vf8hpf8/pf8zpf8zvf8///8hBP8hBP8///8hgf8///////////////////","c":"RRRRRRRRRRRRRRRRRRRRRRRRRYYYYYYYYYYYYYYYYYYYYYYRRYRRRRRRRRRRRRRRRRRRRRYRRYRNNNNNNNNNNNNNNNNNNRYRRYRNNNNNNNNNRYRRYRNNNWWWWWWWWNRYRRYRNNWWWWNWWYYYYYWNRYRRYRNNNNNNNNWYYWNRYRRYRNWWYYYYYWNRYRRYRNYYYYYYWDDDDWNRYRRYRNYYWDDWNRYRRYRNYDDDDYWDDWNRYRRYRNYDDYWDDWNRYRRYRNYDDYWDDDDWNRYRRYRNYDDDDYWWWWWWWWNRYRRYRNYYWNRYRRYRNYYWNRYRRYRNYWWWWYDDDDDDDDNRYRRYRNYYDDNRYRRYRNYYYYYYDDDDDDDDNRYRRYRNNNNNNNNNNNNNNNNNNRYRRYRRRRRRRRRRRRRRRRRRRRYRRYYYYYYYYYYYYYYYYYYYYYYRRRRRRRRRRRRRRRRRRRRRRRRR","fc":"RNYDW","l":"D9d R10l R10l R11l D9l N6l R14l N10 R14l N6d N6 D10d R14l Y12l Y10l W3l W3l D10 Y13l W3 | N14l Y14l W3l W3 W3l D10l N14l W3l Y14l R14 N14l R14l W3l R14 Y8l W2d W2d W2l Y5l R6l W2 Y8l R14l W2 W2l | W2 W2d W2 N14l R14l W2l R14l D10l N14l W2l W2l W2l N8l W2l C2l W2l C2l C2l Y14l Y8l C2l C2l W2l C2l C2l C2l C2l C2l W2 C2 C2l C2 R14l C2 C2l C2l W2l C2l C2l C2d Y10l Y11l C2l C2l W2 C2l C2l","s":3},"28":{"f":"////////wAADz//z3//73//73H/73//77+P37+T37+T/z//7zX/7zee7zSS7zUK77f+7/H47j//7j///n/3xkDUJn/39////","c":"WWWWWWWWWWWWWWWWWWWWWWWWWRRRRRRRRRRRRRRRRRRRRRRWWRRWWRRRRRRRRRRRRRRRRRRWWRRRRRRRRRRRRRRRRRRRRWWRRRGGGGGGGGGGGGGGRRRWWRRRGCCCCCCCCCGRRRWWRRRGCCCCDDDDDDDCGRRRWWRRRGCRCCDDDRCGRRRWWRRRGCRCCDDRCGRRRWWRRRGCRCCDDRCGROOOWWRRGCCCCDDDDDDRCGROOWWRRGRCCCCCCCCCGROOWWRRGRWWWWWWRGROOWWRRGWWWWGROOWWRRGWWWWGROOWWRRRGRWRWRRWRWRGROOWWRRRRGWWWWWWGROOWWRGGGGGGGGGGGGGGROOWWRRRRRRRRRRRRRRRROOOWWGGGGGGGGWWWRRRRRWWGGWWRRWWGGGGGGGGWWWRRRRRRRWWWWWWWWWWWWWWWWWWWWWWWWW","fc":"WGRCDO","l":"O5 O5l W10l C3l D13l C5l W12l D10l W11l W13l W11l O5l W14l G11l C8l R14l R8l R14l N2l W11l N2 O6l R11l C3l C5 N3l | C3l G9l C10l G14l R14l W14l O4l R14l N6l O3l Y2l R10l Y3d N2l Y2l R13l C9 C5l D6l G14l C3l N2l R9l W7l R10l C3 C5l G14l C2 N5d N2d | N7l R14l R11l O6l C10l W8l R14l C2 R14l O6d W14l O6 G12l C2d G14l N2l","s":4},"29":{"f":"AA/8AH9+P//+IX72Ir92I+32P2/2J9v2J93eJvd+JX6nJL3FJGdHJB//J5/9Jp/9Jp8dJp8tP5s9IANdL/9+P///D//9AAP/","c":"WWWWWWWWWWDDDDDDWWWRRRRGGGGGGDGDDDDGDWGWRGGRGDDWWWWDDWWRGRGDDWDDDWDDWRGRGDDWWDDWWDDWRGRRRRRDDWDDWWWDDWRGRRRDDWDDWWWDDWRGRRRDDWDDWWWDDRRRRRRDDWDWWWDDWWWWWRRDDWWWWDDWGWWRRDDDDDDWWWWRRDDDDWWWWWRRDDWWWWWWWWGWWRRDDDDDWWWWWWWWWWRRDDDDWWWWWWWWWWRRDDDDWWWWWWWRRDDDDWWWWWWWRRRRDDDDDWWWWWWWGWWWWWWWGRRRRRRRRRRWWWWWWWWGGRGGGGGGGGRWWWGWWWWWWRRRRRRRRRRWWWWWWWWWWWWWWWWWWW","fc":"DWRG","l":"G5l D12l Y5l G6l G6l Y5l G3l G3l Y2l W11l G6l Y6l G6l W14l D11l G5d D8l G3l Y6d G2l G5l W14l Y5d G2l | G2d G2l G2l W14l G2l R12l G3d W14l D12l D11l W14l G5l D14l G3 R13l W14l G4l | G2l R12l G4l D12l D11l W14l R12l G5d Y5l G2d W14l G2l G2l G2l G2l R12l G5l G2l G4l G2l R12l G2l G5l G2l G5l G2l G2l G2l G2 W14l G4l W14l G2l G2l G5l G2l G2d G2l W14l G2l G2l G2l G2l G4d G2l G2 G2 G2l G2l G2 G5l R11l G2l G2d G4l G2l G4 G4l G5l","s":3},"30":{"f":"AAAAAAAAP//8fwhEYQhEfwhEIA/EcAAEceAEcq/8cShscA+scAmsIAhsP8/8MEAEMEAEMEAEP8AEIAAEP+f0P//8IZmEP//8","c":"GGGGGGGGGGDDDDDDGGGGRRRRRRRDDGRGRDDGRRRRRRRDDGGDDDDDDGYYYGYGYDDDDGYGYDDDYYYYYYYYYGYGYDDYRRYGYGYYRRRRRYGYYYYRRRYGGYRRYGGDDDDDDDYYYYYYYYYGGDDGGDDGGDDGGDDDDDDDGGGGDDDDDDRRRRDDDDDGGDGGGDRGRGGRRDGGGGDGDDRRRRDDDDDDDDRRRRRRRRDDDDDD","fc":"DRYG","l":"O2l D14l Y12l G14l G12 D14l O4l D14l G17 O7l O11l O11l O9l G14l G15l G15l G14l Y2l G13l | O10l W10l R14l W9l D6l O9l W4l W5l G14l W2l Y14l W9l G5l W7l Y14l R14l G12l G15 G18l G11l O2l O2l G16d | O12l R14l W5l O9l R3l D14l D14l D14l R14l G13l R14l G14l","s":3},"31":{"f":"////gAH/gAEbgAH7gH/zgf/jh//zjud7n///n37/n37/u//fv0L/vv9/v3//vSe/mKcfh///gAATgAAfgf/hgQAhgf/h////","c":"YYYYYYYYYYYYYYYYYYYYYYYYYWWWWWDDDYYWWDDYYWWWWWDDYYNNNNNNDDDDDDYYNNNNNNNNNNDDDYYNNNNNNNNNNNNNNDDYYNNNNNNNNNNNNDDYYNNWWNNNNNNNNNNKKNNDDYYNNWNNWNNNNWNNKNNDDYYNNWNNWNNNNWNNKNNDDYYNNWWNNNNNNNNNNKKNNDYYNNWWNNNNNNKKNNDYYNNWNNNWNNNNWNNNKNNDYYNNWNNNWWNNWWWNNNKNNDYYNNNNNNNWWNNNNNDYYNNNNNWNNNDDYYNNNNNNNNNNNNNNKKKKYYKKYYKKKKYYOOOOOOOOOOOOYYOOYYOOOOOOOOOOOOYYYYYYYYYYYYYYYYYYYYYYYYY","fc":"NWKYOD","l":"W14l R4l R2l Y14l R2l O3 Y14l K14l Y11l O3 O3l O3 O2l W11l O2l Y9l O2l O5l O2l W12l O2l O5d O5l | O5l N11l N14l Y14l D2d N14l D2l O5l D2 D2l D3l D2l D2l O5l D3l O2l Y8l D3l N14l D3l N14l O2 D3l Y9l N14l O2l N14l O2 O2 D3l O4l O3l D3l O2l D3l K9l O2l D3l O4l O4d D3l O5l O2 R3l | N14l N12l Y14l D3d D3 Y14l N14l N8l N14l O5l D3l Y14l O5 O2l O4l D3d O4l N14l D3l D3l O2l D3l O5l O2l O6l O6l D3l D3l O4l O4l D3l O4d","s":4},"32":{"f":"AAAAf//+f//+ZY/2ZP82Zfy2Z//2an/2a9/2Z31mZ//mZ//mZkLmZqXmZqXGZtv2Zv/WZ//2fwAGcQAGfwAGf//+f//+AAAA","c":"RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRKKKWWWWWWWWRRRRKKKKKWWWWWWRRRRKKRRRKWWWWWRRRRKKKKRRKWWWWWWWWRRRRKKKRKWWWWWWWWRRRRKNKKRRKKKKKKKKRRRRKNKKRRRKKNKRRRRKKKKKKKKKKKKNKRRRRWWWWWWWWWWWWKKRRRRWNDDWKKRRRRWNDDDDWKKRRRRWNDDDDWKRRRRWNDDDDDDWRRRRRRRWNDDDDDDDDWRRRRRRWWWWWWWWWWWWRRRRRRRWWWWWRRRRWWRRRRWWWWWRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR","fc":"RWDKN","l":"R14l N4l N5l R14l N4l R14l R14l K6l R15 R14l R14l R8l K8l K13l | N5l D2 K5l D2l D5l D5 K11l W14l D2l W13l W14l D2l K12l R14l R14l R14l D2l W14l D9l R14l D2l K5l K5l K11l K9l K5l K5l K12l K12l | D12l N7l W14l R14l R14l K14 N3l K11 W14l D12l D5l D2l D2l K14d D8l K5l K11l R14l K14l","s":3},"33":{"f":"/////////////////////////////gB//v9///9//59///N//7N///9///9//v9//gB/////////////////////////////","c":"BBBBBBBBBBBBBBBBBBBBBBBBBYYYYYYYYYYYYYYYYYYYYYYBBYRRRRRRRRRRRRRRRRRRRRYBBYRBBBBBBBBBBBBBBBBBBRYBBYRBYYYYYYYYYYYYYYYYBRYBBYRBYYYYYYYYYYYYYYYYBRYBBYRBYYRRRRRRRRRRRRYYBRYBBYRBYYRRYYBRYBBYRBYYRDDDDDDDDRYYBRYBBYRBYYRRRRRRRRRRRYYBRYBBYRBYYRRDRRRRRRYYBRYBBYRBYYRRBBBRRRRYYBRYBBYRBYYRRBBRRRRYYBRYBBYRBYYRRBBBRRRRRRYYBRYBBYRBYYRRRRRRRRRRRYYBRYBBYRBYYRDDDDDDDDRYYBRYBBYRBYYRRYYBRYBBYRBYYRRRRRRRRRRRRYYBRYBBYRBYYYYYYYYYYYYYYYYBRYBBYRBYYYYYYYYYYYYYYYYBRYBBYRBBBBBBBBBBBBBBBBBBRYBBYRRRRRRRRRRRRRRRRRRRRYBBYYYYYYYYYYYYYYYYYYYYYYBBBBBBBBBBBBBBBBBBBBBBBBB","fc":"YRBD","l":"Y14l R1l R12l B3l R11l R10l D7l B12l Y14d Y14l R14l B12l Y1l R14l | R14l R12l Y14l K2l D7l B13l R6l Y14l Y11l Y14l W3l W2 R8l W2 W2d R7l W2 W2l | W2l R14l Y10l R8l B11l D6l B13l Y11l B14l B14l W2l B14l W2 B14l B12l W2l Y9l Y14l B14l Y14l W2l Y14l W2 W2d W2d Y14l Y14l W2l B10l R14l R14l B12l","s":4},"34":{"f":"////+//Z/eG59/Mp8z9J8T6N8z/N7z////8D/7eD57WDxvWDxtWDxpWD/5WD//+D4RAD4R//4QAB4QAB///x/wMJ///9////","c":"DDDDDDDDDDDDDDDDDDDDDDDDDKKWWWDDDDDDDDDDWWWDDKKWWWWDDDDWWWWDDKKWWWWWWWDDWWWDDKKWWWWDDDWWWWDDKWWWWWWWWWWWDDKWWWWWWWWWWWWWWDDKWWWWWWKKKKKKKKKKKKDDKWWWKWWWWWKOOOOKDDKWKKKWWOWKPPPPKDDKKKWWOWKPOPKDDKKWWWWKPOPKDDKKWOWKPOPKDDKKWWKPOPKDDKKKKKKWOKPOPKDDKDDDDDDOOOKOPPPPKDDKDDKKDDKDDKKKKKKKKKKKKDDKDDDDKDDDDKDDDDDDKKKKKKKWWWWWDDKKKKKKKKWWDDKKKKKKKKKKKKKKWWWWWWWDDDDDDDDDDDDDDDDDDDDDDDDD","fc":"DKPWO","l":"K14l P2l P2l P6l D11l K14l K14l P3l D10l W8l P3l W14l P3l D12l W14l P8l K14l D11l | W14l O7l D11l W14l K14l P2l K14d Y3l D14l Y2l Y2 D14l K14l D14l P3l Y2l P10l K14l Y2l Y2l P9l W11l Y2l Y2l P2l P5l Y2l K14l K7l P8l Y2l P9l Y2l Y2d P3l Y2 D9l P2l K14l Y2l Y2l | Y2l K8l P2l O6l W14l W10l W1l O6l D9l W12l D13l Y2l P2l D10l O8l P10l P7d Y2l P6l","s":3},"35":{"f":"////5///534D//+Dv//zj4Hzj8P7n+f/u//fuzzfuzzf+//f/8P//yT//yT//UK/+KUd///52AAR///5/+f58CQN4BgH////","c":"GGGGGGGGGGGGGGGGGGGGGGGGGGGGGRRRRRRRRRRRRRRRRGGGGGGRRRRRRRRGGGGGGGGRRGGGGGGRRRGGGGGGNGGRRRRRRGGRRNRGGNGGRRRRGGRRGGGGRRRRRRRRGGRRGGGGGGGGGRRGGGGKGGRRGGGGGGGGGGRRGGGKKKGGRGGGGGGGGRRGGKKGGRGGGGGGGGRRGGKKGGRGGGGGNGGGGRRRRGGGKNKGGGGGGGNGGRRRRRRGKNKGGGGGGGNGGRRRRGKNKGGGGGGGNGGRRRRGKNKGGGGGGGGGRRRRGKKGGGGKGGGRRRRGGGGGKKGGRRRRRRRRRRRRRRGGGGKKGGGGKKGNNNNNNNNNNNNNNNNGGGKGGGGGGGGGGGGGGGGGGGKGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG","fc":"GKRN","l":"O6l R14l K5l G9l G9l G7l G1l G9l R14l G9l B3l | O2l G8l G14l G14l O2l N10l N11l O2l N4d K2 R14l O2l Y2l N4l O6l N4l G14l N11l O2 O2l N4l G14l G14l O2d G9l N4l O2 R14l O2l O2l O2l R14l N4l G6l O2l N4l O2l | N4l R14l K12 Y2l N10l O2l O9l G9l N4l G14l G14l G14l G16l Y2l G14l R14l Y2l G14l K10l G14l G6l K12l G11l O9l G14l R10l N3l","s":4},"36":{"f":"////5///534D//+Dv//zj4Hzj8P7n+f/u//fuzzfuzzf+//f/8P//yT//yT//UK/+KUd///52AAR///5/+f58CQN4BgH////","c":"DDDDDDDDDDDDDDDDDDDDDDDDDDDDDKKKKKKKKKKKKKKKKDDDDDDKKKKKKKKDDDDDDDDKKDDDDDDKKKDDDDDDWDDKKKKKKDDKKWKDDWDDKKKKDDKKDDDDKKKKKKKKDDKKDDDDDDDDDKKDDDDPDDKKDDDDDDDDDDKKDDDPPPDDKDDDDDDDDKKDDPPDDKDDDDDDDDKKDDPPDDKDDDDDWDDDDKKKKDDDPWPDDDDDDDWDDKKKKKKDPWPDDDDDDDWDDKKKKDPWPDDDDDDDWDDKKKKDPWPDDDDDDDDDKKKKDPPDDDDPDDDKKKKDDDDDPPDDKKKKKKKKKKKKKKDDDDPPDDDDPPDWWWWWWWWWWWWWWWWDDDPDDDDDDDDDDDDDDDDDDDPDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD","fc":"DPKW","l":"Y6l K14l P5l D9l D9l D7l D1l D9l K14l D9l R3l | Y2l D8l D14l D14l Y2l W10l W11l Y2l W4d P2 K14l Y2l N2l W4l Y6l W4l D14l W11l Y2 Y2l W4l D14l D14l Y2d D9l W4l Y2 K14l Y2l Y2l Y2l K14l W4l D6l Y2l W4l Y2l | W4l K14l P12 N2l W10l Y2l Y9l D9l W4l D14l D14l D14l D16l N2l D14l K14l N2l D14l P10l D14l D6l P12l D11l Y9l D14l K10l W3l","s":4},"37":{"f":"/////////////////////f+//////+f///h//rh//7p//2f//+f//73/+zzf+kJf+yTf+//f+AAf////////////////////","c":"YYYYYYYYYYYYYYYYYYYYYYYYYRRRRRRRRRRRRRRRRRRRRRRYYRNNNNNNNNNNNNNNNNNNNNRYYRNYYYYYYYYYYYYYYYYYYNRYYRNYNNNNNNNNNNNNNNNNYNRYYRNYNRRRRRRRRRRRRNYNRYYRNYNRRBBBBBBBBBBRRNYNRYYRNYNRBRRRRRRRRBRNYNRYYRNYNRRKKKKRRRRNYNRYYRNYNRKKKRRBRNYNRYYRNYNRRKRKRRRRRNYNRYYRNYNRBRRRRRRRBRNYNRYYRNYNRBRRBRRBRRBRNYNRYYRNYNRRBBBRRBBBRRNYNRYYRNYNRBBRRBBRNYNRYYRNYNBBBBNYNRYYRNYNBBBBBBNYNRYYRNYNBBBBBBBBBBBBNYNRYYRNYNNYNRYYRNYNNNNNNNNNNNNNNNNYNRYYRNYYYYYYYYYYYYYYYYYYNRYYRNNNNNNNNNNNNNNNNNNNNRYYRRRRRRRRRRRRRRRRRRRRRRYYYYYYYYYYYYYYYYYYYYYYYYY","fc":"YNBRK","l":"Y14l N14l R14l Y14l Y14l W2l R14l W2l R3l W2l R14d W2l W2l W2l Y11l Y14l | B3l Y16 B3l R14l N8l N11l W2l Y14l R14l R14l Y14l Y14l B3l Y10l W2l B3l R14l N1l W2l B3l W2l B3l N14l R10l N6l N14l B3l | W2l N8l N14l R14l K10l R6l Y14l D3l N14l D2l B3l R11l R10l R6l D2l D2l N6l B3l W2l B3l B3l B3 N14l B3 D2l B3d Y11l B3d B3l B3 N14l W2l B3l Y14l B3 D2l","s":4},"38":{"f":"///wgCgQg8gQh+gQhi/whj+Aj/Bgn//Qu/+Iu/+Iu8OI88OE98PE98PE9//E/f+kuf+YmAAAmAAAv+AAv+HwuGEI3+EE3+H8","c":"DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDNNNNNDDDDNNDDDDDDDDDDNNNNNNNNDDDNNNNNNNRDDDDDNNNNNNNNNNRRDDDDDDBBBBBBBBRRDDDDDDBNNNNNNBRRDDDDDDBNNBRRDDDDDDBNNBRRDDDDDDYBNNBYRRDDDDDDYBNNBYRRDDDDDDYBNNNNNNBYRRDDDDDDYBBBBBBBBYRRDDDDYYYYYYYYYYRRDDDDDDDDYYYYYYYYDDYBBBBBBYWWWWWDDYBBYWWDDYBBBBBBYWWDDYYYYYYYYWWWWWWW","fc":"DRYNWB","l":"N14l D12l D14l N10d D10l Y8l W2l N10l Y8l R6l K2l B14l W2d K11l W7d K8l K11 K9l Y14l D11l K2l K2l R7d D14l R10l K7l K8l K2l W10l | W8l N14l B9l K10l D14l W5d Y14l W9l W2l K6l K2d N9l W2l K7d Y14l D10l N13l K12l D14l W6 K2l N8l D10l K12l K10l K10l | W11l N7l B14l W6l K13l B14l D14l D6l B14l","s":3},"39":{"f":"////////////4f+H7//374H3+hx//xT/6t/f7iTf/iTf2v/f20Pf2yXf3yT/yVq/6KUf3/77yACz3//7/+f/kCcJv//9////","c":"YYYYYYYYYYYYYYYYYYYYYYYYYRRRRRRRRRRRRRRRRRRRRRRYYRDDDDDDDDDDDDDDDDDDDDRYYRDDDRRRRRRDDDRYYRDODDRRBBBBBBRRDDODRYYRDDRRBBBBRRDDRYYRDDRBBBBBDRDDRYYRDRCCCBBBBDRDRDRYYRRCCBBBBBBBDRRDRRYYRRCCCBBDRRDRRYYRRDDDDBBDRRDRRYYRDODBBBBBBBBDRORDRYYRDODBBBBDRORDRYYRDODBBBBDRORDRYYRDDDDBBBBDRORDRYYROBBBBBBDRRDRYYRROBBBBDDRRYYRRRBBBBBBBBBBOOORRRYYRROORRYYRROOOOOOOOOOOOOOOORRYYRRRRRRRRRRRRDDDDDRRRYYRRRRDDYYRRRRRRRRRRRRRDDDDDDDYYYYYYYYYYYYYYYYYYYYYYYYY","fc":"YDRBOC","l":"B3d Y6l C3l D6l C3l D9l B2 R9 R11l B7l C3d D9l Y8l C3l R9l C3l R12l C3l C2l B8 C3l D8l B3l C2l C3l | R2l C2l B4l R13l C2l C2l R12l B3l B7l B6l C2l Y8l C2l Y14l R8l B6l C2l B9l C4l Y10l B9l B10l B8l D7l O5d B5l O5l Y10l O5l O5l O5l D14l D1l O5l O5l B5l Y10l O4d O3 | R14l B5l R8l Y6l R14l R14l D14l D14l C2l D14l Y7l R14l O3l R10l O3l C2l O3l R2l Y11l C2l D7l O3l O3l R7l C2l Y12l O3l","s":3},"40":{"f":"////////////7n538f+P8eeP8YGP/f//5+aP57yP/zz/w/z/w0CHwySHwSaHwVr/wf/7x/6L/+CL4CCL4CD7/+AD////////","c":"RRRRRRRRRRRRRRRRRRRRRRRRRDDDDDDDDDDDDDDDDDDDDDDRRDNNNNNNNNNNNNNNNNNNNNDRRDNNNNNNNNNNNNNNDRRDNNNNNNRRNNNNNNDRRDNNNNRRRRNNNNDRRDNNNRRNNNDRRDRRRRNRRDDDDRNYYYYYNDRRDRRNRRNRRNYYNDRRDRRNRNNRRNYYNDRRDRRRRNNNRRNYYYYYNDRRDNDNNNNNNRRRRRRDRRDNDNRRDRRDNDNNRRDRRDNNNNRRDRRDNNNNNRRRRRRDRRDDNDNDDNNDWWWWWDRRDNNNNNNNNNNWWDRRDYYYYYYYYYWWDRRDYYWWDRRDYYWWWWWDRRDYYYYYYYYYDRRDDDDDDDDDDDDDDDDDDDDDDRRRRRRRRRRRRRRRRRRRRRRRRR","fc":"DNYRW","l":"G7l D12l R14l R14l N14l W4d Y12l N14l R14l D12l D12l G2l | W7l W2l W5l Y12l R14l G2l W4l W3l R14l W3 Y9l R14l G2l W6l N6l N12l W3l R9l G2d R14l G4l G2 G7l Y8l G2l R14l W3l G2l G2l Y10l G2l G2l G2l R14l G2l G5l G2l | D14l D13l N14l N14l N14l G2l D13l D12l D2l N14l N15l N12l R14l D14l G2l R14l G2l D8l W3l G7 N14l G2l","s":3},"41":{"f":"///////////z44Az54Az7//z/v8z/xl7/9n//zn//zn/9/nv9pnv9p/v9pBv/JA//PA//Ae/h///gASLn+SLkCSHv/+D////","c":"YYYYYYYYYYYYYYYYYYYYYYYYYDDDDDDDDDDDDDDDDDDDDDDYYDRRRRRDGGGGGGGGGGGDDYYDRRDGGDDYYDRRRDGGDDYYDRRDDBGGGGGGGGGGGDDYYDRRDDBBBBBYYYYDDDYYDRDDBDBBYYDDDDDYYDDDBCBDBBBYYDDCDDDDYYDDDBCBDBBYYDDCDDDDYYDDDBCBDBBYYDDCDDDDYYDDBCBDCCCCYYDDCDDDYYDDBBDCCYYDDCDDDYYDDBBDCCYYYYDDCDDDYYDDBBDCCDDDDDYYDDBBDCCDDDDDYYDDDDCCCCCCDDDDYYDDDDCBBBBCDDDDYYCCCCCCCCBCCBCCWWWWYYBBWWYYWWWWWWWWBBWWYYWWBBWWYYWWWWWWWWWWWBBBBWYYYYYYYYYYYYYYYYYYYYYYYYY","fc":"YDGBWCR","l":"R13l D12l B4l D13l N2l R8l R6l D13l Y9l G3l D14l R12l D14l R15 G7l N2l B14l C11 C14l C4l | B14l W14l Y14l Y14l G14l N5l D14l Y14l B6l Y5l C14l C4l W14l G2l C4 | D14l G14l R16l R2d N2l R3 D14l B14l Y14l N8 N2 Y13l W6l N2l C4l C4d Y13l D13l C4l C4d Y11l Y11l D14l C4l C3l D14l Y8l C3l","s":3},"42":{"f":"////hX7/iIH/+AGx//8xxPkRxT+Rzj/RyvxRx35R//5R//5R/Effzmc/zn6h/1rB///5///9///9////8AAf////////////","c":"WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWNWWWWWWWWWWNNNBBBBBWWWWWNNNBBWBBBBBBBBBBBNNNNNBBWBWWWWBNNBBWBWWWBNNNNNBBWBWWWWBNWWWWWBBWBWWWWWBNWWBBWBWWWWWBNWWWBBWBBBBBBBBBBBNWWWBBWWWWWNNNNNNNNWWWBBWDDDWNNWWWWWBBBBBWDDWNWNNNNKKKKKKWDDWNWNWWNWNKKWDDDDDWNNNNNNKKWDWWWWWWNNNNNNNNKKKKKKWWWWWWWWWWWWWWWWWWWWWKKWWWDDDDDDDDDDDDDDDDDWKKWWDNNNNNNNNNNNNNNNNNDWKKWWDNNDWKKWWDNNNNNNNNNNNNNNNNNDWKKWDDDDDDDDDDDDDDDDDDDDDWKWWWWWWWWWWWWWWWWWWWWWWWK","fc":"WBNDK","l":"W14l D10l O2l B2 W14l O2 N14l N14l C2l O2l B8l O2l K7l C7l B9l W14l C5l W14l C4l C6l O3l C2l W7l W12l N6l C2l D12l B2l N14l W9l C2l C5l | C5l B8d O2l W12l N14l R10l O2l B6l O2l W14l B2l O2d W9l C2d B2 W10l W7l O2l C2l B10l O3l C2d K7l D10l B2 C3l C2l | O2l N14l B6l O2l C2l D6l W14l B10 D14l B6l C6l K14l C5 D14d B2l K10l C2l W7l O2l O2l W6l W14l W6l N12l N14l C4l","s":3},"43":{"f":"///////9///9//4N//WN8fRt9jQd+zQN+ff9+RD/+RC3+RC3+RO/+RWd/hTF//rF/vVF4v9F8gBN9AAt+AAd///9wAAB////","c":"RRRRRRRRRRRRRRRRRRRRRRRRRKKKKKKKKKKKKRRRRRRRRRRRKNNNNNNNNNNKRWWWWWWWRRRKNKKKKKKKKKKRWWRRRKKGGGGGGGGGRWWWRRRKKGKKKKGRWWWRRRKKGRKKGRWWRRRKKGRRKKGRWRRRKKGRRKKKGRRRRRRRRRRRKKGRRGRRRKKKKRRKKGRRGRRKNKRRKDGRRGRRKNKRRKDGRRGDDRRKKKKRRKDGRRGDDRRRRRRKDGRRRGDDRRRRKDGGGGGGGGGDDDRRRRKDDDDDDDDDDDRRRRKDDDDDDDDDDRRRRKKDDRRNRRKKDDRRNRRKKDDRRNRRKKNNNNNNNNNNNNNNNNNNNRRKRRRRRRRRRRRRRRRRRRRRRRRRR","fc":"RGDKWN","l":"N5l W5l N5l K11l K14l N5l N5l R12l K9l K10l R14l N4l N4l G14l R14l D14l O2l K7l N5l K10l N4l R10l N4l R14l Y3d N8l R14l Y2d N4l Y2l | O7l Y2l O7l D14l Y2l W4d N4l R7l Y2l R14l W5l O2 W9l D11l W10l Y2d G6l O2 Y2l R14l N6l Y2l K8l G14d G12l R14l Y2l Y2l | W4l K8l R14l D14l Y2l W4l W9l Y2l O3l W9l O5d N9l K3l O3l O8l R14l N8l W3d R14l Y2 Y2l G14l Y2l","s":4},"44":{"f":"////hQC/uL0n/H4n5P8n5f+n58P////Ns//JjTyRjTyRjeeR/cOR/6W9/6X/zduHzf+HzH7//AAd/AAJH//5EAMNIAMHP///","c":"DDDDDDDDDDDDDDDDDDDDDDDDDDDDYYYYDDDDDDDDDDDDYYDDDDOOOODRRRRDYYDDDDOORRDDDDRRYYDDDDOORDDRRRRDDRYYDDDDOORDRRRRDRYYYYDDDDOOOORDDDRWWRDDDRDDDDDDRDRRDRRDRRDRDDDDRRRDDRRDDDDRRRRRRRDDDDRWRRRRRRRDDDDDDDRWRDDRWDDDDDDDDRRDDDDWDDDDDDNNNNDRRDDDDRRRRRRDDDNNDRDDDDDDRRDDDNNDWDWDWWDWDRRDDDNNDDDDDDDRRRRRRDDDNNNNDDDDDDDDDDDDDPPPPPPPPPPPPDDDDDDDPPDDDDPPDDDDPPPPPPPPPPPPPDDDDDDDDD","fc":"DRPOYNW","l":"P9l W13l R14l D14l P10 N5l R14l N9l D7l Y4 P6l D9l P2l D14l P2l P2l D6l P2l R14l R14l D12l P2 P10l P10l D12l D12l Y4l P9l P2l P9l P2l Y4l P2l P2l | Y3d D14l R14l N7l R14l N10l P9l D16l D8l R5l P2l Y3l O2l P9 Y3l D10l D4l Y3l | Y3l O2l D9l N4d O11l R14l D6l D14l D14l Y4l Y3l O8l Y3l O6l P4l D14l P2 P9l Y8l O12l D14l D9l Y3l P2l","s":3},"45":{"f":"////////zn5z3//7////+gcf/v0f/I0//43//f+//wC/+H7/+MMf+SSf/SS/71r3/yT/+P//+8C/////49Gv55GnxJHjx58D","c":"DDDDDDDDDDDDDDDDDDDDDDDDDBBBBBBBBBBBBBBBBBBBBBBDDBBBBBBBBBBBBBBDDBBDDDBBDDDDDDBBDDDBBDDBBDBBBDDYYYYYYDDYYYDBBDDBBDBBBBBYDBBDDBBDBBBYYYYYBBYDBBDDBWBDDYYBBDDBBBDDBWBDWWWYYBBBBBDBBBDDBWBDWWYYYYYBBBBBDBBBDDBWBDWWWBBDBBBDDBWBDDDDDDDBBBDBBBDDBWBDDDDDDBBBDDBWBDDDDDDBBBDDBWWBDDDDDDBBBBDDBWWBDDDDDDDDBBBBDDBWWBDDDDDDDDBBBBDDBWBDDDDDDDDDRRRDBBBDDBWBDRRRRRRDBBBDDBBDYYRYYRYRRRRRRYRYDBBDDBDRRRRRRRRDBBDDBDWWWWRRRRDBDDDWWRRRRRDDDDWWWWRRRRRDD","fc":"DYBWR","l":"Y10 B14l D5d Y11l B14l D5d D2l B14l W7l W6l B11l D12d D8 D4l D2 D2l D12l D3l D14l D14l B14l D14l D14l B14l D14l | Y9d Y10d W6 W7d B12l B14d B14l D14 D14 D14d | D14d W8d R7l D5l W6l R4l R4l D14l B11l W5d D14l R4l D14l R4l W5l R4l W4d D14d R4l D14l B14l R4l D14l R4l R4l R3l B14l R3 R3","s":3},"46":{"f":"////////+AAf6AAX7//37//37//3/+f///h//Tg//T8//Tk//Sk/7Sk37ek37fk37R837fA37//3////4ICP4P+H////////","c":"DDDDDDDDDDDDDDDDDDDDDDDDDYYYYYYYYYYYYYYYYYYYYYYDDYDDDKKKYDDYDDKKYDDYDDWWWWWWWWWWWWWWKKYDDYDDWWWWWWWWWWWWWWKKYDDYDDWDDDDDDDDDDDDWKKYDDYDDWWDDDDDDDDDDWWKKYDDYDDWWDCCCCDDDWWKKYDDYDDWWCCDDWWKKYDDYDDWWCCDKKKKWWKKYDDYDDWWCCDKKWWKKYDDYDDWWCCKKWWKKYDDYDDWCCKKWKKYDDYDDWCCCCKKWKKYDDYDDWRRRRRKKWKKYDDYDDWRRKKKKWKKYDDYDDWRRRRRWKKYDDYDDWWWWWWWWWWWWWWKKYDDYDDWWWWKKKKKKKKKWWWKKYDDYDKKKKYDDYDKKKKKKKKKKYDDYYYYYYYYYYYYYYYYYYYYYYDDDDDDDDDDDDDDDDDDDDDDDDD","fc":"YWKCDR","l":"O5 Y12l C2 O2l D13l C3l K6l D14l O2l D3l C4l Y10l O7l C3d Y12l W8d K1l O2d D14l C3l C2l C3l D14l W12l C2l O2l C3l | Y12l Y8l K10l O6l W14l R5l D14l W9l W12l O4l W14l D14l Y6l C2l D14l D14l D14l O2l C3l W14l C2l Y12l K14l K14l W14d | K14l D14l R4l R8l C2d C3l O2l R10l W14l C7l K7l W12l Y12l D14l Y2l O2l D14l C2l K14l C2l C2l C2l C2l","s":3},"47":{"f":"////////3//7////////+D/f+/9/+///+we/++b/+6bf26e726e726f726f72+f7+/+/+/8/+/8/////////4AAHwAAD////","c":"YYYYYYYYYYYYYYYYYYYYYYYYYRRRRRRRRRRRRRRRRRRRRRRYYRRRRRRRRRRRRRRRRRRRRYYRRRRRRRRRRRRRRRRRRRRRRYYRRRDDDDDDDDDDDDDDDDRRRYYRRRDDDDDDDDDDRRRYYRRRDDDDDDDDDDDDDDRRRYYRRRDDGGGGGGGDDDDDDRRRYYRRRDDGGDDDDDRRRYYRRRDDGGGGGDDDDDRRRYYRRRDDGGGGDDDDRRRYYRRDDGGGGDDRDDRRYYRRDDGGGGDDRDDRRYYRRDDGGGGDDDDDDRRYYRRDDGGGGDDDDDDRRYYRRDDGGGGGDDDDDDRRYYRRRDDGRRRRRGDDRDDRRRYYRRRDDGGGGGGGDDDDRRRYYRRRDDDDDDDDDDDDDRRRYYRRRDDDDDDDDDDDDDDDDRRRYYRRRRRRRRRRRRRRRRRRRRRRYYRRRRYYRRYYYYYYYYYYYYYYYYYYYYYYYYY","fc":"YRGD","l":"D14l R7l Y10l G3l R14l R8l G3l Y13l D9l R10l Y8l R7l Y10l G3l W3d W2l W2l R12l D8l W2l W2 G3l W2l D12l W2l G3l W2l W2l G3l W2d W2l W2l G3l W2d R14l W2 W2d W2l G3l W2l G2 W2 W2l R10l G2l Y10l W2 W2l | R11l D10l R14l D14d D14l Y11l Y10l R14l R8l D10l W2l W2l D14l W2l W2 D13l W2l Y9l W2l D10l W2l | W2l R14l W2d Y11d W2l G4l R6l W2l Y9l R11l W2l W2l G3l W2l G3l W2l G3l R14l R14l G3l D14l D12l W2l G3l G3l G3l W2l K3l","s":4},"48":{"f":"AAAAAABAAADgAAGgPx8gIR+gIR7gIR5wPx8wAH/gfGdgfH9gbEPgbELgbH5AbH4AbEIAfEIAfEIfAH4JH+f5EacNIZmHP///","c":"KKKKKKKRRRRRRDDKKKKRRDDKWWKKRRDDKWWKKRRDDKWWWKRRRRRRDDKKWWKWDWWDDKWWKWWWWWWDDKWWKWDDDWWDDDDKWWKWDDWWWKWWKWDDWWWKWKWDDWWWWWWWKWDDWGGGGGGWDDWGGWDDDWGGWWWWWGGRRRRRGGGGGGRRWWWWWWRRRRRRRRRRRWWRRRRRRRRWWRRRRRRRRWWWWWWRRRRRRRRRRRRRRRR","fc":"KWRDG","l":"G10l Y7l K12l W11l K4l D10l G7l D7l W7l D3l W14l | G10l D3l R14l K12l D9l D8l Y8l W14l W7l W8l Y9l W14l K12l W14l W12l R6l Y9l Y2d Y9l R14l Y9l Y11l Y9l | D9l R14l D8 D12l R14l R14l D8 D3l D9l Y9l D3l D3l R14l Y12l D9l Y9l Y10l Y10l Y9l D9l Y12l Y7l Y13l Y2l G11l Y13d Y13l Y2l","s":3},"49":{"f":"////////wP//wP//zv//xeAfzuP//+P//+M/+///3///2//////n/73n/73n/9vn+6Xn+//n//9n//9///9/9X8D////7///","c":"WWWWWWWWWWWWWWWWWWWWWWWWWGGGGGGGGGGGGGGGGGGGGGGWWGWWWWWWWWWWWWWWGWWGWYYYYYYYYYYYYWGWWGDDDWYYYYYYYYYYYYWGWWGDDWYYYYWGWWGDDDWYYYYYYYYYWGWWWWWWWWWWYYYYYYYYYWGWWWWWWWWWWYYYYYYYWGWWBBBBBWWYYYYYYYYYYYYWGWWBBBBBWWYYYYYYYYYYYYWWWWBBBBWWWWWWWWWWWNNNNWWWBBBBBBWWDWWWWDWWWNNWWWWWWWWWWDDWWDDWWNNWWBBBWWWWWDDWWDDWWNNWWBGBWWWWWDDDDDDWWNNWWBGBWWWWDDDDWWNNWWBGBWWWWWDDDDDDWWWNNWWBGBWWWWWWWWWWWWWWNNWWBBBWWWWWWWWWWWWWWNNNNWWDDDWWWWWWWWWWWWWWWWWWWWDGDWWWWWWWWWWGWDDWWGGGGWGWWWGWWGGGGGGGWDDWWWWWWWWWWWWWWWWWWWWW","fc":"WYNDBG","l":"N2l N2l W13l N2l W7l N2d N4 N2l G6l W6l W6l G3l W11l G3l N2l G3l N4l G3l D11l W7l G3l D3l G3 G3l N2d Y14l N3d G3l W11l G3l B5 N4l W9l G7l | G3d W12l B5l O2l G2l O2l Y14l W7l O2d W9l W14l W6l G4l Y14l W11l G7l G2l N2l Y14l W12l G2l O3l N2l G7 | O2l N2l G2 D3l W14l G7l W11l W8l D12l W8l W14l O4l G5l Y14l W6l Y1l D7l D7l W14l N2l G2l B12l D11l G2l Y6l W12l N3 G2l W8l N3l W11l W8l G2 W7l B14l","s":4},"50":{"f":"AAAAAAAAAAAAH//4EGYoEaWoEiRoEiR4FOd4FQDoFTzoFOfoFOWoFb/4FzD4GlDYH7/4GH4YEAAIEAAIH//4AP/4AIGEAP/8","c":"GGGGGGGGGGGGGGGGGGGKKWWBGGKKKWWWBGGKKWWBGGKKWWBBGGKKKKWWWWBBGGKKWBBGGKKOOOOWBBGGKKKOOWWWBBGGKKNOOWBBGGKKNNYYYYYYBBKGGNKNNYYBKKGGNNNYYKKGGNNNNNNYYYYYYKKKGGNNNNNNNKGGGGGGGGGGGGGGGGGGGGGGGDDDDDDDNNNNNNDDNNDDDDDDDDNNNNNN","fc":"KGNWYBDO","l":"Y6l B8l Y4l G6l Y4l W2l G8l Y4l N14l Y6l W4l B11 Y10l B3l Y8 W6l B5l G6l O4l B10l Y9l B13l W5l B11l B13l D2l O10l | W6l O3l W11l Y3l W5l O3l W2l N5l Y7l R4d G6l G9l G9l O3 O10l B11 B12l G6l N14l K9l B12 | B11l K11l R7l G14l D12l R8l N9l K14l D14l B14l W4l W11l R14 B14l B10l G6l B14l B9l W5l G12l W10 B9l B2","s":3},"51":{"f":"4AAHoAAF/////////////////+f//////9v//yT//yT/////P8P8P6X8P0L8PSS8Pf+8PD38P//8P//8P//8P//8AAAAAAAA","c":"WWWPPPWWPPWWWWWWWWWWWWWWWWWWWWWWPPWWWWWWWWWWWWWWWWWWWWWWPPWWWWDDDDDDDDDDDDDDDDWWPPWWWWDDDDDDDDDDDDDDDDWWPPWWWWDDDDDDDDDDDDDDWWPPWWWWDDDOOODOODOOODDDWWPPWWWWDDDODDDDDDODDDWWPPWWWWDDDDDDDDDDWWPPWWWWDDDDDDDDDDWWPPWWWWDDDODDDDDDDDDDDDWWPPWWDDDODDDDDDDDWWWWDDDDDDDDODDDWWWWDDDDDDODDDWWWWDDDDDDDDWWWWDDODDODDODDODDWWWWDDDDDDDDDDDWWWWDDDDDDDDDDDDDDDDWWWWDDDDDDDDDDDDDDDDWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW","fc":"WDPO","l":"D6l O3 D12l W14l W14l D14l D7l D14l W3l K2d W14l | P10l W14l D14l D14l Y3l K3l W14l D14l O4l O5l D14l D14l K2l Y2l K2l Y2l Y2l W14l Y2l K2l Y2l K2l K2d K2l K2l D14l Y2 K2l W14l Y2l Y2l Y2 O3l K2l K2d K2d K5d K2 K2l K4l W14l D14l Y2l Y2l K3d O3d O3l K2l | O3d O3l O3d D2l W14l K4l Y2l D14l O3l Y2l Y2l K2l O3l K2l O3d D14l O2l Y2l O3 P11l Y2d Y2d Y2 Y2l K2l D14l K3l P12l K5l W14l K5l W14l K2l D14l K2d W14l K2l Y2l Y2l","s":3},"52":{"f":"/////////+X74ef/7///7gB//////////////yT//yT/r//3r//3r+f3r9v3r+f3m//f+//b2AAT////n+fxkCcJv//9////","c":"KKKKKKKKKKKKKKKKKKKKKKKKKNNNNNNNNNNNNNNNNNNNNNNKKNDDDDDDDDNNNNNNNNNKKNDDDNNNNNDDDDNNNKKNDYDDNNYYYYYYNNDDYDNNKKNDDNNNNDDNNKKNDDNWWWWWWWWWWWWWDNDNNKKNDNWWWOOOOOOOOOOWDDNNNKKNNWYWWORRRRRRRROWDYDNNKKNNWYWWORROWDYDNNKKNNWYWWORROWDYDNNKKWYWWORRRRRRRROWDYDNKKWYWWORRWWWWRROWDYDNKKWYWWORRWWRROWDYDNKKWYWWORWWWWROWDYDNKKWYWWORWWWWROWDYDNKKWWWOOOOOOOOOOWDDNNKKWWWYWWWWWWWWWWWWNNNKKWWYNNKKWWWYYYYYYYYYYYYYYYYNNNKKDDDDDDDDDDWWWWWKKDDDDWWKKDDDDDDDDDDDDDWWWWWWWKKKKKKKKKKKKKKKKKKKKKKKKK","fc":"KNOWDRY","l":"Y6l W13l D14d W2l K11l Y6l D14d K6l K7l R12l W14l W14l K3l D14d Y6l O7l N2l Y6d | W4l K13l N2l R7l N10l K6l O14l R7d R6l G11l D13l N12l R6l K12l N9l D14l N2l Y5l G8l W14l Y5 R6l N12l D13l K10l Y5l D5l K7l R2l N14l R7l Y5l N13l Y5l | Y5l O12l N2l W14l N9l N2l W14l O4l N10l G2l Y5l N14l K8l W14l O6l K9l Y5l","s":3},"53":{"f":"////////wH4D/EID5EID5H4j5//j5/fz///zw63r+7Xr6//r64Nr+4Fzw4Fz2/9j5gBD6//D68AD8kAD4kAD48AD////////","c":"PPPPPPPPPPPPPPPPPPPPPPPPPYYYYYYYYYYYYYYYYYYYYYYPPYRRRRRRYPPYPPPPRRYPPYPPRRYPPYPPRRRRRRDYPPYPPBBBBBBBBBBBBDYPPYPPBDDDDDDDDDBDDYPPYPPPPBDDDDDDDDDDBDDYPPYBDDDDDDDBDDYPPYBBBBDDDDDDDBDDYPPYBBBDDDDDDDDDDBDDYPPYBBBDDDDBDDYPPYBBBBDDDBDDYPPYBDDDBDDYPPYBBBDDDDDDDDDBDYPPYBBBBYPPYBBBBBBBBBBBBBBYPPYBBYYYYYPPYBBYYYPPYBYYYPPYBYYYYYPPYYYYYYYYYYYYYYYYYYYYYYPPPPPPPPPPPPPPPPPPPPPPPPP","fc":"PBYDR","l":"W4l W7 Y12l P10l B12l Y8l W5l P13l W2 N10l P11l N2l W2l R14l B12l N2d W8l Y9l P12l Y11l N5l | N10l D13l R14l B14l Y7l Y9l D14l N2l W2l D14 B12l N2l P13l D13l R14d D12l Y12l P13l N2l | R8l B9l B11l D14l R10l P10l P4l R9l P8l D9l Y9l P7l Y13l D8l N8l R8l D13l W7d N2l Y7l B7l P8l W3l R14l N7l","s":4},"54":{"f":"////////wH4D/EID5EID5H4j5//j5/fz///zw63r+7Xr6//r64Nr+4Fzw4Fz2/9j5gBD6//D68AD8kAD4kAD48AD////////","c":"WWWWWWWWWWWWWWWWWWWWWWWWWRRRRRRRRRRRRRRRRRRRRRRWWRYYYYYYRWWRWWWWYYRWWRWWYYRWWRWWYYYYYYKRWWRWWDDDDDDDDDDDDKRWWRWWDKKKKKKKKKDKKRWWRWWWWDKKKKKKKKKKDKKRWWRDKKKKKKKDKKRWWRDDDDKKKKKKKDKKRWWRDDDKKKKKKKKKKDKKRWWRDDDKKKKDKKRWWRDDDDKKKDKKRWWRDKKKDKKRWWRDDDKKKKKKKKKDKRWWRDDDDRWWRDDDDDDDDDDDDDDRWWRDDRRRRRWWRDDRRRWWRDRRRWWRDRRRRRWWRRRRRRRRRRRRRRRRRRRRRRWWWWWWWWWWWWWWWWWWWWWWWWW","fc":"WDRKY","l":"O4l O7 R12l W10l D12l R8l O5l W13l O2 P10l W11l P2l O2l Y14l D12l P2d O8l R9l W12l R11l P5l | P10l K13l Y14l D14l R7l R9l K14l P2l O2l K14 D12l P2l W13l K13l Y14d K12l R12l W13l P2l | Y8l D9l D11l K14l Y10l W10l W4l Y9l W8l K9l R9l W7l R13l K8l P8l Y8l K13l O7d P2l R7l D7l W8l O3l Y14l P7l","s":4},"55":{"f":"////////wAADzn5z3//728Pb3/+b33473v873be7+73v+f/P/cPf/+X//v9/7//37v93//+f+AAf8HgP/8n/kMkJv/n9////","c":"RRRRRRRRRRRRRRRRRRRRRRRRRNNNNNNNNNNNNNNNNNNNNNNRRNNRRNNNNNNNNNNNNNNRRNNDDDNNBBBBBBNNDDDNNRRNNDDBBBBBBDDNNRRNNDDDBBBBBBBBDDDNNRRNNBBBBBBBBBDDDNNRRNNBBBBBBRBBDDDDNNRRNNBBBBBBBBRDDDNNRRNNBBBBRBBBBRDDDDNNRRNNBBBBBBBBBBBBDDNNRRNNNBBBBBBRBDDNDNRRNNNBBBBBBBBRBBDDNDNRRNNNNBBBBBBBBBBBDNDDNRRNNNNBBRRRRRRRRBBNDDNRRNNNNBBBBBBBBBBNDDNRRNNNNBBBBBBBBBBBBNDDNRRNNNNNDDNRRNNNDDDDNDNRRNNRRRRRRDDRRRRRNNNRRRRDDRRRRRRRRRRRDDDDRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR","fc":"RDBN","l":"Y6l N12l R9l B6l D3l R14l D14l R14l B14l N10l Y2l Y2l Y6l B10l R14l C2 C2d C2l B11l C2l C2l C2l | B14l D14l N12l W3 R13l R14l R14l D14l W2l D14l B12l B12l C2l W2l C2l W2l N12l W2l N6d N11l W2d B11l W2d R14l W2l W2l N3l C2l C2l C2l C2l R14d W2l | N14l R14l C2l B10l N10l D14l R14l B13l C2l W2l C2 N9l N7l N14l C2 C2l C2l C2l B12l N14l C2l C2l R13l C2l","s":4},"56":{"f":"/////7z/5aS33/z7///73//93//73//77//37/73z2b3z//zz8Pxz+fxz//xz8Pxz//xz//xz//x7//x4B8B4BEBwB8B////","c":"PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPDDDDKKKWWWWPPPPPPPDDKKWWWPPPPPPPPPPDDDDKKKWWWPPPPPRRRRRRRRRRRRRRRRWWPPPPRYYYYYYYYYYYYYYRWWPPPPRYRRRRRRRRRRRRYRWWPPPPRYRDDDDDDDDDDRYRWWPPPPRYRDDDDDDDDDDRYRWWPPPPRYRDDWDWWWDDRYRWWPPPRYRDWDDWDRYRWWPPPRYRDDDDDDDDDDRYRWPPPRYRDDDDDDRYRPPPRYRDDWDDWDDRYRPPPRYRDDWDWWDWDDRYRPPPRYRDDDDDDRYRPPPRYRDDDDDDDDDDRYRPPPRYRRRRRRRRRRRRYRPPPRYYYYYYYYYYYYYYRPPPPRRRRRRRRRRRRRRRRPPPPKKKKKPPPPKKPPPKKKKKPPPPPPPPPPPPPPPPPPPPPPPPP","fc":"PRDYKW","l":"K12d P4l D9l R14l P9l P12l D5l D14l W4l W4l D14d W4l W3l Y11l P12l P10l P11l P12l W3l W5l B2l R14l P14l W2 D14d W2l B2l W3l K14l W2l | Y11l C4l W6l C3d R14d W2l D14l R1l P14l B2d W3l P8l W3l W7l Y12l P14l W3 B2l W2l B2l Y9l W3l R14l B2 W3l W3l B2l B2l R14l W3l W2l D12l P11l W3l Y10l R7l W2l R14l W3 B2l W2l W5l B2l W2d R14l B2l P11l W7l B2l W7l B2 D12l W2d W6l W2l W7l W2l","s":3},"57":{"f":"/////////////+B/8CZP/+Wv5Af/7f/3+Rjv+X7P+WbP+X7P+ULP+efP9f/P9cOv+f+f4+AH4iAH4+AH4AAH////////////","c":"YYYYYYYYYYYYYYYYYYYYYYYYYDDDDDDDDDDDDDDDDDDDDDDYYDKKKKKKKKKKKKKKKKKKKKDYYDKRRRRRRRRWWWWKDYYDKRRDDWWKDYYDKRRRRRRRRDDDWWKDYYDKDDDDDDDWWKDYYDKDDYYYYYYYYYYDDDKDYYDKDDYRRYDDDKDYYDKDDYKRKKRRYDDKDYYDKDDYKRRKYDDKDYYDKDDYKRRRRKYDDKDYYDKDDYRDYDDKDYYDKDDYRKRDKDYDDKDYYDKDDYRKRKKDKDYDDKDYYDKDDYRRDDYDDKDYYDKDDYYYYYYYYYYDDKDYYDKCCCCCKDYYDKCCKDYYDKCCCCCKDYYDKKDYYDKKKKKKKKKKKKKKKKKKKKDYYDDDDDDDDDDDDDDDDDDDDDDYYYYYYYYYYYYYYYYYYYYYYYYY","fc":"YKDRWC","l":"K14l C3l C3l Y7l K13l C3l W6l K9l R10l Y14l D14l K14l C9l D14l Y14l K8l B2d | W4l Y14l D11l D14l K8l W4l W7l W4l R7d Y14l Y14l D14l R14l C3l O2 D14l C3l C3l K13l D14l R6l D14l C3l O6l C3l | R14l W3l O7l Y5l O2l D14l O6l D14l K8l Y14l O8l Y14 D14l Y14l Y14l D5l O7l K2l Y2l C5l C3d Y14l R14d C3l","s":3},"58":{"f":"////////////////8BBP//Bv9///////9xvv9xzv9xzv9xvv9xlv9xlv9xlv9/Vv+gdf8/////Av8BA/////////////////","c":"OOOOOOOOOOOOOOOOOOOOOOOOOKKKKKKKKKKKKKKKKKKKKKKOOKCCCCCCCCCCCCCCCCCCCCKOOKCDDDDDDDDDRRRRRPPPPCKOOKCDDPPCKOOKCDDDDDDDDDPPPCKOOKCRPOOOOOOOOOOOOKPPCKOOKCRPPOGGGGGDDDDDOKKPCKOOKCPPOGGDDDDOKKCKOOKCPPOGGDDDOKKCKOOKCPPOGGDDDOKKCKOOKCPPOGGDDDDOKKCKOOKCPPOGGDDOKKCKOOKCPPOGGDDOKKCKOOKCPPOGGDDOKKCKOOKCPPOGGGGGDDOKKCKOOKCPPODDDOKKCKOOKCROOOOOOOOOOOOPPPCKOOKCKKKKKKKKKPPCKOOKCKKPPPCKOOKCKKKKKKKKKRRRRRRRRRCKOOKCCCCCCCCCCCCCCCCCCCCKOOKKKKKKKKKKKKKKKKKKKKKKOOOOOOOOOOOOOOOOOOOOOOOOO","fc":"COPGKDR","l":"D14l C6l K1l P14l C11l G2l O9l G4l G4l K14l G4d P14l C6l G3d G2l G3d O11l K14l C1l K14l C12l R3l R3l P5l O14l R3 C10l R3l R3l R3d P14l R3l R3l | G3l O14l K14l R3 K14l R3l C14l R3l O14d O14l C11l K14l O14l C10l R3l C14l K14l G2 R3d G2d B2l R3l R3l D14l R2l O4l R2l K14l K14l G2d O11l R2l R2l R2l R2 N3l O14l D10l B2l R2l N2l R2l N2l N2l N2d D14l R2l G5l R2l O10l O8l N2d"},"59":{"f":"////////////////8BBP//Bv9///////9xvv9xzv9xzv9xvv9xlv9xlv9xlv9/Vv+gdf8/////Av8BA/////////////////","c":"KKKKKKKKKKKKKKKKKKKKKKKKKWWWWWWWWWWWWWWWWWWWWWWKKWGGGGGGGGGGGGGGGGGGGGWKKWGRRRRRRRRRDDDDDNNNNGWKKWGRRNNGWKKWGRRRRRRRRRNNNGWKKWGDNKKKKKKKKKKKKWNNGWKKWGDNNKBBBBBRRRRRKWWNGWKKWGNNKBBRRRRKWWGWKKWGNNKBBRRRKWWGWKKWGNNKBBRRRKWWGWKKWGNNKBBRRRRKWWGWKKWGNNKBBRRKWWGWKKWGNNKBBRRKWWGWKKWGNNKBBRRKWWGWKKWGNNKBBBBBRRKWWGWKKWGNNKRRRKWWGWKKWGDKKKKKKKKKKKKNNNGWKKWGWWWWWWWWWNNGWKKWGWWNNNGWKKWGWWWWWWWWWDDDDDDDDDGWKKWGGGGGGGGGGGGGGGGGGGGWKKWWWWWWWWWWWWWWWWWWWWWWKKKKKKKKKKKKKKKKKKKKKKKKK","fc":"GKNBWRD","l":"R14l G6l W1l N14l G11l B2l K9l B4l B4l W14l B4d N14l G6l B3d B2l B3d K11l W14l G1l W14l G12l D3l D3l N5l K14l D3 G10l D3l D3l D3d N14l D3l D3l | B3l K14l W14l D3 W14l D3l G14l D3l K14d K14l G11l W14l K14l G10l D3l G14l W14l B2 D3d B2d Y2l D3l D3l R14l D2l K4l D2l W14l W14l B2d K11l D2l D2l D2l D2 O3l K14l R10l Y2l D2l O2l D2l O2l O2l O2d R14l D2l B5l D2l K10l K8l O2d"},"60":{"f":"/////wD/x9+DxlHDzlEz0lE74lEvw//Hwf/HgQDD+QDDyQDDyf/DyX6DyYGDyYGD+f+DgAH9v/v9oAoJoAoJoAv5v/gB////","c":"CCCCCCCCCCCCCCCCCCCCCCCCCRRRRRRRWWWWWWWCCRRDDDDOOOOOWWCCRRDDOOWWWCCRRRDDOOWWWCCRRDDOOPPWWCCRRDDOOPPWWCCRDDDDOOOOOOOPPWCCRPPPPPPPPPPPPWCCPPPPCCYYYYPPPPCCYYPPPPCCYYPPPPPPPPPPPPCCYYOWWWWWWPPCCYYOWWPPCCYYOWWPPCCYYYYOOWWWWWWPOPCCPPPPPPPCCCCCCCCCCCCCCCCCCCCPCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC","fc":"CPWYDOR","l":"R14 P5d D7d C14l Y12l P3l R14l P5l P5l Y13l O4l C10l Y7l C14l P5l | D5l C14l C14l W14l C14l C14l D5l C14l Y2l O13l Y5 P3l O11l D8d O3l Y14l Y5l P9l O13l P11l Y4l P12l C2l O10l | R8l O10l D9l C14l O12l O10l W11l Y10l O10l O2l W14l O8l P12l P5l P10 Y14l Y7l O3l C14l O8l P10l Y11l O11l Y2l","s":3},"61":{"f":"AAHwf//+ShESShESe/HyQAfyQAQSQAfyQP8CQP8CQMMeeMMe+MMbzMMzzP8zxv9jzwDz2AAb+AH/8AH/X//2UAMLf///H///","c":"BBBBBKKKKWBBBBBBWWWBWWWBWWWKKBBBBWKKBBBBWKKKKBBBBBBBBBBBWWBBBBBBBWWBBWWBBBBBBBWWKKKKKKKKWWKRRRRRRKWWKRRKWWWWDDDDKRRKWKKWDRRRDKRRKWKKWDRRDKRRKWKKWDRRDKRRRRRRKWKKWDRRDKKKKKKKKWKKWDRRDDDWWWKKWDRRDWKKWDRRRDWWWWKKKKWDDDDWWWWWWWWWWCCCCCCCCCCCCRRRRRRWWCCRRRRWWCWWWWWWWWWWCRWWWWWWWRCCCCCCCCCCCCRRRRRRRRR","fc":"WKRDBC","l":"W4l W10d K12l K6l K5l W11l K14l K14d W11l D9l W9d K14l B4l R12l W9l C2d K11l W9 W10l W10l W8l W3 B7 B5l W6l B5 W3l C5l C8l C9l W3l C8l W10l W10d W9l C2 C4l R14l W5l C9l C4 W3d W9l W4 W10d W11l W8l C2l C8l B5d W8l C9l | B5l B5l D14l W3 B5 R14l W10 B7l B5l C7l B5 D7l C7 C7l C8l B3 W9l R14l C9l K4 C3l B3 B5d K11d R4l Y2l","s":3},"62":{"f":"PAAPSAfykAQ0oAQ5yAfzmAAFK//JUgBKkv9spv95zsNzlsNlJsNJSsNSkv9kov9JwgDzg//FD/wJCAQKCAQMCAQAD/wAAAAA","c":"DDDDRRRRDDDDDDDDRRDDDDRRDDDDRRWDDDDDDDDDRWWDDDWWDDWWWWWWWWWWWWWWDDWWWWDDWGGGGGGGGWWWWDDDWGKKKKKKGWWWWNDDDDWGKKGWWWNNDDDWGKKGWWNNDDWGKKGWNNDDWGKKGWNNDDWGKKKKKKGWNNDDWGGGGGGGGNNKDDWNNNNKKDWWWWWWWWWWWWKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK","fc":"NDWGKR","l":"W9d K8l K7l Y6l W6l G7l W11l W10l G4l W9l D14l W10l W9l W8l Y7l W2l W8l W8l D14l R5l W8l W7l G4 G4l Y9l Y11l | K12d K1l W8 Y12l W6l D14l K14l N11l W3l G6l D3l G8 G6l W8l W4l N11d Y7l G8 W7l Y8l G3l G3l | D14l R8d W7d R7l W8l W7l R7l R4l W6l G8l G5l W2l Y6l K7l Y12l K14l W10l G8l G7l G3l G3d D6l W6l G5d N1l Y9l G2l G8l W2 G2l G2l W10d G2l","s":3},"63":{"f":"AAH+HnECElECEnH+HkIAAf+AB73/C8OhEechH34hAH4hP///IcO8IeeEP//8P0L8PqV8I//EJAAkPAA8H+f4ECf4IBsEP//8","c":"BBBBBBBBDDDDWWWBBDDWWBBDDWWWBBBBBBBBDDDDPPPPNPPPPNPPKPNNNNNNNNPPPPPPPKKPNNNNPPPKKPPNNPPPPKKKKKOPNNPOPPOPNNPOPPDDDDDDPPPPPPPPBBPPPPPPDDPPPPBBBBBDDPOPPOPBBDDDDDDPOPOOPOPBBBBBBPPPPPPPPPPPPPPBBBBBPPPPPPPPPBBPPPPPPPPPPPPBBPPBBBBPPPPDDDDDDDDDDDDDDDDDDDDBBBBBBDDDDBBDDDDDDDDDDDDDBBBBBBB","fc":"PBKDNWO","l":"N3d D9l N5l O3l N2l B18l P14l O3l N6l N9l K10l K16l B4l K10l O10l P14l K18l R12d D10l P13l P13l K3l | W9l B9l P12l R13l N8l D8l D14l B14l N6l P14l O3l K14l N9l N5d B14l P11l N9l | O11l D11l P12l O3 P14l Y10l O5l O2l O2l K15l O2l B14l D10l K14l O2l B14l K18 D14l K13l K13l","s":3},"64":{"f":"////hYGhv//9sH4doeed4gBX5cPXqiRPqhhPKn/tMkMlMkMlKcPtKMINJX4VJwAXIYBnJ/4XIH/PIEBNP8BNP//9IUBDP3/D","c":"KKKKKKKKKWWWWWWRRRRRRRRRKKWWWWRRKCCKCCCWCCWWCCWCCCRCCRKCKWWBBWWDRCRKKBBBBBBBBDDRRKKCBBDDRRKKCBBBBBBBBDDRRKCBBBBBDCDRKCBBBBBDCDRCBBYYYYYYWWWWDCDCBBYYWWDDCBBYYWWDDCBBBYYWWWWDCDCBBYYDCDCBBYYYYYYDCDCBBBDCDRCBBDDCDRCBBBBBBBBBBDDRRCYYYYYYYYYDDRRCYYDRRCRRRRRRYYRCRCRCCCRCYCCCCCCCYCCCRRRRYYRRRRRRRRYYYYYYYYYRR","fc":"DKRYWBC","l":"O10l D13l W13l D15l Y14d Y4d R14l R14l O15d D11d O2l R14l B11l R14l W17l C15l W14l O17l O2l | B14l K10l W14l B10l Y14l D2l B14l Y14l D7l B14l C14l R14l C13l C14 B9l C13l O10l W2l B9l O3l Y14l C14d | C14l Y14l R6l R3l D12l Y7l D12l K14l B12l B11l","s":3},"65":{"f":"////////6D//9v8H0dcH8asH////4qp/4rR7/7//+jBPyjBPyh//y//byz/TyyDTyyDTy//T0T/L0f/L4AAPgAABgAAB////","c":"WWWWWWWWWWWWWWWWWWWWWWWWWNNNNNNNNNNNNNNNNNNNNNNWWNNNNNNNNYYYYYYYNWWNWNNNNNWWWWNYYNWWWWNWWWWWYYNWWWWWWWWWWYYNWWWRRRRRRRWBWBWWYYYYYYYNWWWRBRWWWBNNNNNWWWRBRWWWBNNNNWWWRRRRRRRWRRRRRRRRRRNNWWWWWWBWRBRNNWWWWBWRBRNNWWWWBRRRRRRRRRRNNWWWWBNNNNNNNNNNNNNNWWWWBNNNNNNNNNNNWWWWBNNNNNNWWWWBNNNNNNWWWWBNBBNBBBBBNNNNWWWWNNNNNNNNNNNWWWWNNNNNNNNNNNNNWWWWNNNWWWWWWWWWWWWWWWWWWWWWWWWWWWWW","fc":"WRYNB","l":"B9l B11l D5l D5l W14l B10l D2l N14l W14l W14l D5 W14l B8l C4d C5l C5l D2l D2l D2l D2l B12l D2l B9l N8l W14l C8l C2l N7l Y10l G2l C6 B5l C2l G2l G2l D2l R13l N12l G2l C2l C7l W14l C7l C2l W14l N6l N14l C2l W14l N11l G2l W14l C7d | D2l R12l R14l N11l G2d G2l G2l D6l Y14l G2l G2l B9d R14l W13l G2l N11l W14l G2l D3l D2l G2l N14l N14l C7l N14l C3l"},"66":{"f":"////////3//71ttr0V6L8P8L8//P9//v7+/X/33P9+/H7/7/9//n65mn45mn3YG////j5Agj5Agj5Agj/A/jwAAD////////","c":"CCCCCCCCCCCCCCCCCCCCCCCCCOOOOOOOOOOOOOOOOOOOOOOCCODDDDDDDDDDDDDDDDDDOCCODDDDDDDDDDDDOCCODDDDDDDDDOCCODDDDDDDDDDDOCCODDDDDDDCCDDDDDDDOCCODDDDWWDDCCDDWWDDDDOCCODDDDDDDCCDDDDDDDOCCODDDDDDDDCDDDDDDDOCCODDDDDDDCCDDDDDDOCCODDDDDDDDCCDDDDCCCCOCCODDDDDDDDDDDDDDDCCOCCODDDDDDDDDCCOCCODDDDDDDDCCOCCODDDDDDWCCCCOCCOWWWWDDDWWWWWWWWWWOCCOWWWWOCCOWWWWOCCOWWWWOCCOWWWWWWWWWWWOCCOOCCOOOOOOOOOOOOOOOOOOOOOOCCCCCCCCCCCCCCCCCCCCCCCCC","fc":"CODW","l":"D7l C14 D14l G4l C14l D14l R2l C10l W14l C7l C9l G2d W14d D14l G7l O9l D14l D14d O6l O7l G3l G2l C14 | R2l R2 D14l D2l D14l D14l R2l D14l R2l C14l D14l R3l C12l C13l D14l D7l O6l C13l D14l R2l R4l | R2 O8l O10l G4 R4l D14l O13l W8l O7l O7l R2l D14l G2l R2 O8l R2l O6l G2l C8l R2l R4l G5d G2l G8l G2l C13l G2l W12l G2l G2l G2l","s":3},"67":{"f":"////////3//71ttr0V6L8P8L8//P9//v7+/X/33P9+/H7/7/9//n65mn45mn3YG////j5Agj5Agj5Agj/A/jwAAD////////","c":"RRRRRRRRRRRRRRRRRRRRRRRRRYYYYYYYYYYYYYYYYYYYYYYRRYNNNNNNNNNNNNNNNNNNYRRYNNNNNNNNNNNNYRRYNNNNNNNNNYRRYNNNNNNNNNNNYRRYNNNNNNNRRNNNNNNNYRRYNNNNWWNNRRNNWWNNNNYRRYNNNNNNNRRNNNNNNNYRRYNNNNNNNNRNNNNNNNYRRYNNNNNNNRRNNNNNNYRRYNNNNNNNNRRNNNNRRRRYRRYNNNNNNNNNNNNNNNRRYRRYNNNNNNNNNRRYRRYNNNNNNNNRRYRRYNNNNNNWRRRRYRRYWWWWNNNWWWWWWWWWWYRRYWWWWYRRYWWWWYRRYWWWWYRRYWWWWWWWWWWWYRRYYRRYYYYYYYYYYYYYYYYYYYYYYRRRRRRRRRRRRRRRRRRRRRRRRR","fc":"RYNW","l":"N7l R14 N14l C4l R14l N14l D2l R10l W14l R7l R9l C2d W14d N14l C7l Y9l N14l N14d Y6l Y7l C3l C2l R14 | D2l D2 N14l N2l N14l N14l D2l N14l D2l R14l N14l D3l R12l R13l N14l N7l Y6l R13l N14l D2l D4l | D2 Y8l Y10l C4 D4l N14l Y13l W8l Y7l Y7l D2l N14l C2l D2 Y8l D2l Y6l C2l R8l D2l D4l C5d C2l C8l C2l R13l C2l W12l C2l C2l C2l","s":3},"68":{"f":"////////wAADwAADzjBzyshTzwRzwIIDz0M7ySSryRSryQ+ryQErzwArz/4ryAIryAIryAIryAI7z/4Pz8ALyEAH////////","c":"RRRRRRRRRRRRRRRRRRRRRRRRRYYYYYYYYYYYYYYYYYYYYYYRRYYRRYYRRYRRRRRRRRYRRYRRRRRRRYRRYRRRRRRRRYRRYRRYRRYOOOORRROOOYRRYOORRROOYRRYOORRROOYRRYOORRRRROOYRRYOOROOYRRYOOOOOOYRRYGGGGGGGGGGGOOYRRYGGOOYRRYGGOOYRRYGGOOYRRYGGOOOYRRYGGGGGGGGGGGNNNRRYWWWWWWNNRRYWWNNRRYYYWWWWWWYYYYYYYYYYYYNRRRRRRRRRRRRRRRRRRRRRRRRR","fc":"RONGWY","l":"R12l R14l W14l O12l R14l Y11l W2l O13l R14l R12l Y5l Y5d O14d N9d G13l O14l N9l N8 N9l Y12l Y14l N2l D2l Y16l R12l Y9l Y4l Y15d N10l Y11l Y13l O14l Y16 N3l Y16l | R14l Y14d N2l D8l R14l O14l R10l G12l Y17d D6l D8l R9l D5l D8l N9 N10l G10d N2l R10l R13l D8","s":3},"69":{"f":"/////////////////////////if//SZ//qN//33//+9//vt//8P//6X//8P//b2//8M//Tw/////////////////////////","c":"OOOOOOOOOOOOOOOOOOOOOOOOOKKKKKKKKKKKKKKKKKKKKKKOOKBBBBBBBBBBBBBBBBBBBBKOOKBRRRRRRRRRRRRRRRRRRBKOOKBRBBBBBBBBBBBBBBBBRBKOOKBRBKOKKKKOOWWWWOWBRBKOOKBRBKKKWBBBWWBRBKOOKBRBKKKWBBWBRBKOOKBRBKKKKWBBWBRBKOOKBRBKBKKRRRWWBBWBRBKOOKBRBKBBKKRRWWBBWBRBKOOKBRBKBBKRRRWBBWBRBKOOKBRBKBBKKKWBBWBRBKOOKBRBKBKKKKKWBWBRBKOOKBRBOKKKKKKWWOBRBKOOKBRBOKKKKKKKWOBRBKOOKBRBBBBKKKKOBRBKOOKBRBBBKKKKOBRBKOOKBRBBBBOOOOOOOOOOOBRBKOOKBRBBBBBBBBBBBBBBBBRBKOOKBRRRRRRRRRRRRRRRRRRBKOOKBBBBBBBBBBBBBBBBBBBBKOOKKKKKKKKKKKKKKKKKKKKKKOOOOOOOOOOOOOOOOOOOOOOOOO","fc":"OBKWR","l":"R3 B14l O14d K12l R11l K12l K12l K14l O14d K6l K14l R7l D2l | D2l O13l O13l W5l D2 D2l D2 D2l K14l O11l K6l W2d R12l K9l R12l W5d B14l D2l W2d D2l B10l B14l D2l K7l B14l D2d R14 D2l B14l O9l | R14l B6l B14l W6l W5d D2l K12l W8 D2l B14l W7l W5l O8l O13l B14l K7l D2l O10l O8l K7l R3l B14l D2l K6l B14l B14l Y2l Y2l","s":3},"70":{"f":"////////////////////+f7f/qlf/1X//f///////4d//4V//4d//////////f+/+KX/+H6/+AD/////////////////////","c":"RRRRRRRRRRRRRRRRRRRRRRRRRKKKKKKKKKKKKKKKKKKKKKKRRKWWWWWWWWWWWWWWWWWWWWKRRKWGGGGGGGGGGGGGGGGGGWKRRKWGGGGGGGGGGGGGGGGGGWKRRKWGGRRRRRRRRRRGGWKRRKWGGRRRRRRRGGWKRRKWGGKKRRRRRRKKGGWKRRKWGGKKRRRRRRRCKKKGGWKRRKWGGKKCCCCCCCCCCCKGGWKRRKWGGKKCCRRRCKGGWKRRKWGGKKCCRRCKGGWKRRKWGGKKCCRRRCKGGWKRRKWGGKKCCCCCCCCCCCKGGWKRRKWGGKKKKKKKKKKKKKKGGWKRRKWGGKKCCKCCKCCKKGGWKRRKWGGKKKKDDDGGWKRRKWGGKKKKKKDDGGWKRRKWGGDDDGGWKRRKWGGGGGGGGGGGGGGGGGGWKRRKWGGGGGGGGGGGGGGGGGGWKRRKWWWWWWWWWWWWWWWWWWWWKRRKKKKKKKKKKKKKKKKKKKKKKRRRRRRRRRRRRRRRRRRRRRRRRR","fc":"RWGCKD","l":"K14l G10l W7l K14l K14l K14l G8l G7l R9l G14l K14l G14l G10l W11l W6l R11l C3l C3l | G6l C3 N2l C3l R12l G14l O3l R14l G14l O2l C3l O2l O2d N2l O2l D2l C3l W11l R14l R14l G14l C3l C3l O2l C3l G3l R14l | C3l D2l W6l D2l R14l W12l C2l W11l K14l R14d O2l N2l O2l G14l K14l W7l D2l R14l C2l K14l O2l D3l Y3d D3l Y2l C2l O2l C2d K14l Y2l D3l K1l K12l R12l W5l Y2l"},"71":{"f":"/////////////////n5/+oFf////////+//f/aW//aW//f+/+8Pf+6Xf+6Xf+//f////+AAf8AAP8AAP////////////////","c":"YYYYYYYYYYYYYYYYYYYYYYYYYRRRRRRRRRRRRRRRRRRRRRRYYRYYYYYYYYYYYYYYYYYYYYRYYRYYYYYYYYYYYYYYYYYYYYRYYRYYDDDDDDDDDDDDYYRYYRYYDDDDDDYYRYYRYYDDDDDDDDDDDDDDDDYYRYYRYYPPPRRRRRRRRRRDDDYYRYYRYYPPRRRRRRRRRRDDYYRYYRYYPPRBRRBRDDYYRYYRYYPPRBRRBRDDYYRYYRYYPPRRRRRRRRRRDDYYRYYRYYPPRRRRRRDDYYRYYRYYPPRRRRRRDDYYRYYRYYPPRRRRRRDDYYRYYRYYPPRRRBBBBRBRDDYYRYYRYYPPPRRRRRRRRRRDDDYYRYYRYYPDYYRYYRYYYYRYYRYYYYRYYRYYYYYYYYYYYYYYYYYYYYRYYRYYYYYYYYYYYYYYYYYYYYRYYRRRRRRRRRRRRRRRRRRRRRRYYYYYYYYYYYYYYYYYYYYYYYYY","fc":"YRPDB","l":"Y14l Y12l R12l D9l D14l D3l R14l Y10l D14l R14l Y14l Y14l | C3l P10l C2l Y14l Y9l R14l D14l P1l R14l Y14l C2l R14l C2l R14l R14l Y14l D14l C2l Y14l Y14l Y14l W3l C2d W2d C2l C2l Y14l W2l C2l W2l C2d Y9l W2l | Y14 Y9l C2d Y14l Y14l R14l Y14l B4l B4l B4l R14l W2l Y7l B3l R14l R3l P12l W2l Y2l W2l W2d C2l Y14l B3l","s":4},"72":{"f":"////gH/9gEAFgH/9j//xj//xj/Z/jn37j+97j7b7jjz7j7/7j8O7jmO7jmc7j8O/jadxj3/xj//xj//xn+fxkCcJv//9////","c":"GGGGGGGGGGGGGGGGGGGGGGGGGYYYYYYYYYYYYYGGYYGGYYYYYYYYYYYYYGGDDDDDDDDDDDDDDDDGGDDDDDDGDDDDDDDKDGGDDDDDDDDDDDKDWWWGGDDDDDDDDDDDKDWWGGDDDDDDDDDDDDKDWWGGDGDDDDDDDDKKDWWGGDDDDDDDDKKDWWGGDDDDDDDDDDDDKKDWWGGDDDDDDDDKKDWWGGDDDDDDDKKDWWGGDDDDDDDKKDWWGGDDDDDDDDKKDWWWGGDGDDDDDKKGDGGDDDDDDDDDDKKKKDGGDGGGGGGGGGGGGGGDGGDDDDDDDDDDDDDDDDGGKKKKKKKKKKDDDDDGGKKKKDDGGKKKKKKKKKKKKKDDDDDDDGGGGGGGGGGGGGGGGGGGGGGGGG","fc":"GDKWY","l":"Y8d D14l K5l R2l Y8l Y12l D14l G8l D14l W4 Y11l W3l K6l D14l G10l D14l D14l W4l D14l W4l | R2l G8l G8l R4l D3l G14l R12l W4d D14l G9l D14l R12l | R2l D14l D14l G7l G14d K14l D14l G14d K14l W4l R11l W4l K6l W5l K14l W2l K14l W2l R8l K14l W3d K14l G8l W3d D14l D14l K14l W3d Y12l G10l W3l","s":3},"73":{"f":"/////f+/////+H4f+HYf+aqf+VVf9qrv9TTv/yz//TTf+r7f/UO//qa/7dn35+bn/+f3//8f574fr34Pv+f/v///v///////","c":"WWWWWWWWWWWWWWWWWWWWWWWWWDDDDDDDDDDDDDDDDDDDDWWDBBDWWWDWWWWWWDWWWDDDDWWDBBDDDDDDDDDDDWWDBBDNNNNNDDDDWWDBBDNNNNNNDDDDWWDBBDNNNNNNDDDDWWDBDNNNNNNNNNDDDWWDBDNNNNNNNNDDDWWDBBDNNNNNNNNNDDDDWWDBDNNNNNNNNNDDDWWDBDNNNNNNNNNNNDDDWWDBBDNNNNNNNDDDDWWDBBDNNNNNNNNDDDDWWDBBDNDNNNNNNDDDDWWDBBDNDDNNNNDDDDWWDBBBDDDNDNNDNDDDDDDWWDBDDNNNDNDNNDDNDDDDWWDDNDDNNDDDNDDDDWWWNDNNNDNNDNBBDWWWNDNNNNDNNNDDDDDBWBWWWNDDDDDDNWWNNDWWWWDBBWWNNNNNNNNNNNNNDDDDDDDDWWWWWWWWWWWWWWWWWWWWWWWWW","fc":"WDNB","l":"B12l D14l D14l D14l D14l N13l W11l N4d O3l N14l N14l N14l B9l D14l O2l N14l W14l W11l D14l W14l N4l W11l B6l W14l | O2 D14l W13l N14d W14l D14l D14l N13l O2l D14l Y3l Y2l O2l Y2l N14l W14l B9l | Y2l D14l R6l D2l N14l R8 N14l D14l O2l Y2l Y2l Y2l O2l N14d N14d N11l Y2l Y2l D14l G3l G2l G2l","s":3},"74":{"f":"/////f+/yIEfyH4XyBgXyBgXyBgX0BgP0P8P+Kcf/qUf4r0f4sMf4qUf/6W3///nx6X3yH4fzwAf1QAP5wH/gAEJgAH9////","c":"KKKKKKKKKKKKKKKKKKKKKKKKKWWWWWWWWWWWWWWWRRRRRKKWWWWDDRRKKWWWWWWWWDDRKKWWDDDDRKKWWDDDDRKKWWDDDDRKKWWDDDRRKKWWNNNDDNNNRNRKKWWWWNDDDNRNNRKKWRRRRRNDDNRNNRKKWRRNDDDDNRNNRKKWRRNKKNRNNRKKWRRKKKKRNNRKKWRRRRRKNKKNKRNNRKKWWWWWWKNKNNNNKNKRNNRKKWWWWKKKKRRRNNRKKWWKKKKKKRNNRKKWWKKKRNNRKKWWKKRNRKKWWKKKWWWWWRRRKKWWKKWWWWWWWKKKKKKKKKKKKKKKKKKKKKKKKK","fc":"KRDWN","l":"C13l W9l D10l D15d W14l R12l R14l C15d D14l O2d W12l K13l K14d O2l N8l K9l K8l K10l O2d N12l R10l K10l K9l R14l O2l O2l W14d N10l O2 | Y10l D5l W6l K8l B13l K11l K6l K10l W11l N10l R9l O2l | O2 Y9d O2l D12l B12d K7l W8l Y10l B13l W14l N18l B12d O2l D12l B15d K10l O6l B10d R10l O8l O2l"},"75":{"f":"////gH8BgEEB/8EBwMEBx//hxI/9xIh1xIj9/4m9/+u95yn95yh95+h95gh95A/9/AAh3D+hz//h0mCB4mCBgmCBg/+B////","c":"RRRRRRRRRRRRRRRRRRRRRRRRRKKKKKKKRRKKRRKKKKKKKKKKRRKKKKRRKDDDKKKKKKKKDDDRRKDKGGGGGGGGGGRRKDKGWWWGRRKDKGWRRRWGRRKKKKKKKKGWRDRWGRRRRKKKKYYYYGWRRDRWGRRRKDKYYGWWRDRWGRRRKDKYYGWRRWGRRRKDKYYYYGWRRWGRRRKDKGWWWWGRRRKKGGGGGGGGGGRRRRKKDDRRRRRDYYYYYYYDRRRRDGGGGYDDDDDYDDRRRRGGYYRRRRGGYYRRGGYYRRGGGGYYYYYYYRRRRRRRRRRRRRRRRRRRRRRRRR","fc":"RYGKWD","l":"R8l G14l R6l P7l K14l Y14l D4l P5l D4l P6l W9l K1l P2l D4l G14l P2l W4l P4 D5l P2l W8l P2l W8l P2l D3l | C6l R14d C6l D3l K14l D6l R14l R14l P2 Y14l K6l R14l D6l P7l W6d D3l D3l P6l W5l R14l P2l W5d P6l D5l K14l R10l P5l W8l P7l W5l P2l W3l P2l | W7l Y7l Y3l K14l C6l D3l R13l R12l C3l D6l W9d P7l G14l D3 R5l W6l W7l P2l G14l W4l D7l P8l R14l P4l D7l P2l","s":3},"76":{"f":"AAH/f4ENf//9bIENb/f9aMoFeamHI/fEIBhEJBh+JhheJf/WJcNWI6X+/yT+/lpE7SSE7f/k/AHk/AG0P+efP///IBv/P///","c":"CCCCCCNNNNNNNWWWWCCNNNBBNWBBWBBBBBBCBBBBCNNNBNWWCCNNNBNWWWWWWWWWCCCCCCNNNBNWWWWNNNNNNWWWWWWNNNBWWWWWWWWWWWBBWWWBBWWWYYYYYYBWWWWYWWWYBWWWWWWWWWWWYWWYBWWWDDWYWWYBWDDDDDDYWWWWYBBBBBBWDDDDYYYYYYBRRRRBDDDDDDBBRBRBDDDDBBRBRBDDDDDDDDDDNNBBRRRRBNNWNBBBBBBBNWWNBBDDDDDDDDDDNWWNNNNBDBBBBBBDBBDDNWBBBWWWNDDDDNWWWWWWWNDDDDDDDDDDDDDNNNNNNNNN","fc":"WDNBRYC","l":"D9l C2l W13 D10l B12l W10l B8l N6l D11l D10d B8 B9l D12l B7l D5l B7l D2l N14l B7 B6l W14d B7l D12l B12l B12l D2l C2d D2l D12l D10l | N14l C2d W14l C4l W14l Y9l R9l C4l R9l D11l D2l C4l D2l Y6l C3l D6 W14 D10l C3l D2l C3l D2 D8l R12l W14l D10l D9l | C3l Y11l N14l W14d N14l D9l Y2l W14l N3l D10l W14d D9d C3l C3l","s":3},"77":{"f":"////////////////////++Tf/+Tf/+R//+d//wDf/zjf/evf/+uf/2zf/m5/+rnf+X/f+PBf+BBf////////////////////","c":"BBBBBBBBBBBBBBBBBBBBBBBBBDDDDDDDDDDDDDDDDDDDDDDBBDKKKKKKKKKKKKKKKKKKKKDBBDKDDDDDDDDDDDDDDDDDDKDBBDKDKKKRBBBRRKKKRKKKDKDBBDKDKKBNNBKKKKDKDBBDKDKKKBNNBKKKKDKDBBDKDRBBNNNBKKKRDKDBBDKDBNNNBBBKKKKKKDKDBBDKDBNNBKKKDKDBBDKDBNNBBBBKKKDKDBBDKDBNNBBBBKKKKKDKDBBDKDBNNBNNBBKKKKDKDBBDKDBNBNNBBKKKKDKDBBDKDRBNNBBKKKKRDKDBBDKDRNNBBBKKKRDKDBBDKDRNNNBBBBBBBRDKDBBDKDRNNNBBRDKDBBDKDRBBRDKDBBDKDRRRRRRRBBBBBBBRRDKDBBDKDDDDDDDDDDDDDDDDDDKDBBDKKKKKKKKKKKKKKKKKKKKDBBDDDDDDDDDDDDDDDDDDDDDDBBBBBBBBBBBBBBBBBBBBBBBBB","fc":"BDKNR","l":"R7l W2l D14l B14l K11l B14l R6l K8l D10l W4l D7l K11l W2l N11 N13 D14l R6l D6l K14l D14l D9l | B14d D14l B14l Y2l D7l B4l B14l K14l N9l K14l W7l W7l D13l B14l D6l W2l N11l B14l B14l D14l D14l | Y2 Y2l K8l K14l D9l R6d K10l Y6l W6l B14l B6l D14l B14l K9l C3d R6l K12l C2l K8l R6l","s":3},"78":{"f":"////kQCJoYGFxf+D7//1/KUZ3SSR/iRZ/ud5/wCx/QCV/MOb/oEx/vk7/0g/70h3/0jz+Egb+Hv7////7+YvBiYgAR4gAP/g","c":"WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWDWWWWWWWWWWWWWDDWWWDWWWWWWWWWWDDDWWWWWWWDDWWWWWDDWWWWDDWWWWDDWWWDDWWWWWDDWWWWDDWWWWWWWDDDDWWWWWDNDWWWWDWWWWDNDWWWDWWWWDNDWWWWDDDWWWWWDNNDWWWDWWWWDNNDWWWYYYYDWKWWWWDNNDWWWYYWKKWKWWDNNDWWYYWKWKKWWDNNDWWWYYWWWKKWWDNDWYYWKKWWDNDWYYYYGGGGGWKKWWDDWWWWWWWWWWWGWWWGWWKKWWWWRRRRRRRRGGWWWWRRRRGGRRRRGGRRRRRRGGGGG","fc":"DWKYGRN","l":"O2d O10l W5l Y1l B2l G7l N3l W14l D14l K10l O2l B2d N7l W7d B2l W14l | D13l Y19l D14l B2l W14l D2l O2l W13l Y6l O2l W14l N15l B2 B2l W14l N14l R2l W14l W14l K7l G14l B2l W14l W14l B2l W14l B2l W11l B3l B2l D14l B4l G6l B2l | W14l R12l B2l Y9l W14l W14l B2 K7l N15l B2l W11l W14l B3l O8l B2l W14l B2l D10l G5l O11l R14l","s":3},"79":{"f":"////////znZz3//78f+P8H4P8GfP/f/7+Wfb+Wfb+X/b+UPb+f+b+Wab/SSz7xjj///z+QCb+MMb8DwP//8PEAEAH/8AAAAA","c":"DDDDDDDDDDDDDDDDDDDDDDDDDRRRRRRRRRRRDRRRRRRRRRRDDRRRRRRDDRRRRRDDRRDDDRRDDDDDDRRDDDRRDDRRDDDYYYYYYDDDRRDDRRDYRRRRYDRRDDRRDYRRYYYYDRRDDRDRDDWWYWRRWYYWYDDRRDDRDRDWYRRYYWYDRRDDRDRDWYRRYYWYDRRDDRDRDWYRRRRYYWYDRRDDRDRDWYYYYYDRRDDRDRDWRYYYYYYRWDRRDDRDRDRRRRRRDRRDDRDDRDRRRRDRRDDRDDRDRRRRDRRDDRDDRDDRWWWWWWWWRDDRRDDRDRDRRDRRDDRDRDRRRRDRRDDRRDRRRRDRRDDDDWWWWWWWWWWWWWDDDDWWWWWWWWWWWWWWW","fc":"DYRW","l":"R14l D4l D9l R14l R14l D4l W7l W6l W10d R14l D4l D13l O11l D3l Y4l R14l Y3d R14l Y3d D11l Y3d Y3l D2l Y3l W11l Y3d D13l Y3l D5l Y3l Y3 D14l Y3l Y3l D14l Y3l Y3l | W10l D14l O3l R14l Y2l W11d W6l Y2l D14l Y2l W12l Y2 D12l Y2l W6l D14l Y2l D14l Y2l D14l Y2l R12l R14l D14l Y2l D14d Y2l R14l D14l Y2l D14d R14l Y2l R14l D14l Y2l","s":4},"80":{"f":"/////34BwUIBwUL9/36FgP+Fh//FjwHFm//9n//5twB9vwB9v//9v//9ugHtugHNu/9tu//NujNtuj89u+HtuAH9n//9////","c":"BBBBBBBBBBBBBBBBBBBBBBBBBOOOOOOODDDDDDBBOODDBBOODDKKKKKKBBOOOOOOODDDDDDKKBBKKKKKKKKKKBBKKKYYYYYYYKKYKBBKBKKKKYKBBKBBKKKKKKKKKKKKKKKBBKBBKBBBBBBBBBBBBDDBBKBBKBYBDDDBBKBBBKBYBDDDBBKBKKKBBBBBBBBBBBBDDDBBKKPPPPPPPPPPPPDDDDDDBBKKPYPDDDDDBBKKPYPDDDDBBKKPKKKKKOOOOPDDDDBBKKPKYYYKOYYOPDDDDBBKKPKKOOPDDDDBBKKPKKOOOOPDDDDBBKKPKKKKKPDDDDDBBKKPPDDDDDDBBKPPPPPPPPPPPPDDDDDDBBBBBBBBBBBBBBBBBBBBBBBBB","fc":"BDKPOY","l":"K14l O2l Y6 B14l B10l W6 Y3l B13l B14l P7l Y4l Y3l Y3l W8l O2d O2 Y7l P7l D14l O2l D12l D14l D14l W5l K11l P12 O2 Y3l W7l O2l O4l O3l P7l O7l W2l K10l W8l O5l W6l O2l O3l W5l O7l B14l O2l O3l O5l W2l W8l | Y3l Y2 O3d D1l D14l O2 W5l B14l D14l B11l K8l P6l W6l | W8l P7l Y6l K10l O2l B14l Y6l B14l P11l Y2l K12l B14l K11l B10l K14l Y6l K5l W2l P7d","s":4},"81":{"f":"////gAABgf+Bn//5kP95kf/ZsYHd/8P7/+f73zzZ+zzJ+f/JncOYn6WYXyTpVyTJVtsJODwLMAALEfANH//5ARENAREHAfH/","c":"RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRNRRRNNNNNNNNNNRRRNRRRWWWWWWWWWWWRRRRWDDDDDDDDWWWRRRRDWDDWWWNRRRRDDWWWDDDDDDWWWNRRRRDDWDDDWWDDWWDWWWNRRRDDWDDWWDDWWWWNRRDDWDDWWDDWWWWRRDDWDDWWWWWWWWWWWRDDWDDWWWWWWNDDWDDWWWWWWWNDNDWWWWWWWWNBDNDWWWWWWNBDNDDWWWWWWNBDNDWWWWNBBDDNBBDOOOOONBBNNNNONNNONNNBBBBBBBOOBBBBOOBBBBOOOOOBBBBBBBBB","fc":"WBODRN","l":"R5l G4d O6d Y8l R5l R5l N8l R5l Y11 N6l G2l N6l R5l G4l Y8l N5d N5l R5l O2l G2l O2l G4d R5l O3l R5d N5l G2l N5l O6l B13l G2l G2l N7l W14l G4l R6l G4d R5l D14l O3d G4l W1l R5l O2d G2l O2l W6l N5d | G4l P3l W14l G4l W9l B14l R5l W14l O2d R5d G2 O2d R5d D14l O2l W14l G2 O2l G2l R5l W14l O2l R2l O5l R6l N5l G2l D14d D12l B8l G2l R5l G2l R5l O5l N8d G2l N7l G3l R3l O6l R5l D12l G2l O3l R7l W14l O6l R4l O6l R4l G4l O2 G5l D9l R6d"},"82":{"f":"///////9/n7/w//ngYHn/gB/j/A9nBB5vP/dvJHdvJHd7JHP7/HP5r3P4qVv5P8/uCQdmCQZiCQR8DwP/4H/sQEN4QCH/wD/","c":"WWWWWWWWWWWWWWWWWWWWWWWWWDDDDDDDDDDDDDDDDDWWWWWWDWWWWDDDDDDDDWRRRRWWWWWDDWWWWWWDDWRRWWWWWWWWRRWWWWWWWWWWRRRRWWWWGGGGGGGDWWWWWWRGGDWDWWWWRRGOOOGOOOODWWDWWWWRRGOGODWWDWWWWRRGOGODWWDWWWWRRGOGODWWDWWWWRRGGGGGGGODWWDWWWWRRROGGGGODWWDWWWWRROGGODWWDWWWWRROOGOOGOODWWDWWWWRRGGDDWWWWWGGWWWWWGGWWWWWWGGGGWWWWDDDWWWWWWRRRRRDDDDDDWWRRDDDDWWRRDDDDWWWWWWRRRRRRDD","fc":"WGRDO","l":"C10 W7l B2 O14l R12l W16d D11l O14 D10l W16l W14l D14l D14l B2l G4l W6l G5l W11l W4l W9l Y2l W9l B6 W7l Y2l G14l B2l W14l Y11l Y2l W9l B6l Y2l Y4l Y2l | Y2l R14l G14l W9l R11l W10l C6d D14l W8l W9l G7l W16l R14l B11l Y7l W8l W4l | Y2l R14l W11l W13l D14l C7l B4l C11l W13l Y2l W9l W7l B6l Y2l W8l Y2l","s":4},"83":{"f":"////v//9/////////////GY//+Z//OZf7OZf7OZf7OZfrP9dLP9cLOdcLOT8L8KUKaUUL/4UL/8UL//0P/8E///8v/4A//4A","c":"RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRWWWWWWPPPPPPDDDDDDRRRRRRWYYWWYPDDDDPYDDYYDRRRRRRWYWPDDPDDDRRRRRRWWKKKKPDDPDDDDRRRRRRWYKKPDDPDYDRRRRRRYKKPDDPDYDRRRRRRYKKPDDPDYDRRRRRRYKKPDDPDYDRRRRRYKKPDDDDPPDYDRRRYKKPPPPPPPDYDRRYKKPPPPPDYDRRYKKPPPPDDDDRRYKKKKPPPYRRYPPPPPYRRYPPPPPPPPPPYRRYPPPPPPPPPPPYRRPYPPYYYYYYYPYYYYRRPPPPPPPPPPPPPRDDRRRRRRRRRRRRRRRRRRRRDDDDDDDDDDDDDDDDDDDDDDDDDDDDD","fc":"RKPDWY","l":"D14l W2l Y13l P12l D14l R8l R9l R14l Y5l Y5l W3l Y12 W2l R14l Y8l D14l P14 W2 R10l W2l R14l D1l R9l W4l W3l W2l W2l R14l W2d P14l | Y13l Y8d Y14l W4l W5l D8l R14l D14l R14l R7l Y11 W2l P9l Y10l R14l P3l D14l W4l K14l P14l P7l R14l Y10l K11l W2 C3l P14l D14l C2l W2 W2l R11l P14l P14l P14l C2l W2l","s":3},"84":{"f":"/////////////+//8feP8dqP8//P/ub/7zx3/zxf/xxf/v9f7mF37mF372F35uFn73/3///f+P8f8//P/gB/lgBpv//9////","c":"WWWWWWWWWWWWWWWWWWWWWWWWWNNNNNNNNNNNNNNNNNNNNNNWWNWWWWWWWWNNNNWWWWWWWWNWWNWWNNNWNNNWWNNWNNNWWNWWNWNNNNRNWWWNNWNWWNWNNRRRNWWNWNWWNWNNNRRNNRNNWWNNWNWWNWWNNNNNRRNWWNNWWNWWNWWNNNNRRNWNWWNWWNWWNNNNNRRNNNWWNWWNWWNNNNNNNNNWWNWWNWWNNNNNRRRRRRNNWWNWWNWWNNNRRNNWWNWWNWWNNNRRNNWWNWWNWWNNNNRRNNWWNWWNWWNNNRRNWWNWWNWWNNNNRRRRRRNNNWWNWWNWWNNNNNNNNNNNNNNNWWNWWNWWNNNNNNNNNNWWNWWNWNYYYYYYYYYYYYNWNWWNNRRRYYWWNNNWWRRYYWWWWRRRRYYYYYYYYYYYYWWWWWWWWWWWWWWWWWWWWWWWWWWWWW","fc":"WNRY","l":"N14l N7l O2l R14l W10l O2d O2l N14l D3d W14l O2l D2l R14 O2l N14l Y8l D2l O2l O2l | G4l D2l O2d O2l R14l W14l D2l W14l W14l W6l W14l D2 O2l O2l N14l O2l N14l N14l N14l N14l O2d N14l N14d W5l N14l | W14l G2l O2l D2l Y10l N14l R10l W6l N14d N14l N14l N14l W14l Y14l W14l O2l C2l W14l C2l C2l C2l C2l D4l C2l W14l W11l W14l C2l","s":4},"85":{"f":"////vZnx/4G57//1723j/tZ1vNZZm23PrcP/s/7hvnrh4e//4cO8puOE238ExkCkoaFYn0Egn/+g+zmQCymPCymBCzmBD///","c":"DDDDDWWWDDDDDDDDDDDDDDDDDDDDWWDDDDDDDDDDDRRRWWWDDDDDDDDDRRDDDDDDDDDDDDDDDDDDDRRDDDDDDDDDDDDDDDRRRDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDBBKKKKKKDDDDDDKDKKDDDBKKDDDDDDKDDDKDBKKDDDDDKDDDDDDBKKKKKKDDDDDKDDBBBBBDDDDDDDDDBBDDDDDDKDKKDDBBDDDDDBBBDDDDDBBBBDDDDDDDBBDDDDDBBBBBBBBBBBDDDDDDBRRRBBBDDBRRBBBBBBDDBRRBBBDDBRRRBBBDDDBBBBBBBBBBBBBBBBB","fc":"DKBWR","l":"R14d D9l K12d D14l D11l C7l C5l D7l C8l D14l K8d W3l K13d R2l K9l B6l B6l W4l B7l B13 D9l D6l C2l C2l B2d C6l D7l B2d R7l B13l B11l D14l B2l | W3l Y6l W5l D11l W3l W7l C9l W6l D14l D11l D14l D14l W3d | W2l Y5l W2l W2l W7 C7 C8l C8l B11l D9l C8l W2l W2l D14l B2 W2l W6l B2l D14l B2d D14l B11l C6l D14l W2l B2l B13l B2l D14l C2l W2l B6l B10l C2l","s":3},"86":{"f":"////////////////8HP/8FIf8HP/8f//8f/f8f/f///f++ff++ff+//f+//f+///+/+P++AP/yAP8eAP////////////////","c":"DDDDDDDDDDDDDDDDDDDDDDDDDKKKKKKKKKKKKKKKKKKKKKKDDKDDDDDDDDDDDDDDDDDDDDKDDKDOOOOOOOOOOOOOOOOOODKDDKDOGGGWWWWWWODKDDKDOGGWWODKDDKDOGGGWWWWWWODKDDKDODDDDDDDDDDKKKODKDDKDODOOOOOOOODKKODKDDKDODOKKKKKKODKKODKDDKDOOOODOKDDDDKODKKODKDDKDOOODOKDDKODKKODKDDKDOOODOKDDKODKKODKDDKDOOODOKDDDDKODKKODKDDKDOOODOKKKKKKODKKODKDDKDOOODOOOOOOOODKKKODKDDKDOOODDDDDDDDDDODKDDKDOOOYYYYODKDDKDOOOOYYODKDDKDOYYYYODKDDKDOOOOOOOOOOOOOOOOOODKDDKDDDDDDDDDDDDDDDDDDDDKDDKKKKKKKKKKKKKKKKKKKKKKDDDDDDDDDDDDDDDDDDDDDDDDD","fc":"DOKYWG","l":"G5l W2l O14l K11l K14l D10l W2l D11l K13l D11l D14l G3d K13l D14d K14l K14l O14l G5l O14l G2l O14l D14l O14l G4l | K14l D14l O14l W2l D14l O14l G4l W2 G4l D14l W2l D14l W2l W2l K14l R3l D14l D14l D14l W2l D14l W3d R2d D14l Y3l G2l K12l Y3l R2l Y3l D14l R2l Y3l R2l K12l Y3l D4l R2l Y3l R2d Y3l N2l Y2l W3d Y2d R2l Y2l O4l Y2l N2l R2l O14l R2l Y2 R2l N2l","s":4},"87":{"f":"AAAAf//+f//+f//+f//+f//+ff4+ff/+fZP+ffL+ff7+fQf+fUP+faX+fST+fUK+ff++f/4+f//+f//+f//+f//+f//+AAAA","c":"RRRRRRRRRRRRRRRRRRRRRRRDDDDDDDDDDDDDDDDDDDDRRDKKKKKKKKKKKKKKKKKKDRRDKKKKKKKKKKKKKKKKKKDRRDKKYYYYYYYYYYYYYYKKDRRDKKYRRRRRRRRYKKDRRDKKYRBBBBCCRDDDYKKDRRDKKYRBBRDCDYKKDRRDKKYRBBBBRDDYKKDRRDKKYRRRRRRRRDDYKKDRRDKKYCDDDDDYKKDRRDKKYDDDDCDYKKDRRDKKYDDDDDCDYKKDRRDKKYDDDDDYKKDRRDKKYDDDDYKKDRRDKKYCDCDCCDCDCYKKDRRDKKYDDDDDDDDDYKKDRRDKKYYYYYYYYYYYYYYKKDRRDKKKKKKKKKKKKKKKKKKDRRDKKKKKKKKKKKKKKKKKKDRRDDDDDDDDDDDDDDDDDDDDRRRRRRRRRRRRRRRRRRRRRRR","fc":"RKYDBC","l":"O2l O2l G2l D14l Y8l W2l C13 K13l W2l D10l K14l D12l O2d R8l O2l O2l C5d R8l R10 G2l G2l R13l G2l R13l R11l K14l G2 | Y12l Y7l K14l Y10l W3l O2l D13l W6 G10l R10l G9l W4l D12l D12l G2d W2l K2l D14l C4l W2l K9l Y4l R3l Y11l D10l K14l G10d W2l | K14l B14d C6l W6d O2d R13l D14d O2l R10l K14l R9l D14l G11l G2l B2l G2l G6 K10l K10l D10l G2l","s":4},"88":{"f":"/////AA97P9////nvbbnjbb/mkk9nbbZrbbdsn8trfbd7fbb8lsn7ebb7f7b9lkn6bbd+bbZ2D/986AN4qf/f6QfRD/9fD//","c":"WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWYYYYWWWWWWWWWWWWWWWWWWWWYYWWWWWWWWWWWWWWWYYWWWWWWWWWWWWWYYYYWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWYYWYWWWWWWWWWWWWYWWWYWWWWWWWWWWWWWYWWWWWWWWWWWWWWWWWWYWWWWWWWWWWWWYWWWWWWWWWWWWWWWWYWYYWWWWWWWWWWWWWWWWWWWWWWWRWWWWWWWWWWWWWWWRRWWWWWWWWWWWWWWRRWRRRRRRRRRRRWWWRRWWWWRRWWWWWWWRRRRRRRRRWWWWWWWWWWWRRRRKKKWWRRRRRRRRRRRKKWWWWWRRRRRRRRRRRKKK","fc":"WYRK","l":"B6l W12l Y7l K3l B8d D2l D2 K3l D2l D2l B8d D2 W12l D2l K3l D2l K3l D2l K3l W14l W14l R7l D2l K3l W14l D2l D2l W14l D2l K3l W14l K3d D2l W13l W12l K2l W14l D2l W14l K2l K2d D2l W14l W14l K4l W3l D2l W10l D2l | W14l B10d K2l W14l B11l W14l R12l W14l W14l W14l W14l D2l K2l D2l K2l K2l D2l K2d D2 D3l D2l K2l D2l K2l K2l K2l R14l D2l D4l | Y11 R14l Y9l Y10l R14l W8l K2l W14l D2l D2l B7d Y7l","s":3},"89":{"f":"////////////////////+QCf+//f+f//+MNf/yRf+SR/+Twf+cP//6Wf/6Wf+duf+aX/+///+gBf////////////////////","c":"WWWWWWWWWWWWWWWWWWWWWWWWWKKKKKKKKKKKKKKKKKKKKKKWWKGGGGGGGGGGGGGGGGGGGGKWWKGYYYYYYYYYYYYYYYYYYGKWWKGYCCCCWWWWWWWWCCCCYGKWWKGYCWWCYGKWWKGYCRRWWWWWWWWRRCYGKWWKGYCRRRRRRRRRRKKKYGKWWKGYCRRRRKKYGKWWKGYNNNNRRKKYGKWWKGYNNRRKKKYGKWWKGYNNRRRRCYGKWWKGYNNKKKKDDDDYGKWWKGYNNNNKKKKDDYGKWWKGYKKKKKKKKDDYGKWWKGYKKKKKKKKDDYGKWWKGYKKKKKKDDDDYGKWWKGYKKKKKKKKKKKDDDDYGKWWKGYKKDDYGKWWKGYKKKCCCCCCCCCCDDDYGKWWKGYYYYYYYYYYYYYYYYYYGKWWKGGGGGGGGGGGGGGGGGGGGKWWKKKKKKKKKKKKKKKKKKKKKKWWWWWWWWWWWWWWWWWWWWWWWWW","fc":"WYRKGNDC","l":"Y4l K14l Y11l R2 K10l K9l R2l Y4l R2l W8l K14d R3l K10l G12l R3 W9l G8l R2l N4l N4l W14l R2d | Y14l K14l Y14l K10l K12l W9l W13l D7l K14l D11l Y6l W9l R2l R3l G9l K5l R3l Y6l R2l Y12l K11l R2l | W13l R2l R2l G10l R5l D11l W10l N4l N4l G8d R2l K13l G7l R3l D6d R2l W14l Y7l R2 N4l D12 C4l N4d C4d N3l N3 G8l K8l C4d R2l W13l C4l R5d C4l R5 R2l C3 C3d G14l C3d","s":4},"90":{"f":"////g/4/vwZ//wdj5QSj5fwj5//j5//j54Hj5//j5//j5///50LP52bJ537R/qVhvv9hi//RiAARkAAJ////EAMIIAMEP//8","c":"RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRDDDDDRRRDDDDRRRRRRDDRRRDDRRRDDRRRDDRRRRRRRDDRRRDDBBBBBBBBBBBBDDRRRDDBDRRRRRRRRDBDDRRRDDBDRRDBDDRRRDDBDRPPPPPPRDBDDRRRDDBDRRRRRRRRDBDDRRRDDBDDDDDDDDDDBDDDDDRRRDDBDDDDBRRRRRRDDBDPDDPDBRRRRDDBDPPDDPPDBRRRRDDDDBDDDDBRRRRRRRBDDDDDDDDBRRRRBBBBBBBBBBBBRRRRRRRRRRRRRDDDDDDDDDDDDBBBBBRRRRDDBBDDBBDDDDDDDDDDDDDBBBBBBB","fc":"DBRP","l":"Y5l D12l R14l D14l R9l O2l B14l Y2d D9l Y3l R8l B14l D14l P3l | O4d R7l O2l D14l Y2l P3 D14l R3l R14l R11l O7 O4l R8l R11l R9l P3l P3l Y2 P3l R14l | D14l P6l Y2l B13l Y2l P6d Y2l O2l O5l D14l Y2l R12l Y2l P3l Y4l Y2l Y3l P3l P3l D2l P8l O7l Y2l R14l R6l P6l P2l R11l P4d P7l Y2l P7l B5l Y4l B14l P2l D14l P7l Y6d P2l R14l B14l P2l P2l P2 P2 P2d Y2l Y2l D12l P2l P2l R14l R9l P2d","s":3},"91":{"f":"////////////////9/rv/W5//O1//rZ//2P//zb/+zzf8//P90PP9yXP9yTv/kL/++ff////+D//9+Yv////x//j////////","c":"KKKKKKKKKKKKKKKKKKKKKKKKKRRRRRRRRRRRRRRRRRRRRRRKKRKKKKKKKKKKKKKKKKKKKKRKKRKCCCKKDDDDDDDDKKCCCKRKKRKCKDDDKKKDDDDKCKRKKRKCKDDDKKDDDBKCKRKKRKKDDDDKKDDDBBKKRKKRKKDBDDDKKDDBBKKRKKRKCBBDDDKKDDDBRBKRKKRKCBWBBDKKDBBRRBKRKKRKBWWBDKKDBRRBKRKKRBWWBDDDDDDDDBRRBRKKRBWWBDDDDBRRBRKKRBWWBDDDDBRRBRKKRBWWBDDDDBRRBRKKRBWWBDDDDBBRRBRKKRKBBDDDDDDDDBBBBBRKKRKKKBBBBBBBBBBBBBBBBBRKKRKCKDDDDWWWWWBCBRKKRKKDDDDDDDWWBBRKKRKCCDCCCDDCCDWCCCWCCBRKKRDDDDDDDDDWWWWWRKKRRRRRRRRRRRRRRRRRRRRRRKKKKKKKKKKKKKKKKKKKKKKKKK","fc":"KBDRWC","l":"W4l D14l B11l W3l K14l B13l R12l R2l R13l D14l R9l W3d D10l W3d K14l C4d W3l W3l C3l C3 C3l W3l B12l C3l R14l W2d | B14d R14d R14 B9l W3d W3l R12l D10l K14l C3 K11l C3l W3d D5l B13l C3l C3l R9l D14l C3l K14l K14l W3l K14l C3d K14l K14l W4l | W3 D12l W2d K14l R13l W2l C3l K14l C3l C3l D13l C3d W5l D13l D12l K14l G2l W5l G2 C3d","s":4},"92":{"f":"////////////4H4H4f+H5h/n682X8/+P40+H/87/9RTP1f/L1UPL1SXL1SXL3VvLwf/Lx/5Lw/B7/heD5hSD//eD////////","c":"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBDDDDDDDDDDDDDDDDDDDDBBBBDDDDDDDDBBBBDDDNNNNNNDDDBBBBDDDNBBBNNDDDBBBBDDBBBBNBBNDDBBBBDDBOOBOONBOBNDDBBBBDBOBNBBNODBBBBDYYYBBBBNBNOYYYYDBBBBDYYONNOYYDBBBBYYONNNNNNNNOYYBBBBYYNNNNOYYBBBBYYNNNNOYYBBBBYYNNNNOYYBBBBYYYNNNNNNOYYBBBBONONOONONOYYBBBBNNNNNNNNNNYYBBBBDDDDDDYYYYBBBBWWWWDDCCCCBBBBWWDDCCBBBBWWWWDDDDDDCCCCBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB","fc":"BNDYCWO","l":"W2l W3l W3d W3l O4l W3l B12l W2l D13l B14l O4 N1l O4l W3l O4l B14l N10l O3 O3l D11l O3l D14l Y11d | N6l D10l Y14l C5l B14l N10l N10l N2l B14l B14l N3 D10l N10l D12l B7l O3l Y10l B14l O6 B14l B14l O3l | N3l N14l B14l N14d B14l N14l N12l B14l B14l C10d B14l O8l N8l O3l N6l D9l W3l B12l N12l O3l O3l Y14l O3l O3d W3l"},"93":{"f":"////v8AByMABiP55///1j/+Tjvv9n//5u5z9u539u/u9+fOf+eff+73//zz//UK/uKUdmH4ZiAARn//5/+f/EacIIZmEP//8","c":"WWWWWWWWWWWWWWWWWWWWWWWWWWWRRRRRWWWWRRWWWRRWWWWWWWWWWWWWWWRRRRRBBBBBBWWWWWWWWWWWBBBBBBBBBBWWWWWBBBBBBBBBBBBWWWWWWBRRBCCCCBBBBBBBBWWWWBRRBCCBBBBRBBWWWWBRRBCCBBBBRRBBWWWWBRRBCCCCBBBRRBBWWWWBRWRBBBBBBRRBBWWWWBRWRBRBBRBBRRBBWWWWBRWRBRRBBRRBBRRBBWWWWBRWRBRRBBRRBBRBBWWWWBRRBRRRRBBBBWWWWBBRRRRBBWWWWWRRRRRRWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWBBBBWWWWWWWWWWWBBBBWWWWBBBBWWWWWWWWBBBBBBBBWWWWWW","fc":"WBRC","l":"C2l W8l B14l D3l D2l W13l D2l C2l W11l B7l B14l D2l D2l C2l D2l B12l W14l D2l | Y2l Y2d D2l Y2d C6l Y2l B14l B14l D2l Y2l Y2l D2l Y6l C8l C2l D2l C2l C2l C2l D2l C2d D2l W4l R3l D2l C2l B12l D2d W14l C2l | D2 R2l C7d R10l W14l R14l W11l D2l D2l D2l R14l W14l W13l K1l W14l C7l B11l B14l C2 C7l D2l C2l W14l C2 R14l C2l W14l B14l D2 C7l C7l W14l B12l R14l D2l W14l C2l W13l C7l D2l R14l C2l","s":3},"94":{"f":"f/v/3wb994H//f+/3P8/3//u///dv+M57/+5n7/5v73/v//9n8P7fud53+fx9//x/eeN3//72AAW8AAJv+f/ECQIIBgEP//8","c":"DDDDDDDDDDDDDDDDDDDDDDDDDDDKDDDDKKKKDDDKDDKKKDDKKKKKKDDDKKKDKKKDDDDDDKKKKKKDDDKKDKKKKKKKKKKKKKDDDKKDKKKKKKKKKKKKKKKKDDDKKDKKKKKKKKKKKKKKKDDDDDKKKKKKKKKKKDDDDDKKKKKKKKDKKKKKKDDDDKKKKKKKKKKDKKKKDDDDKKRKKDKKKKDKKRKKDDDDDKKRRKKKKKKKKKKRRKKDDDDKKRRKKKKRRKKDDDDDDKKRRKKKKRRKKDDDDDDKKRRKKKKRRKKDDDKDDKKKKKDDDDKKKKKDDDKKKDDKKKKKKKKDDDDKKDKKKKKKKKKKKKKKDDDDDKKDDDDDDKDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD","fc":"DKR","l":"Y6l Y7l K14l W2l K14l D12l W2l D8l R3l W2l W2l W2l D8l R2l W2 W2l W2l W2l W2l D9l D10l D11l R2l W2l D9l W2 R2l D6l W2l R2l W2l D6l W2l R2d R2l W2l R2l D7l W2l R2l R2l W2l R2l R2l R2 K14l W2l | R2l K14d D14l R2l R2 D10l D6l K14l D14l K14l R2l Y8l R2l D4l D14l Y5l R2d K14l R2l K14l Y6l R2l R2l K4l Y4d D12l Y8l D12l R2l D12l K14l R2l Y3l K14l K14d K14l K14l R2l R2l R2l K14l R2l R2l K14l R2l D12l R2l K14l R2l R2d"},"95":{"f":"//////////+D7n8D/4Fz///z/eez7iRn7ud/7yT37SS37fg37cs37a035eyn5/rn5+Xn7/437//38gCPwgCDw/+D////////","c":"RRRRRRRRRRRRRRRRRRRRRRRRRYYYYYYYYYYYYYYYYYYYYYYRRYKKKKKKKKKKKKKKKYRRYKKKKKKKKKKKYRRYKKRRRKKKRRRYRRYKKRCRCCCCCCCCCCRCRYRRYKKRRRRRRRRRRRRYRRYKKKRRRRCDYRRYKKCRRRRRRRRCDDDYRRYKKCRRRRRRCDDYRRYKKCRRRRCDDYRRYKKCYYYYYYCDDYRRYKKCYDDYRRCDDYRRYKKCYDDYRRCDDYRRYKKYDDDYRRDDYRRYKCKYYYYYYRRDCDYRRYKKKKRRRRRDDDDYRRYKKRRRRRRRRRRCDDYRRYKKCKKKKKKKKKKKCCDDYRRYKKKKDDYRRYKKYRRYKKKKKKKKKKKYRRYYYYYYYYYYYYYYYYYYYYYYRRRRRRRRRRRRRRRRRRRRRRRRR","fc":"YRDKC","l":"W2d C9d Y11l G2l R2l C11l D13l N2l Y12l W2l D9l W2l D14l K14l D11l Y13l R10l W2l C9l Y12l W5l Y14l R9l W2l R13l | N2l Y6l N2l N2d W2l C11l R11l R14l R14l N2d B2d C8l W3 B2l K11l B2l B2l W2l R10l R11l C6l R14l R14l B2l W5d B2l N2l B2l Y14l B2l B2l B2l W2l B2l K9l B2l B2 | K14l Y10l K12l R14l K10l Y14l K11l Y11l G3l R13l K10l W4l B2l R11l R14l W6l W5l B2l B2l","s":4},"96":{"f":"/////AA/////6j/X6jBX6jBX6jBX8jBP8//P4AAH7+Af+CAX+D/3//837Bk34hU35xU36d438VAv8VAvodAlv//9gB/h////","c":"WWWWWWWWWWWWWWWWWWWWWWWWWRRRRRRRRRRWWRDDRDYYYYYDDDDDDDDRDDRWWRDRYYCCCCCCCRDRWWRDRYYCCRDRWWRDRYYCCRDRWWRDRYYCCRDRWWRDRYYCCRDRWWRDRYYYYYCCCCCCCRDRWWRRRRWWRDRRRRRRRWWWRWWRRRRRWDWWWRDRRRGGGGGGGGWDWWWRDRRRRRRRRGNNNNGWDWWWRDRRGNNGWDWWWRDRGNNGWDWWWRDRRRGNNGWDWWWRDRYYYGNNNGWDWWWRDRYYGGWDWWWRRRYYGGWWWWWDYYYGGDWWDDDDDDDDDGDDDDDDGDDDWWGGGGGGGGWWWWWWWWWWWWWWWWWWWWWWWWW","fc":"WGRCYND","l":"C2d O2l D8l W13l O2l O2l O5l C2l W14l O3l D5l N6l C2l D5l O4l G4l D5l O2l O3 W4l D5d G2l O5d O5d C2 D8d O6l W11l G4d R11l C2l C2l G2l C2 G3l G4 G2l C3 | N4l C2l W14l R14 R14d D8l N4d C3d N7l N5d G3l G4d C2 G2l W14l G2l Y11l G4l G2l D4l Y12d D4l G2 W9l W11l W10l O2d R14l R4l O2l G3l D4l | D6l N7l R12 C4 R14l G3l D8l D7d D7l R14l D7d C2l D7l G2l D7l D8l O5d D4l D4l D8l G2d G2 W8l G2l N4l G2l R14l Y12d C4l W13l C5l","s":4},"97":{"f":"////////////////0YGP9//v9f+r/f+/3ud//zy//zy7/v+/3kM//SU//SU7/Vv//Kd/////////////////z//z////////","c":"PPPPPPPPPPPPPPPPPPPPPPPPPDDDDDDDDDDDDDDDDDDDDDDPPDPPPPPPPPPPPPPPPPPPPPDPPDPPPPPBBPBBBBPBBPPPBPDPPDBPPPPPPDPPDPPWWWWWWWWWWWWWWPPDPPDPPWBBBBBBBBBBWBDPPDPPPWBDDDDDDDDBWPPPDPPDBPWBBBDDBBBWPBPDPPDPPPWBBBDDBBWPPPDPPDPBPWBBBDDBBWPBDPPDPPPWBBBBBBBBBBWPPPDPPDBPWBBBBWPBPDPPDPPPWBBBBWPPPDPPDPBPWBBBBWPBDPPDPBPWBBBBBCCCWPPPDPPDPBPWBBBBCCWPBPDPPDPBPWBBBBBBBBBCCCWPBPDPPDPBPWWWWWWWWWWWWWWPBPDPPDPPDDDDDDDDDYYYYYYYPPDPPDPBDBBBBBBBDYBBYYBYPPDPPDDDDDDDDDDYYYYYYYDPPDDDDDDDDDDDDDDDDDDDDDDPPPPPPPPPPPPPPPPPPPPPPPPP","fc":"PWDBYC","l":"B8 P7l P14l P14l B14l C3l C3l P14l P14l P6l D13l P14l C3l B14l B14l C3l D14l B12l B11l P14l | W4l W11l D11l D11l P6l Y2l D11l W7l P14l D14l D13l D12l D10l W5l | C4l W11l O2d W9l C2l C3l W13 C3l Y2l P14l D16l B13l D9l C2l B11l Y2l P14l C6l Y2l Y2l Y2l Y2l P14l Y2 Y2 B14l Y2l B14l P14l Y2d P14l P8l Y2l Y2l Y2l","s":4},"98":{"f":"////////////4f/n4YBn57xn76RX/6RP+/9H+71H2//D99/7/5+L+ZmL+J+L/P8L2BALwB/7x8ADxEADxEADx8AD////////","c":"YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYWWWWWWWWWWWWWWWWWWWWYYYYWWRRRRRRRRRRWWYYYYWWRRWWYYYYWWWNRBBBBRWWYYYYWWNNNRBBRWWYYYYWWNWWNRBBRWWYYYYWNWWNRRBRRBRRRWYYYYWNWWNRBBBBRRWYYYYNWWNRRRRRRRRRRYYYYNWWWWNNGGGGGGGGGGYYYYNWWNNWNGGGGGGGYYYYNWNNRGGRGGYYYYNWNRGGGGGGGYYYYNWWNRRRGRRRRGYYYYNNGGYYYYGGGGGGGGGGYYYYCCCCCYYYYCCYYYYCCYYYYCCCCCYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY","fc":"YRNGWBC","l":"W8l W11l W10l D9l R7l W5l D4l D4l D2l Y14l D5l R14l B10l B5l Y14l C4l C4 N9l C4l Y7l B5l Y7l C4l C3l N10l D2l | W14l Y14l Y14l G14l G14l Y14l G5l Y14l W6l W14l W7l Y14l W14l D2d D2l D2l | D5l N9l Y7l R11l Y7l G14l Y14l Y12l N15l Y14l D9l R14l R14l C3l C3l R14l B5l C3l C3l B8l D4l D8l D4l W6l D8l Y14l C3l"},"99":{"f":"////gAABj8Afn//7mEAbmEAfn8ApngBZmf+J/f+Z3cO/3cO73sO73sN73v+73P/72B6b2BP72BIf+B4Jn//5kAIBv/4B////","c":"WWWWWWWWWWWWWWWWWWWWWWWWWWWDDDDDDYYYYWWKDKKKKDKKKKKKKKKYKYWWKDDYKYWWKDDYYYYWWKDDDDDDRKWWKRRRRRKWWRRRPPPPPPPPRRWWDDDDRRPOOOOOOPRRRWWDKDRRPOOPRRPPPPWWDKDRRPOOPRRPKPWWDKDRRPOOPRRPKPWWDKDRRPOOPRRPKPWWDKDRRPOOOOOOPRRPKPWWDKDRPPPPPPPPRRRPKPWWDKDDDDDRPKPWWDKDDDRRRRPKPWWDKDDDPPPPWWDDDDDDDDKWWRRRRRRRRRRRRKKKKKKWWRRWWRRRRRRRRRRRRRWWWWWWWWWWWWWWWWWWWWWWWWW","fc":"WPDRYOK","l":"O2d O2l P14l D13l K4 W12l O2l D14l P14l D11l K3l R8 O3l D10l W5l G4l W5l O2l R14l P3l R14l K3l K3l Y7l K3l O2l K7d O6 O6l O2l K3l R14l K3l K3l | R14l W10l Y3l O2l K7l K3l K3d Y3 O6l R14l R14l Y3l Y3l O3l K3l W7l O2l K5l O2l W9l R9l W9l O3d K7l Y3d | K7l D14d Y2 K7 Y7l W8l G3l K3l Y4 P7l K7l W11l Y7l G2l Y3l Y7l Y4l W12l K5 Y2l Y3l O6l K3l O2l W14d K3l Y4l K6l O2l O6l K7 P14l K7l Y6l K3d","s":4},"100":{"f":"////v5/5v//9oJGPv5FHp9E/pFH/pFGHp9+HoACHoACHoACHoEKHoaX/oSSH4UKH4KUH+P4f6AAX8AAP5+H/v//9u+H9////","c":"KKKKKKKKKKKKKKKKKKKKKKKKKDDDDDDDWWWWWKKKKKKKDBBBBBDBBWBBBWKBBKBBKKDDWWKKBKKKDDDDDDDWWKKKKKBYYYYYWWKKKKKKKBYYWWRRRRRRRKKBYYWWRBRKKBYYYYYWWWWWRBRKKBRBRKKBRBRKKBRBRKKBBBRBRKKBBBBBBRRRRRRRKKBBBBBBDKKDBBBBBBDKKDDBBBBDDKKDBDDBBBBBBBDDBDKKDBDDBDKKDBDDBDKKDDDDDDDDDDDDDDDDKKBBDDBBBBDBBBBDBBBBDBKKDDDDDDDDDDDDDDDKKKKKKKKKKKKKKKKKKKKKKKKK","fc":"KYDBWR","l":"C2l D14l B9l C7 D14l B9l B11l W12l B9l Y6l W11l C3d B10l B7l K12l B7l P2l B11l K10l Y8l P2l | C4l K12l W7l K11l W10l D14l R14l W6l P2d B14l R14l P2l P2l R3l D14l D7l Y2l P2d P2l B11l P2l P2l B10 P2l P2l P2l P2l | D14l K14l B13d B14l C6l K13l Y8l R14l C2l C7l P2l B4l R14l B13l C2l B12 K14l P2l P2l D14l B7l P2l C5l K13l K12l P2l","s":3}};
+
+/* Betri Hundar 7.0 – endgame. Hooks 6.09; keeps packleader.v2, seal, rate guard, and old saves. */
+(function () {
+  'use strict';
+  if (typeof PHASE70 !== 'undefined' && typeof PHASE_DATA === 'object' && PHASE_DATA) PHASE_DATA[9] = PHASE70;
+
+  const YLVL_MAX70 = 10;
+  const PRIZE70 = [0, 100000, 60000, 30000]; // 1st/2nd/3rd – under 6.08 coins_base (150000), 50k headroom
+  const LUX70 = [
+    { k: 'pool', id: 201, name: 'Kristallasundlaug', ic: '🏊', price: 1200000, h: 300, yneed: 2, txt: 'Stór laug úr kristal. Hundarnir synda og skvetta.' },
+    { k: 'well', id: 202, name: 'Kristalsbrunnur', ic: '⛲', price: 1800000, h: 260, yneed: 3, txt: 'Glóandi brunnur. Hundarnir drekka og leika í slettunum.' },
+    { k: 'hotel', id: 203, name: 'Lúxushundahótel', ic: '🏨', price: 2500000, h: 320, yneed: 5, txt: 'Hótel með herbergjum. Hundarnir sofa, teygja sig og horfa út um gluggann.' },
+    { k: 'gate', id: 204, name: 'Ljóshlið', ic: '🚪', price: 900000, h: 220, yneed: 1, txt: 'Hlið sem lýsist. Hundarnir ganga inn og út eins og stjörnur.' }
+  ];
+  const THEME70 = [
+    { k: 'jol', name: 'Jólaþema', ic: '🎄', price: 750000, yneed: 2, txt: 'Jólatré, ljósaseríur og snjókorn yfir öllum görðum.' },
+    { k: 'vetur', name: 'Vetrarþema', ic: '❄️', price: 1000000, yneed: 3, txt: 'Mjöll, ískristallar og köld norðurbirta.' },
+    { k: 'nls', name: 'Norðurljósþema', ic: '🌌', price: 1500000, yneed: 4, txt: 'Norðurljós dansa yfir garðinum alla nóttina.' }
+  ];
+  const TRICKS70 = [
+    { k: 'lie', name: 'Leggjast', ic: '🛌', price: 8000 },
+    { k: 'roll', name: 'Rúlla', ic: '🔄', price: 12000 },
+    { k: 'dance', name: 'Dansa', ic: '💃', price: 18000 },
+    { k: 'fetch', name: 'Sækja', ic: '🎾', price: 25000 }
+  ];
+  const AFREK70 = [
+    { k: 'noloss100', name: '100 borð án taps', ic: '🛡️', title: 'Ósigrandi', test: s => (S70().maxNoLoss | 0) >= 100 },
+    { k: 'edm100', name: 'Öll 100 demantaborðin', ic: '💠', title: 'Demantameistari', test: s => { try { return goldWon(9) >= 100; } catch (e) { return false; } } },
+    { k: 'rare5', name: 'Fimm sjaldgæfir hvolpar', ic: '✨', title: 'Ræktunarhetja', test: s => (S70().rares || []).length >= 5 },
+    { k: 'tower50', name: 'Hæð 50 í Endalausa turninum', ic: '🗼', title: 'Turnvörður', test: s => (S70().tower.best | 0) >= 50 },
+    { k: 'tower100', name: 'Hæð 100 í Endalausa turninum', ic: '🏯', title: 'Turnmeistari', test: s => (S70().tower.best | 0) >= 100 },
+    { k: 'ylvl10', name: 'Garður á 10. stigi', ic: '🌳', title: 'Garðhöfðingi', test: s => Math.max(0, ...Object.values(S70().ylvl || {}).map(v => v | 0)) >= 10 },
+    { k: 'luxall', name: 'Öll lúxusatriði 7.0', ic: '💎', title: 'Lúxusmeistari', test: s => LUX70.every(l => !!(S70().lux || {})[l.k]) && THEME70.every(t => (S70().themes || {})[t.k]) },
+    { k: 'train10', name: 'Hundur á 10. þjálfunarstigi', ic: '🎓', title: 'Þjálfarinn', test: s => Object.values(S70().train || {}).some(t => (t && t.lvl | 0) >= 10) },
+    { k: 'show1', name: 'Gull á vikusýningu', ic: '🏆', title: 'Sýningarstjarna', test: s => Object.values((save.v60 && save.v60.tro) || {}).some(v => (v | 0) === 1) }
+  ];
+
+  function S70() { ensure70(save); return save.v70; }
+  function ensure70(d) {
+    if (!d || typeof d !== 'object') return d;
+    const v = d.v70 = d.v70 && typeof d.v70 === 'object' && !Array.isArray(d.v70) ? d.v70 : {};
+    for (const f of ['lux', 'ylvl', 'train', 'afrek', 'themes', 'showClaim', 'troClaim'])
+      v[f] = v[f] && typeof v[f] === 'object' && !Array.isArray(v[f]) ? v[f] : {};
+    v.rares = Array.isArray(v.rares) ? v.rares : [];
+    v.tower = v.tower && typeof v.tower === 'object' && !Array.isArray(v.tower) ? v.tower : {};
+    v.tower.best = Math.max(0, v.tower.best | 0);
+    v.tower.wbest = Math.max(0, v.tower.wbest | 0);
+    v.tower.w = typeof v.tower.w === 'string' ? v.tower.w : '';
+    v.title = typeof v.title === 'string' ? v.title.slice(0, 40) : '';
+    v.theme = typeof v.theme === 'string' ? v.theme : '';
+    v.noLoss = v.noLoss | 0;
+    v.maxNoLoss = Math.max(v.maxNoLoss | 0, v.noLoss | 0);
+    return d;
+  }
+  function yardLvl70(k) { return Math.max(0, Math.min(YLVL_MAX70, (S70().ylvl[k] | 0))); }
+  function yardCost70(next) { return 80000 * next; }
+  function trainLvl70(key) { const t = S70().train[key]; return t && t.lvl | 0 || 0; }
+  function trainCost70(next) { return 4000 * next * next; }
+  function trainBonus70(key) {
+    const lv = key ? trainLvl70(key) : maxTrain70();
+    if (lv >= 10) return 0.10;
+    if (lv >= 5) return 0.05;
+    return 0;
+  }
+  function maxTrain70() { return Math.max(0, ...Object.values(S70().train || {}).map(t => t && t.lvl | 0 || 0)); }
+  function hasLux70(k) { return !!(S70().lux || {})[k]; }
+  function weekOf70() { try { return weekKey(); } catch (e) { return ''; } }
+  function payBones70(n, okMsg) {
+    if (typeof pay60 === 'function') return pay60(n, okMsg);
+    if (VISIT || (save.coins | 0) < n) { if (typeof toast === 'function') toast('Ekki nóg af beinum 🦴', 1600); return false; }
+    save.coins -= n; if (okMsg && typeof toast === 'function') toast(okMsg, 2000); if (typeof persist === 'function') persist(); return true;
+  }
+  function countDemanta70() {
+    try { const S = typeof phS === 'function' ? phS(9) : null; return S && S.gdogs ? Object.keys(S.gdogs).filter(k => S.gdogs[k]).length : 0; } catch (e) { return 0; }
+  }
+  function yardGrow70() {
+    const n = countDemanta70();
+    const mx = Math.max(0, ...Object.values((save.v70 || {}).ylvl || {}).map(v => v | 0));
+    return Math.min(360, (n ? 48 + n * 8 : 0) + mx * 18);
+  }
+  function refreshAfrek70() {
+    if (typeof VISIT !== 'undefined' && VISIT) return;
+    const v = S70(); let changed = false;
+    for (const a of AFREK70) {
+      if (v.afrek[a.k]) continue;
+      let ok = false; try { ok = !!a.test(save); } catch (e) { ok = false; }
+      if (ok) { v.afrek[a.k] = 1; if (a.title && !v.title) v.title = a.title; changed = true; if (typeof toast === 'function') toast(`${a.ic} Afrek: ${a.name}! Titill: ${a.title}`, 3200); }
+    }
+    if (changed && typeof persist === 'function') persist();
+  }
+  function setTitle70(t) {
+    if (VISIT) return; const ok = AFREK70.some(a => a.title === t && S70().afrek[a.k]); if (!ok && t) return;
+    S70().title = t || ''; if (typeof persist === 'function') persist(); if (typeof statsSync === 'function') statsSync();
+  }
+  function snap70() {
+    const v = S70(), wk = weekOf70();
+    const tw = (v.tower.w === wk) ? { w: wk, f: v.tower.wbest | 0 } : { w: wk, f: 0 };
+    return { title: String(v.title || '').slice(0, 40), tower: tw, ylvl: Math.max(0, ...Object.values(v.ylvl || {}).map(x => x | 0)), lux: Object.keys(v.lux || {}).filter(k => v.lux[k]).slice(0, 12), theme: v.theme || '' };
+  }
+  function clean70(x) {
+    if (!x || typeof x !== 'object') return {};
+    const title = String(x.title || '').replace(/[<>&"']/g, '').slice(0, 40);
+    const tower = x.tower && typeof x.tower === 'object' ? { w: String(x.tower.w || '').slice(0, 16), f: Math.max(0, Math.min(9999, x.tower.f | 0)) } : { w: '', f: 0 };
+    const ylvl = Math.max(0, Math.min(YLVL_MAX70, x.ylvl | 0));
+    const lux = Array.isArray(x.lux) ? x.lux.filter(k => LUX70.some(l => l.k === k)).slice(0, 12) : [];
+    const theme = THEME70.some(t => t.k === x.theme) ? x.theme : '';
+    return { title, tower, ylvl, lux, theme };
+  }
+
+  /* ---------- 1. yards grow for Demanta dogs + yard levels (via areasH60; yardH0 is const) ---------- */
+  if (typeof areasH60 === 'function') { const _ah = areasH60; areasH60 = function () { return _ah() + yardGrow70(); }; }
+
+  /* ---------- 2. breeding: collectible rares ---------- */
+  if (typeof makePup60 === 'function') {
+    const _mk = makePup60;
+    makePup60 = function (A, B) {
+      const p = _mk(A, B);
+      try {
+        if (p && p.rare) {
+          const rec = { id: p.id, name: p.name, a: p.a, b: p.b, fur: p.fur, t: Date.now() };
+          const v = S70();
+          if (!v.rares.some(r => r.id === rec.id)) v.rares.push(rec);
+        }
+      } catch (e) {}
+      return p;
+    };
+  }
+  if (typeof breed60 === 'function') {
+    const _br = breed60;
+    breed60 = function (a, b) { const p = _br(a, b); try { refreshAfrek70(); } catch (e) {} return p; };
+  }
+  function openRares70() {
+    Snd && Snd.tap && Snd.tap();
+    const v = S70(), list = v.rares || [];
+    const rows = list.map(r => `<li>✨ <b>${esc70(r.name)}</b> · sjaldgæf blanda</li>`).join('') || '<li>Enginn sjaldgæfur hvolpur enn. Paraðu vini í garðinum – ✨ sjaldgæfar blöndur safnast hér.</li>';
+    openModal(`<h2>✨ Sjaldgæfir hvolpar</h2><p class="tipsmall">Sjaldgæfar blöndur eru safnmunir. Ræktun kostar bein og hverju pari er aðeins leyft einn hvolp.</p><div class="v6list"><ul>${rows}</ul></div><p class="tipsmall">${list.length} safnuð.</p><div class="row"><button class="btn alt small" data-act="close">Loka</button></div>`);
+  }
+
+  /* ---------- 3. Lúxusbúð 7.0 ---------- */
+  function buyLux70(k) {
+    const l = LUX70.find(q => q.k === k); if (!l || VISIT || hasLux70(k)) return false;
+    if (yardLvl70('main') < (l.yneed | 0)) { toast(`🔒 Garðastig ${l.yneed} þarf fyrst`, 2000); return false; }
+    if (!payBones70(l.price, `${l.ic} ${l.name} er þitt!`)) return false;
+    S70().lux[k] = 1; persist(); refreshAfrek70();
+    if (k === 'hotel' && typeof PUP60 !== 'undefined') { /* cap uses hotel count via vil; extra room is visual */ }
+    if (typeof rebuildYard602 === 'function') rebuildYard602(l.id); else if (YD) { YD = null; if (scr === 'yard') enterYard(); }
+    return true;
+  }
+  function buyTheme70(k) {
+    const t = THEME70.find(q => q.k === k); if (!t || VISIT) return false;
+    const owned = !!(S70().themes || {})[t.k];
+    if (!owned) {
+      if (yardLvl70('main') < (t.yneed | 0)) { toast(`🔒 Garðastig ${t.yneed} þarf fyrst`, 2000); return false; }
+      if (!payBones70(t.price, `${t.ic} ${t.name} sett upp!`)) return false;
+      S70().themes[t.k] = 1;
+    }
+    S70().theme = (S70().theme === k ? '' : k); persist(); refreshAfrek70();
+    if (YD) { const keep = YD.page53; YD = null; enterYard(keep); }
+    if (typeof toast === 'function' && owned) toast(S70().theme === k ? `${t.ic} ${t.name} kveikt` : `${t.name} slökkt`, 1600);
+    return true;
+  }
+  function luxHTML70() {
+    const card = (ic, name, txt, price, own, attr, lock) => `<div class="l602c ${own ? 'own' : ''}"><i>${ic}</i><b>${name}</b><span>${txt}</span>${own ? '<em>✅ Þú átt þetta</em>' : lock ? `<em class="lk">${lock}</em>` : `<button class="btn small price ${typeof canAfford === 'function' && canAfford(price) ? '' : 'poor'}" data-v70="${attr}">🦴 ${typeof fmt60 === 'function' ? fmt60(price) : price}</button>`}</div>`;
+    let h = `<div class="sh l602h l602">💠 Lúxusbúð 7.0</div><div class="fair lux">Dýrir garðmunir fyrir þá sem eiga milljónir beina. Ekkert kostar alvöru peninga. Hundarnir nota það sem passar.</div>`;
+    h += `<div class="sh l602h">💎 Endaleikir</div><div class="l602g">${LUX70.map(l => card(l.ic, l.name, l.txt, l.price, hasLux70(l.k), 'lux:' + l.k, yardLvl70('main') < l.yneed ? `🔒 Garðastig ${l.yneed}` : '')).join('')}</div>`;
+    h += `<div class="sh l602h">🎄 Árstíðaþemu</div><div class="l602g">${THEME70.map(t => { const own = !!(S70().themes || {})[t.k]; const on = S70().theme === t.k; return `<div class="l602c ${own ? 'own' : ''}"><i>${t.ic}</i><b>${t.name}</b><span>${t.txt}</span>${!own && yardLvl70('main') < t.yneed ? `<em class="lk">🔒 Garðastig ${t.yneed}</em>` : !own ? `<button class="btn small price ${typeof canAfford === 'function' && canAfford(t.price) ? '' : 'poor'}" data-v70="theme:${t.k}">🦴 ${typeof fmt60 === 'function' ? fmt60(t.price) : t.price}</button>` : `<button class="btn small ${on ? 'green' : 'alt'}" data-v70="theme:${t.k}">${on ? '✅ Í notkun' : 'Vekja þema'}</button>`}</div>`; }).join('')}</div>`;
+    return h;
+  }
+  function openLux70() {
+    Snd && Snd.tap && Snd.tap();
+    const extra = typeof luxHTML602 === 'function' ? luxHTML602() : '';
+    openModal(`<h2>💎 Lúxusbúð</h2>${luxHTML70()}${extra}<div class="row"><button class="btn alt small" data-act="close">Loka</button></div>`);
+  }
+  if (typeof luxHTML602 === 'function') {
+    const _luxH = luxHTML602;
+    luxHTML602 = function () { return _luxH() + luxHTML70(); };
+  }
+  if (typeof bands602 === 'function') {
+    const _bands = bands602;
+    bands602 = function () {
+      const out = _bands();
+      let y = out.length ? out[out.length - 1].y0 + out[out.length - 1].h : (typeof yardH0 === 'function' ? yardH0() : 600);
+      for (const l of LUX70) {
+        if (!hasLux70(l.k)) continue;
+        const exists = out.some(b => b.id === l.id);
+        if (exists) continue;
+        out.push({ id: l.id, k: l.k, name: l.name, ic: l.ic, y0: y, h: l.h, lux: l, lux70: true });
+        y += l.h;
+      }
+      return out;
+    };
+  }
+  if (typeof drawLux602 === 'function') {
+    const _dr = drawLux602;
+    drawLux602 = function (c, b, t) {
+      if (b && b.lux70) { drawLuxItem70(c, b, t); return; }
+      _dr(c, b, t);
+      try { if (S70().theme) paintTheme70(c, b, t); } catch (e) {}
+    };
+  }
+  function drawLuxItem70(c, b, t) {
+    const y0 = b.y0, H = b.h, k = b.k, w = 360;
+    c.save();
+    if (k === 'pool') {
+      c.fillStyle = '#6ecf7a'; c.fillRect(0, y0, w, H);
+      c.fillStyle = '#1a6bb8'; round70(c, 40, y0 + 70, 280, 160, 30); c.fill();
+      c.fillStyle = 'rgba(180,240,255,.45)'; round70(c, 70, y0 + 90, 160, 40, 16); c.fill();
+      c.strokeStyle = '#d8f6ff'; c.lineWidth = 4; c.strokeRect(30, y0 + 50, 300, 200);
+    } else if (k === 'well') {
+      c.fillStyle = '#7bc56a'; c.fillRect(0, y0, w, H);
+      c.fillStyle = '#9ad7ff'; c.beginPath(); c.arc(180, y0 + 130, 70, 0, 7); c.fill();
+      c.fillStyle = '#cceeff'; c.beginPath(); c.arc(180, y0 + 130, 40, 0, 7); c.fill();
+      const g = c.createRadialGradient(180, y0 + 130, 10, 180, y0 + 130, 80);
+      g.addColorStop(0, 'rgba(255,255,255,.7)'); g.addColorStop(1, 'rgba(120,200,255,0)');
+      c.fillStyle = g; c.beginPath(); c.arc(180, y0 + 130, 80, 0, 7); c.fill();
+    } else if (k === 'hotel') {
+      c.fillStyle = '#8dcea0'; c.fillRect(0, y0, w, H);
+      c.fillStyle = '#f4efe6'; c.fillRect(50, y0 + 50, 260, 200);
+      c.fillStyle = '#c44848'; c.beginPath(); c.moveTo(40, y0 + 50); c.lineTo(180, y0 + 10); c.lineTo(320, y0 + 50); c.fill();
+      c.fillStyle = '#7ec8ff'; for (let i = 0; i < 8; i++) c.fillRect(70 + (i % 4) * 55, y0 + 80 + Math.floor(i / 4) * 70, 36, 36);
+      c.fillStyle = '#6a3a18'; c.fillRect(160, y0 + 190, 40, 60);
+    } else if (k === 'gate') {
+      c.fillStyle = '#67b85a'; c.fillRect(0, y0, w, H);
+      c.fillStyle = '#2a2a40'; c.fillRect(80, y0 + 40, 24, 160); c.fillRect(256, y0 + 40, 24, 160);
+      const lg = c.createLinearGradient(80, y0 + 40, 280, y0 + 200);
+      lg.addColorStop(0, '#ffd23f'); lg.addColorStop(0.5, '#fff'); lg.addColorStop(1, '#7ad8ff');
+      c.strokeStyle = lg; c.lineWidth = 6; c.beginPath(); c.arc(180, y0 + 80, 90, Math.PI, 0); c.stroke();
+      c.fillStyle = '#ffd23f'; c.beginPath(); c.arc(180, y0 + 40, 10 + Math.sin(t * 3) * 2, 0, 7); c.fill();
+    }
+    c.fillStyle = 'rgba(0,0,0,.45)'; c.font = 'bold 16px sans-serif'; c.textAlign = 'center';
+    c.fillText((b.ic || '') + ' ' + (b.name || ''), 180, y0 + H - 16);
+    c.restore();
+  }
+  function round70(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+  function paintTheme70(c, b, t) {
+    const th = S70().theme; if (!th) return;
+    const y0 = (b && b.y0) || 0, H = (b && b.h) || 200;
+    if (th === 'jol') { c.fillStyle = 'rgba(180,20,20,.08)'; c.fillRect(0, y0, 360, H); }
+    if (th === 'vetur') { c.fillStyle = 'rgba(230,245,255,.18)'; c.fillRect(0, y0, 360, H); }
+    if (th === 'nls') {
+      const g = c.createLinearGradient(0, y0, 360, y0 + H);
+      g.addColorStop(0, 'rgba(30,200,140,.12)'); g.addColorStop(0.5, 'rgba(140,80,220,.14)'); g.addColorStop(1, 'rgba(30,200,140,.08)');
+      c.fillStyle = g; c.fillRect(0, y0, 360, H);
+    }
+  }
+  if (typeof renderYard === 'function') {
+    const _ry = renderYard;
+    renderYard = function () {
+      _ry();
+      try {
+        if (!YD || !S70().theme) return;
+        const th = S70().theme, c = typeof ctx !== 'undefined' ? ctx : null; if (!c) return;
+        c.save();
+        if (th === 'nls') {
+          const g = c.createLinearGradient(0, 0, 0, 140);
+          g.addColorStop(0, 'rgba(20,20,50,.35)'); g.addColorStop(1, 'rgba(20,20,50,0)');
+          c.fillStyle = g; c.fillRect(0, 0, 360, 160);
+        } else if (th === 'vetur') {
+          c.fillStyle = 'rgba(255,255,255,.15)'; c.fillRect(0, 0, 360, 80);
+        } else if (th === 'jol') {
+          c.fillStyle = 'rgba(255,210,63,.10)'; c.fillRect(0, 0, 360, 80);
+        }
+        c.restore();
+      } catch (e) {}
+    };
+  }
+  if (typeof pos605 === 'function') {
+    const _pos = pos605;
+    pos605 = function (a, t) {
+      if (a && a.lux70 && a.lux) {
+        const u = a.u, j = a.j | 0;
+        if (a.lux === 'pool') { const p = (typeof ell605 === 'function' ? ell605(180, 150, 90, 40, (u + j * 0.3) % 1) : [180, 150]); return [p[0], p[1], 1]; }
+        if (a.lux === 'well') return (typeof loop605 === 'function' ? loop605([[120, 140], [240, 140], [240, 200], [120, 200]], (u + j * 0.4) % 1) : [180, 150]);
+        if (a.lux === 'hotel') return (typeof loop605 === 'function' ? loop605([[90, 200], [270, 200], [270, 250], [90, 250]], (u + j * 0.25) % 1) : [180, 200]);
+        if (a.lux === 'gate') return (typeof loop605 === 'function' ? loop605([[80, 160], [280, 160], [280, 190], [80, 190]], (u + j * 0.5) % 1) : [180, 170]);
+      }
+      return _pos(a, t);
+    };
+  }
+
+  /* ---------- 4. weekly show: yard in score + bone prizes ---------- */
+  if (typeof showParts60 === 'function') {
+    const _sp = showParts60;
+    showParts60 = function (key, id) {
+      const p = _sp(key, id);
+      try {
+        const yd = Math.min(8, yardLvl70('main'));
+        const lx = Math.min(6, Object.keys(S70().lux || {}).filter(k => S70().lux[k]).length + (S70().theme ? 1 : 0));
+        p.yd = yd; p.lx = lx;
+      } catch (e) { p.yd = 0; p.lx = 0; }
+      return p;
+    };
+  }
+  if (typeof showScore60 === 'function') {
+    const _sc = showScore60;
+    showScore60 = function (p, w) {
+      let s = _sc(p, w);
+      const yd = Math.max(0, Math.min(8, (p && p.yd) | 0)), lx = Math.max(0, Math.min(6, (p && p.lx) | 0));
+      s += yd + lx; // modest yard bonus, still a capped fair score
+      return s;
+    };
+  }
+  if (typeof cleanShow60 === 'function') {
+    const _cl = cleanShow60;
+    cleanShow60 = function (s) {
+      const o = _cl(s); if (!o || !o.parts) return o;
+      if (s.parts) { o.parts.yd = Math.max(0, Math.min(8, s.parts.yd | 0)); o.parts.lx = Math.max(0, Math.min(6, s.parts.lx | 0)); }
+      return o;
+    };
+  }
+  if (typeof claimShow60 === 'function') {
+    const _claim = claimShow60;
+    claimShow60 = function () {
+      _claim();
+      try { grantShowPrizes70(); } catch (e) {}
+    };
+  }
+  function grantShowPrizes70() {
+    if (VISIT) return;
+    const w = weekOf70();
+    for (const k of Object.keys((save.v60 && save.v60.show) || {})) {
+      if (k >= w) continue;
+      if (S70().showClaim[k]) continue;
+      const tro = (save.v60.tro || {})['s' + k] | 0;
+      if (!tro) continue;
+      const prize = tro >= 1 && tro <= 3 ? PRIZE70[tro] : 0;
+      S70().showClaim[k] = 1;
+      if (prize > 0) {
+        save.coins = (save.coins | 0) + prize;
+        if (typeof toast === 'function') toast(`🏆 Verðlaun fyrir ${tro === 1 ? '1.' : tro === 2 ? '2.' : '3.'} sæti: 🦴 ${typeof fmt60 === 'function' ? fmt60(prize) : prize}`, 3200);
+      }
+      if (typeof persist === 'function') persist();
+      refreshAfrek70();
+    }
+  }
+
+  /* ---------- 5. Garðastig ---------- */
+  function upYard70(k) {
+    if (VISIT) return false;
+    k = k || 'main';
+    const cur = yardLvl70(k); if (cur >= YLVL_MAX70) { toast('Garðurinn er á hæsta stigi!', 1600); return false; }
+    const next = cur + 1, cost = yardCost70(next);
+    if (!payBones70(cost, `🌳 Garðastig ${next}!`)) return false;
+    S70().ylvl[k] = next; persist(); refreshAfrek70();
+    if (YD) { const keep = YD.page53; YD = null; enterYard(keep); }
+    return true;
+  }
+  function openYardLvl70() {
+    Snd && Snd.tap && Snd.tap();
+    const cur = yardLvl70('main'), next = cur + 1, cost = cur >= YLVL_MAX70 ? 0 : yardCost70(next);
+    const unlocks = ['Nýtt limgerði', 'Stígaljós', 'Opnar kristalsbrunn', 'Fínni stígar', 'Opnar hundahótel', 'Blómabeð', 'Aukaljós', 'Skrauttré', 'Stjörnustígur', 'Heiðursport'];
+    const got = unlocks.slice(0, cur).map((u, i) => `<li>✅ ${i + 1}. ${u}</li>`).join('');
+    const nxt = cur >= YLVL_MAX70 ? '<p>Hámarki náð.</p>' : `<p class="tipsmall">Næsta stig opnar: <b>${unlocks[cur]}</b></p><div class="row"><button class="btn green" data-v70="ylvl">🦴 ${typeof fmt60 === 'function' ? fmt60(cost) : cost} · Stig ${next}</button></div>`;
+    openModal(`<h2>🌳 Garðastig</h2><p>Settu bein í garðinn til að bæta útlit og opna lúxusmuni. Núverandi stig: <b>${cur} / ${YLVL_MAX70}</b>.</p><div class="v6list"><ul>${got || '<li>Ekkert opnað enn.</li>'}</ul></div>${nxt}<div class="row"><button class="btn alt small" data-act="close">Loka</button></div>`);
+  }
+
+  /* ---------- 6. Endalaus turn ---------- */
+  function hash70(s) { let h = 2166136261; s = String(s); for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function remapLanes70(lanes, map) {
+    if (typeof lanes === 'string') return lanes.replace(/[ROYGCBPKWND]/g, ch => map[ch] || ch);
+    return lanes;
+  }
+  function remapGrid70(grid, map) { return String(grid).replace(/[ROYGCBPKWND]/g, ch => map[ch] || ch); }
+  function colorMap70(seed) {
+    const src = 'ROYGCBPKWND'.split(''), dst = src.slice();
+    let x = seed || 1; const rnd = () => { x = (Math.imul(x, 1664525) + 1013904223) >>> 0; return x / 4294967296; };
+    for (let i = dst.length - 1; i > 0; i--) { const j = (rnd() * (i + 1)) | 0; const t = dst[i]; dst[i] = dst[j]; dst[j] = t; }
+    const map = {}; src.forEach((c, i) => map[c] = dst[i]); return map;
+  }
+  function towerDef70(floor, week) {
+    floor = Math.max(1, floor | 0);
+    const baseId = ((floor - 1) % 100) + 1;
+    let def = null;
+    try { def = typeof goldDef === 'function' ? goldDef(baseId, 9) : null; } catch (e) { def = null; }
+    if (!def) return null;
+    def = Object.assign({}, def, { gold: false, mat: undefined, tower70: floor, id: 't70_' + floor, name: 'Hæð ' + floor, dog: def.dog });
+    if (floor > 100) {
+      const map = colorMap70(hash70((week || '') + ':' + floor));
+      def.grid = remapGrid70(def.grid, map);
+      def.lanes = remapLanes70(def.lanes, map);
+      if (Array.isArray(def.fc)) def.fc = def.fc.map(c => map[c] || c);
+      if (typeof def.fc === 'string') def.fc = remapGrid70(def.fc, map);
+    }
+    try {
+      const p = PL.parseLevel(def);
+      if (typeof PL.laneOrderWins === 'function' && PL.laneOrderWins(p) !== 0) return goldSafeTower70(baseId, floor);
+    } catch (e) { return goldSafeTower70(baseId, floor); }
+    return def;
+  }
+  function goldSafeTower70(baseId, floor) {
+    try {
+      const def = goldDef(baseId, 9);
+      if (!def) return null;
+      return Object.assign({}, def, { gold: false, mat: undefined, tower70: floor, id: 't70_' + floor, name: 'Hæð ' + floor });
+    } catch (e) { return null; }
+  }
+  function startTower70(floor) {
+    if (VISIT || typeof startLevel !== 'function') return false;
+    const wk = weekOf70();
+    const def = towerDef70(floor || nextTowerFloor70(), wk);
+    if (!def) { toast('Turninn er ekki tilbúinn', 1800); return false; }
+    closeModal(); startLevel(def, { tower70: floor || def.tower70 });
+    if (G) G.tower70 = def.tower70;
+    return true;
+  }
+  function nextTowerFloor70() {
+    syncTowerWeek70();
+    return (S70().tower.wbest | 0) + 1;
+  }
+  function syncTowerWeek70() {
+    const wk = weekOf70(), v = S70();
+    if (v.tower.w !== wk) { v.tower.w = wk; v.tower.wbest = 0; }
+  }
+  function finishTower70(fetchBonus, bones, bonus) {
+    const fl = G && G.tower70 | 0;
+    if (!fl) return;
+    const add = 200 + fl * 15;
+    save.coins = (save.coins | 0) + add;
+    syncTowerWeek70();
+    const v = S70();
+    v.tower.wbest = Math.max(v.tower.wbest | 0, fl);
+    v.tower.best = Math.max(v.tower.best | 0, fl);
+    v.noLoss = (v.noLoss | 0) + 1; v.maxNoLoss = Math.max(v.maxNoLoss | 0, v.noLoss);
+    persist(); refreshAfrek70(); if (typeof statsSync === 'function') statsSync();
+    const nxt = fl + 1;
+    openModal(`<h2>🗼 Hæð ${fl} unnin!</h2><p>🦴 +${typeof fmt60 === 'function' ? fmt60(add) : add}. Mesta hæð vikunnar: <b>${v.tower.wbest}</b>. Mesta alls: <b>${v.tower.best}</b>.</p><div class="row"><button class="btn green" data-v70="towergo:${nxt}">Áfram á hæð ${nxt}</button><button class="btn alt" data-act="close">Loka</button></div>`);
+    G.over = true; G.won = true;
+  }
+  if (typeof finishLevel === 'function') {
+    const _fin = finishLevel;
+    finishLevel = function (fetchBonus, bones, bonus) {
+      if (G && G.tower70) { finishTower70(fetchBonus, bones, bonus); return; }
+      return _fin(fetchBonus, bones, bonus);
+    };
+  }
+  if (typeof startLevel === 'function') {
+    const _st = startLevel;
+    startLevel = function (def, opts) {
+      const r = _st(def, opts);
+      try {
+        if (G && def && def.tower70) G.tower70 = def.tower70;
+        const key = G && G.dog && (typeof dogKey60 === 'function' ? dogKey60({ d: G.dog, mat: -1 }) : G.dog.id);
+        if (G && trainBonus70(key) >= 0.05 && !G.peek) G.peek = true;
+      } catch (e) {}
+      return r;
+    };
+  }
+  if (typeof bankLevel === 'function') {
+    const _bk = bankLevel;
+    bankLevel = function (fetchBonus, bones, bonus) {
+      const key = G && G.dog && (typeof dogKey60 === 'function' ? dogKey60({ d: G.dog, mat: G.def && G.def.mat >= 0 ? { mat: G.def.mat } : -1 }) : (G.dog && G.dog.id));
+      const mul = trainBonus70(typeof key === 'string' ? key : (G && G.dog && G.dog.id));
+      const r = _bk(fetchBonus, bones, bonus);
+      try {
+        if (mul > 0 && r && r.E) {
+          const extra = Math.round((r.E.total || 0) * mul / (1)); // applied after, so use pre? total already added
+          // add only the bonus part based on current total minus already-added: use mul/(1+mul) no – we want +mul * base.
+          // bankLevel already added E.total to coins. Add mul * E.total more, but E.total includes previous. Use modest cap.
+          const add = Math.round((r.earned || r.E.total || 0) * mul);
+          if (add > 0) { save.coins = (save.coins | 0) + add; r.E.lines.push({ k: 'train70', label: '🎓 Þjálfunarbónus', v: add, cls: 'gold' }); r.E.total += add; }
+        }
+        if (!G.daily && !G.tower70) { S70().noLoss = (S70().noLoss | 0) + 1; S70().maxNoLoss = Math.max(S70().maxNoLoss | 0, S70().noLoss); refreshAfrek70(); }
+      } catch (e) {}
+      return r;
+    };
+  }
+  if (typeof loseLevel === 'function') {
+    const _ls = loseLevel;
+    loseLevel = function () {
+      try { S70().noLoss = 0; persist(); } catch (e) {}
+      return _ls();
+    };
+  }
+  let TOWERROWS70 = [];
+  function fetchTower70(w) {
+    w = w || weekOf70();
+    return (typeof checkYardCol === 'function' ? checkYardCol() : Promise.resolve(false)).then(ok => ok && typeof supa === 'function'
+      ? supa(`players?select=player_id,name,yard->v70->tower&yard->v70->tower->>w=eq.${encodeURIComponent(w)}&order=last_played.desc&limit=80`).then(r => r.ok ? r.json() : [])
+      : []).catch(() => [])
+      .then(rows => (TOWERROWS70 = (rows || []).filter(r => r && r.tower).map(r => ({ who: String(r.name || 'Leikmaður').replace(/[<>&"']/g, '').slice(0, 30), f: Math.max(0, (r.tower.f | 0)), me: r.player_id === (typeof statsId === 'function' ? statsId() : '') })).filter(x => x.f > 0)));
+  }
+  function openTower70() {
+    Snd && Snd.tap && Snd.tap();
+    syncTowerWeek70();
+    const v = S70(), fl = nextTowerFloor70();
+    const body = `<h2>🗼 Endalaus turn</h2><p>Borðin verða sífellt erfiðari. Sérhvert er leysanlegt og vinnst ekki með því að pikka eina braut alla leið.</p><p>Mesta hæð vikunnar: <b>${v.tower.wbest | 0}</b> · Mesta alls: <b>${v.tower.best | 0}</b></p><div class="row"><button class="btn green" data-v70="towergo:${fl}">Hefja hæð ${fl}</button></div><h3>Vikuleg stigatafla</h3><div id="towerLb70" class="v6list"><p class="tipsmall">Sæki stígann…</p></div><div class="row"><button class="btn alt small" data-act="close">Loka</button></div>`;
+    openModal(body);
+    fetchTower70().then(() => {
+      const el = document.getElementById('towerLb70'); if (!el) return;
+      const mine = { who: (save.playerName || 'Ég'), f: v.tower.wbest | 0, me: 1 };
+      const all = TOWERROWS70.filter(x => !x.me).concat(mine.f ? [mine] : []).sort((a, b) => b.f - a.f);
+      el.innerHTML = `<ul>${all.slice(0, 20).map((x, i) => `<li>${i + 1}. ${x.me ? '<b>' : ''}${esc70(x.who)}${x.me ? '</b>' : ''} — hæð ${x.f}</li>`).join('') || '<li>Engin hæð skráð enn.</li>'}</ul>`;
+    });
+  }
+
+  /* ---------- 7. Hundaþjálfun ---------- */
+  if (typeof TRICKS60 !== 'undefined' && Array.isArray(TRICKS60)) {
+    for (const t of TRICKS70) if (!TRICKS60.some(q => q.k === t.k)) TRICKS60.push(t);
+  }
+  function trainDog70(key) {
+    if (VISIT) return false;
+    const cur = trainLvl70(key); if (cur >= 10) { toast('Þessi hundur er fullþjálfaður!', 1600); return false; }
+    const next = cur + 1, cost = trainCost70(next);
+    if (!payBones70(cost, `🎓 Þjálfunarstig ${next}`)) return false;
+    const o = S70().train[key] = S70().train[key] && typeof S70().train[key] === 'object' ? S70().train[key] : {};
+    o.lvl = next; persist(); refreshAfrek70(); return true;
+  }
+  function trainHTML70(key) {
+    const lv = trainLvl70(key), next = lv + 1, cost = lv >= 10 ? 0 : trainCost70(next);
+    const bon = trainBonus70(key);
+    return `<div class="v6card"><b>🎓 Þjálfunarstig ${lv} / 10</b><p class="tipsmall">Vel þjálfaður hundur gefur lítinn, sanngjarnan bónus á borðum${bon ? ` (nú +${Math.round(bon * 100)}% bein og eina gjafskoðun)` : ' (frá stigi 5).'}.</p>${lv >= 10 ? '<em>✅ Fullþjálfaður</em>' : `<button class="btn small green" data-v70="train:${key}">🦴 ${typeof fmt60 === 'function' ? fmt60(cost) : cost} · Stig ${next}</button>`}</div>`;
+  }
+  if (typeof openDog60 === 'function') {
+    const _od = openDog60;
+    openDog60 = function (key, tab) {
+      _od(key, tab);
+      try {
+        if (tab === 'train' || !tab) {
+          const modal = document.getElementById('modal'); if (!modal) return;
+          const host = modal.querySelector('.modal, .card, #modalInn, .minn') || modal;
+          if (!modal.innerHTML.includes('Þjálfunarstig')) {
+            const box = document.createElement('div'); box.innerHTML = trainHTML70(key);
+            const trainSec = modal.querySelector('[data-v6^="teach"], .v6card, .row');
+            if (trainSec && trainSec.parentNode) trainSec.parentNode.insertBefore(box, trainSec);
+            else modal.insertAdjacentHTML('beforeend', box.innerHTML);
+          }
+        }
+      } catch (e) {}
+    };
+  }
+
+  /* ---------- 8. Afrek og titlar ---------- */
+  function openAfrek70() {
+    Snd && Snd.tap && Snd.tap();
+    refreshAfrek70();
+    const v = S70();
+    const rows = AFREK70.map(a => {
+      const got = !!v.afrek[a.k];
+      return `<li>${got ? '✅' : '🔒'} ${a.ic} <b>${esc70(a.name)}</b> — titill: ${esc70(a.title)} ${got ? `<button class="v6chip ${v.title === a.title ? 'on' : ''}" data-v70="title:${encodeURIComponent(a.title)}">${v.title === a.title ? 'Í notkun' : 'Nota titil'}</button>` : ''}</li>`;
+    }).join('');
+    openModal(`<h2>🏅 Afrek og titlar</h2><p class="tipsmall">Titillinn sést við nafnið á stigatöflunni og tölfræðinni. Núverandi: <b>${v.title ? esc70(v.title) : 'enginn'}</b>.</p><div class="v6list"><ul>${rows}</ul></div><div class="row"><button class="btn alt small" data-v70="title:">Fjarlægja titil</button><button class="btn alt small" data-act="close">Loka</button></div>`);
+  }
+
+  /* ---------- snapshot / save / visits ---------- */
+  if (typeof yardSnapshot === 'function') {
+    const _ys = yardSnapshot;
+    yardSnapshot = function () {
+      const y = _ys();
+      try { y.v70 = snap70(); } catch (e) {}
+      return y;
+    };
+  }
+  if (typeof snap60 === 'function') {
+    const _s6 = snap60;
+    snap60 = function () {
+      const s = _s6();
+      try { s.v70title = String(S70().title || '').slice(0, 40); } catch (e) {}
+      return s;
+    };
+  }
+  if (typeof cleanYard === 'function') {
+    const _cy = cleanYard;
+    cleanYard = function (y) {
+      const o = _cy(y);
+      if (o && y && y.v70) o.v70 = clean70(y.v70);
+      return o;
+    };
+  }
+  if (typeof loadSave === 'function') {
+    const _ld = loadSave;
+    loadSave = function () { return ensure70(_ld()); };
+  }
+  if (typeof ensureEcon === 'function') {
+    const _ee = ensureEcon;
+    ensureEcon = function (d) { return ensure70(_ee(d)); };
+  }
+  if (typeof mergeSaves === 'function') {
+    const _mg = mergeSaves;
+    mergeSaves = function (a, b) { const r = _mg(a, b); try { ensure70(a); } catch (e) {} return r; };
+  }
+
+  /* ---------- UI hooks ---------- */
+  function esc70(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+  function click70(a, p1, p2) {
+    if (a === 'lux') { if (buyLux70(p1)) openLux70(); }
+    else if (a === 'theme') { buyTheme70(p1); openLux70(); }
+    else if (a === 'ylvl') { if (upYard70('main')) openYardLvl70(); }
+    else if (a === 'towergo') { startTower70(+p1 || nextTowerFloor70()); }
+    else if (a === 'train') { if (trainDog70(p1)) { if (typeof openDog60 === 'function') openDog60(p1, 'train'); else openAfrek70(); } }
+    else if (a === 'title') { setTitle70(p1 ? decodeURIComponent(p1) : ''); openAfrek70(); }
+    else if (a === 'rares') openRares70();
+    else if (a === 'luxopen') openLux70();
+    else if (a === 'tower') openTower70();
+    else if (a === 'afrek') openAfrek70();
+    else if (a === 'ylvlopen') openYardLvl70();
+  }
+  document.addEventListener('click', e => {
+    const b = e.target.closest && e.target.closest('[data-v70]'); if (!b) return;
+    const [a, p1, p2] = (b.dataset.v70 || '').split(':');
+    if (typeof Snd !== 'undefined' && Snd.tap) Snd.tap();
+    click70(a, p1, p2);
+  });
+  if (typeof yardAct60 === 'function') {
+    const _ya = yardAct60;
+    yardAct60 = function (k) {
+      if (k === 'lux70') { openLux70(); return; }
+      if (k === 'tower70') { openTower70(); return; }
+      if (k === 'afrek70') { openAfrek70(); return; }
+      if (k === 'ylvl70') { openYardLvl70(); return; }
+      if (k === 'rares70') { openRares70(); return; }
+      return _ya(k);
+    };
+  }
+  if (typeof updateYardPanel === 'function') {
+    const _up = updateYardPanel;
+    updateYardPanel = function () {
+      _up();
+      try {
+        const el = document.getElementById('yardPanel'); if (!el || (typeof VISIT !== 'undefined' && VISIT) && el.innerHTML.indexOf('Gestur') >= 0) return;
+        if (el.innerHTML.indexOf('data-y6="lux70"') >= 0) return;
+        const row = el.querySelector('.yrow') || el;
+        const extra = document.createElement('div');
+        extra.className = 'yrow';
+        extra.innerHTML = `<button class="btn small" data-y6="lux70">💎 Lúxus</button><button class="btn small" data-y6="ylvl70">🌳 Stig ${yardLvl70('main')}</button><button class="btn small" data-y6="tower70">🗼 Turn</button><button class="btn small" data-y6="afrek70">🏅 Afrek</button>`;
+        el.appendChild(extra);
+      } catch (e) {}
+    };
+  }
+
+  function addHomeBtns70() {
+    const grid = document.querySelector('.hbtns, .home-actions, #home .row') || document.getElementById('hExp') && document.getElementById('hExp').parentNode;
+    if (!grid || document.getElementById('hTower70')) return;
+    const mk = (id, cls, label) => { const b = document.createElement('button'); b.className = 'btn ' + cls + ' small'; b.id = id; b.textContent = label; return b; };
+    const a = mk('hLux70', 'green', '💎 Lúxusbúð');
+    const b = mk('hTower70', 'blue', '🗼 Endalaus turn');
+    const c = mk('hShow70', 'alt', '🏆 Hundasýning');
+    const d = mk('hAfrek70', 'alt', '🏅 Afrek');
+    const e = mk('hYlvl70', 'plain', '🌳 Garðastig');
+    const f = mk('hRares70', 'plain', '✨ Hvolpasafn');
+    const after = document.getElementById('hExp') || document.getElementById('hVil');
+    const parent = after && after.parentNode;
+    if (!parent) return;
+    [a, b, c, d, e, f].forEach(btn => parent.insertBefore(btn, document.getElementById('hAlbum') || after.nextSibling));
+    a.addEventListener('click', () => { Snd && Snd.tap && Snd.tap(); openLux70(); });
+    b.addEventListener('click', () => { Snd && Snd.tap && Snd.tap(); openTower70(); });
+    c.addEventListener('click', () => { Snd && Snd.tap && Snd.tap(); if (typeof openWShow60 === 'function') { claimShow60(); openWShow60(); } });
+    d.addEventListener('click', () => { Snd && Snd.tap && Snd.tap(); openAfrek70(); });
+    e.addEventListener('click', () => { Snd && Snd.tap && Snd.tap(); openYardLvl70(); });
+    f.addEventListener('click', () => { Snd && Snd.tap && Snd.tap(); openRares70(); });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addHomeBtns70);
+  else try { addHomeBtns70(); } catch (e) {}
+  setTimeout(addHomeBtns70, 0);
+  if (typeof renderHome === 'function') {
+    const _rh = renderHome;
+    renderHome = function () { const r = _rh(); try { addHomeBtns70(); refreshAfrek70(); } catch (e) {} return r; };
+  }
+
+  // load-time ensure if save already exists
+  try { if (typeof save !== 'undefined' && save) { ensure70(save); if (typeof persist === 'function') persist(); } } catch (e) {}
+  setTimeout(() => { try { if (save) { ensure70(save); grantShowPrizes70(); refreshAfrek70(); if (typeof persist === 'function') persist(); } } catch (e) {} }, 400);
+
+  window.__V70 = {
+    version: '7.0', ensure70, S70, LUX70, THEME70, AFREK70, PRIZE70, TRICKS70,
+    yardCost70, yardLvl70, trainCost70, trainBonus70, trainLvl70,
+    towerDef70, nextTowerFloor70, snap70, clean70, hasLux70, buyLux70, buyTheme70,
+    upYard70, trainDog70, setTitle70, refreshAfrek70, colorMap70, hash70,
+    yardGrow70, grantShowPrizes70, openLux70, openTower70, openAfrek70, openYardLvl70, openRares70
+  };
+})();
 
 window.__pl = { version: VERSION, screen: () => scr, fsState: () => ({ armed: autoFsArmed, wanted: fsWanted, on: !!fsEl() }), game: () => G, finale: () => F, layout: () => L, laneX, fview: () => fView(), launch: () => LAUNCH, save: () => save,
   // 3.5 test/screenshot helpers

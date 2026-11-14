@@ -71,9 +71,10 @@ select { font: 700 14px system-ui; padding: 6px; border-radius: 10px; }
 /* newest game version: change this one line when a new version is released */
 const GAME = './';
 document.querySelectorAll('#gameB, #gameT').forEach(a => a.href = GAME);
-const PH = [['Borð', '🐶', 'Venjulegir'], ['Gullborð', '✨', 'Gull'], ['Platínuborð', '🤍', 'Platínu'], ['Safírborð', '🔷', 'Safír'], ['Smaragðsborð', '💚', 'Smaragðs'], ['Rúbínborð', '❤️', 'Rúbín'], ['Demantsborð', '💎', 'Demants'], ['Svartdemantsborð', '🖤', 'Svartdemants'], ['Norðurljósasteinsborð', '🌌', 'Norðurljósa'], ['Stjörnusteinsborð', '⭐', 'Stjörnu']];
+const PH = [['Borð', '🐶', 'Venjulegir'], ['Gullborð', '✨', 'Gull'], ['Platínuborð', '🤍', 'Platínu'], ['Safírborð', '🔷', 'Safír'], ['Smaragðsborð', '💚', 'Smaragðs'], ['Rúbínborð', '❤️', 'Rúbín'], ['Demantsborð', '💎', 'Demants'], ['Svartdemantsborð', '🖤', 'Svartdemants'], ['Norðurljósasteinsborð', '🌌', 'Norðurljósa'], ['Stjörnusteinsborð', '⭐', 'Stjörnu'], ['Demantaborð', '💠', 'Demanta']];
 const ok = c => c && c.provider === 'supabase' && /^https:\/\//.test(c.url || '') && c.anonKey && !/YOUR|DIN|PLACEHOLDER|<|xxx/i.test(c.url + c.anonKey);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const titleOf = x => { try { const y = x && x.yard; const t = (y && y.v70 && y.v70.title) || (y && y.v60 && y.v60.v70title) || ''; return String(t).replace(/[<>&"']/g,'').slice(0, 40); } catch (e) { return ''; } };
 const MON = ['jan.', 'feb.', 'mar.', 'apr.', 'maí', 'jún.', 'júl.', 'ágú.', 'sep.', 'okt.', 'nóv.', 'des.'], p2 = n => String(n).padStart(2, '0');
 const when = s => { if (!s) return ''; const d = new Date(s); if (isNaN(d)) return ''; return d.getDate() + '. ' + MON[d.getMonth()] + ' ' + p2(d.getHours()) + ':' + p2(d.getMinutes()); };
 function weekKeyOf(d) { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())), day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - day);
@@ -87,10 +88,10 @@ function view(x) {
   const y = x.yard && typeof x.yard === 'object' ? x.yard : {}, p = y.p53 && typeof y.p53 === 'object' ? y.p53 : null;
   let cp, b, dogs, st, won, est = false;
   if (p && Array.isArray(p.dogs)) {
-    cp = Math.max(-1, Math.min(8, p.cp | 0)); b = Math.max(1, Math.min(100, p.b | 0)); dogs = p.dogs.slice(0, 10).map(num); st = num(p.st); won = (p.won || []).slice(0, 10).map(num);
+    cp = Math.max(-1, Math.min(PH.length - 2, p.cp | 0)); b = Math.max(1, Math.min(100, p.b | 0)); dogs = p.dogs.slice(0, PH.length).map(num); st = num(p.st); won = (p.won || []).slice(0, PH.length).map(num);
   } else {
     const gd = Array.isArray(y.gd) ? y.gd.length : 0, mv = y.md && typeof y.md === 'object' ? Object.values(y.md).map(num) : [];
-    won = [num(x.boards_won), Math.min(100, gd)]; for (let m = 1; m <= 8; m++) won.push(Math.min(100, mv.filter(v => v >= m).length));
+    won = [num(x.boards_won), Math.min(100, gd)]; for (let m = 1; m <= PH.length - 2; m++) won.push(Math.min(100, mv.filter(v => v >= m).length));
     dogs = [num(x.dogs), ...won.slice(1)]; st = num(x.stars);
     cp = -1; for (let m = 8; m >= 0; m--) if (won[m + 1] > 0) { cp = m; break; }
     b = cp >= 0 ? Math.min(100, won[cp + 1] + 1) : Math.max(1, Math.min(100, num(x.board_reached) || 1)); if (cp < 0 && won[0] >= 100) b = 100;

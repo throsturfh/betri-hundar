@@ -1,0 +1,238 @@
+/* Betri Hundar 6.07. Apply once as the database owner. Do not run bh_admin_reset from this file.
+   The migration adds a seal and a device key. It does not rewrite coins, boards, or any existing row.
+   There is no coin cap and no board rate. Offline totals stay client-authoritative.
+   A sealed row ignores later anon progress writes because the player id is public: there is no
+   secret that distinguishes the device owner from anyone else who can read the leaderboard.
+   Continued play after a reset uses a new id created by 6.07. Older clients keep their local save
+   and cannot change the sealed row. */
+create table if not exists public.player_keys (
+  player_id text primary key references public.players(player_id) on delete cascade,
+  player_key text not null check (char_length(player_key) between 16 and 80)
+);
+create table if not exists public.player_reset_backup (
+  id bigint generated always as identity primary key,
+  player_id text not null,
+  snapshot jsonb not null,
+  created_at timestamptz not null default now()
+);
+alter table public.players add column if not exists sync_rev integer not null default 0;
+alter table public.players add column if not exists sealed boolean not null default false;
+alter table public.players add column if not exists reset_at timestamptz;
+alter table public.cloud_saves add column if not exists reset_gen integer not null default 0;
+alter table public.player_keys enable row level security;
+alter table public.player_reset_backup enable row level security;
+revoke all on table public.player_keys from public, anon, authenticated;
+revoke all on table public.player_reset_backup from public, anon, authenticated;
+
+create or replace function public.bh_players_guard() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare
+  presented text := nullif(current_setting('bh.key', true), '');
+  stored text;
+begin
+  if current_setting('bh.admin', true) = '1' then return new; end if;
+  if new.player_id is null or char_length(new.player_id) < 1 or char_length(new.player_id) > 64 then
+    raise exception 'bh player_id' using errcode = '22023';
+  end if;
+  new.name := left(regexp_replace(coalesce(new.name, ''), '[[:cntrl:]]', '', 'g'), 30);
+  if tg_op = 'INSERT' and exists (select 1 from public.players p where p.player_id = new.player_id) then
+    return new;
+  end if;
+  if tg_op = 'UPDATE' then
+    select k.player_key into stored from public.player_keys k where k.player_id = new.player_id;
+    if stored is not null and presented is distinct from stored then
+      raise exception 'bh key' using errcode = '42501';
+    end if;
+    new.sync_rev := old.sync_rev;
+    new.sealed := old.sealed;
+    new.reset_at := old.reset_at;
+    new.first_seen := old.first_seen;
+    new.last_played := now();
+    if old.sealed then
+      new.name := old.name;
+      new.version := old.version;
+      new.board_reached := old.board_reached;
+      new.boards_won := old.boards_won;
+      new.stars := old.stars;
+      new.wins := old.wins;
+      new.losses := old.losses;
+      new.daily_played := old.daily_played;
+      new.daily_won := old.daily_won;
+      new.dogs := old.dogs;
+      new.coins := old.coins;
+      new.yard := old.yard;
+    end if;
+    return new;
+  end if;
+  new.sync_rev := 0;
+  new.sealed := false;
+  new.reset_at := null;
+  new.first_seen := coalesce(new.first_seen, now());
+  new.last_played := now();
+  return new;
+end $$;
+
+create or replace function public.bh_players_bind() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare presented text := nullif(current_setting('bh.key', true), '');
+begin
+  if presented is not null and char_length(presented) between 16 and 80 then
+    insert into public.player_keys(player_id, player_key) values (new.player_id, presented)
+    on conflict (player_id) do nothing;
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists bh_players_guard on public.players;
+create trigger bh_players_guard before insert or update on public.players
+for each row execute function public.bh_players_guard();
+drop trigger if exists bh_players_bind on public.players;
+create trigger bh_players_bind after insert on public.players
+for each row execute function public.bh_players_bind();
+
+create or replace function public.player_put(p_row jsonb, p_key text) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare r public.players%rowtype; id text := left(coalesce(p_row->>'player_id', ''), 80);
+begin
+  if id is null or char_length(id) < 1 or char_length(id) > 64 then
+    return jsonb_build_object('ok', false, 'error', 'player_id');
+  end if;
+  perform set_config('bh.key', coalesce(p_key, ''), true);
+  insert into public.players (player_id, name, version, board_reached, boards_won, stars, wins, losses, daily_played, daily_won, dogs, coins, last_played, yard)
+  values (
+    id,
+    left(coalesce(p_row->>'name', ''), 30),
+    left(coalesce(p_row->>'version', ''), 40),
+    coalesce((p_row->>'board_reached')::int, 1),
+    coalesce((p_row->>'boards_won')::int, 0),
+    coalesce((p_row->>'stars')::int, 0),
+    coalesce((p_row->>'wins')::int, 0),
+    coalesce((p_row->>'losses')::int, 0),
+    coalesce((p_row->>'daily_played')::int, 0),
+    coalesce((p_row->>'daily_won')::int, 0),
+    coalesce((p_row->>'dogs')::int, 0),
+    coalesce((p_row->>'coins')::int, 0),
+    now(),
+    case when jsonb_typeof(p_row->'yard') = 'object' then p_row->'yard' else null end
+  )
+  on conflict (player_id) do update set
+    name = excluded.name, version = excluded.version, board_reached = excluded.board_reached,
+    boards_won = excluded.boards_won, stars = excluded.stars, wins = excluded.wins, losses = excluded.losses,
+    daily_played = excluded.daily_played, daily_won = excluded.daily_won, dogs = excluded.dogs,
+    coins = excluded.coins, last_played = excluded.last_played, yard = excluded.yard;
+  select * into r from public.players where player_id = id;
+  return jsonb_build_object('ok', true, 'sealed', r.sealed, 'sync_rev', r.sync_rev, 'coins', r.coins, 'boards_won', r.boards_won, 'stars', r.stars, 'dogs', r.dogs, 'wins', r.wins, 'losses', r.losses, 'board_reached', r.board_reached, 'daily_played', r.daily_played, 'daily_won', r.daily_won, 'yard', r.yard);
+exception
+  when invalid_text_representation or numeric_value_out_of_range then
+    return jsonb_build_object('ok', false, 'error', 'bad_number');
+  when sqlstate '42501' then
+    return jsonb_build_object('ok', false, 'error', 'key');
+  when sqlstate '22023' then
+    return jsonb_build_object('ok', false, 'error', 'player_id');
+end $$;
+
+create or replace function public.cloud_put(p_code text, p_key text, p_data jsonb) returns boolean
+language plpgsql security definer set search_path = public as $$
+declare
+  c text := upper(regexp_replace(coalesce(p_code, ''), '[^A-Z0-9]', '', 'g'));
+  existing public.cloud_saves%rowtype;
+begin
+  if char_length(c) < 8 or char_length(c) > 12 or p_key is null or char_length(p_key) < 16 then return false; end if;
+  if p_data is null or jsonb_typeof(p_data) <> 'object' or octet_length(p_data::text) > 400000 then return false; end if;
+  select * into existing from public.cloud_saves where code = c;
+  if not found then
+    insert into public.cloud_saves(code, wkey, data) values (c, p_key, p_data);
+    return true;
+  end if;
+  if existing.wkey <> p_key then return false; end if;
+  if existing.reset_gen > 0 then return false; end if;
+  update public.cloud_saves set data = p_data, updated_at = now() where code = c and wkey = p_key;
+  return true;
+end $$;
+
+create or replace function public.cloud_get(p_code text) returns jsonb
+language sql security definer set search_path = public as $$
+  select jsonb_build_object('d', data, 'k', wkey, 'rev', reset_gen)
+  from public.cloud_saves where code = upper(regexp_replace(coalesce(p_code, ''), '[^A-Z0-9]', '', 'g'));
+$$;
+
+create or replace function public.bh_admin_reset(p_player_id text, p_cloud_code text) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare r public.players%rowtype; c text; cloud jsonb; rev int; backup_id bigint;
+begin
+  select * into r from public.players where player_id = p_player_id for update;
+  if not found then return jsonb_build_object('ok', false, 'error', 'missing'); end if;
+  cloud := null; c := null;
+  if p_cloud_code is not null and length(trim(p_cloud_code)) > 0 then
+    c := upper(regexp_replace(p_cloud_code, '[^A-Za-z0-9]', '', 'g'));
+    select to_jsonb(s) into cloud from public.cloud_saves s where s.code = c;
+  end if;
+  insert into public.player_reset_backup(player_id, snapshot)
+  values (r.player_id, jsonb_build_object('player', to_jsonb(r), 'cloud', cloud))
+  returning id into backup_id;
+  perform set_config('bh.admin', '1', true);
+  update public.players set
+    board_reached = 1, boards_won = 0, stars = 0, wins = 0, losses = 0,
+    daily_played = 0, daily_won = 0, dogs = 0, coins = 0, yard = null,
+    sealed = true, sync_rev = r.sync_rev + 1, reset_at = now(), last_played = now()
+  where player_id = r.player_id
+  returning sync_rev into rev;
+  if c is not null then
+    update public.cloud_saves set
+      reset_gen = reset_gen + 1,
+      data = jsonb_build_object('coins', 0, 'stars', '{}'::jsonb, 'album', '[]'::jsonb, 'v', 2),
+      updated_at = now()
+    where code = c;
+  end if;
+  return jsonb_build_object('ok', true, 'sync_rev', rev, 'backup_id', backup_id, 'sealed', true);
+end $$;
+
+create or replace function public.bh_admin_restore_backup(p_backup_id bigint) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare b public.player_reset_backup%rowtype; p jsonb; rev int;
+begin
+  select * into b from public.player_reset_backup where id = p_backup_id;
+  if not found then return jsonb_build_object('ok', false, 'error', 'missing'); end if;
+  p := b.snapshot->'player';
+  if p is null then return jsonb_build_object('ok', false, 'error', 'empty'); end if;
+  perform set_config('bh.admin', '1', true);
+  update public.players set
+    name = coalesce(p->>'name', name),
+    version = p->>'version',
+    board_reached = coalesce((p->>'board_reached')::int, 1),
+    boards_won = coalesce((p->>'boards_won')::int, 0),
+    stars = coalesce((p->>'stars')::int, 0),
+    wins = coalesce((p->>'wins')::int, 0),
+    losses = coalesce((p->>'losses')::int, 0),
+    daily_played = coalesce((p->>'daily_played')::int, 0),
+    daily_won = coalesce((p->>'daily_won')::int, 0),
+    dogs = coalesce((p->>'dogs')::int, 0),
+    coins = coalesce((p->>'coins')::int, 0),
+    yard = p->'yard',
+    sealed = coalesce((p->>'sealed')::boolean, false),
+    sync_rev = sync_rev + 1,
+    reset_at = nullif(p->>'reset_at', '')::timestamptz
+  where player_id = b.player_id
+  returning sync_rev into rev;
+  if jsonb_typeof(b.snapshot->'cloud') = 'object' and coalesce(b.snapshot->'cloud'->>'code', '') <> '' then
+    update public.cloud_saves set
+      wkey = coalesce(b.snapshot->'cloud'->>'wkey', wkey),
+      data = coalesce(b.snapshot->'cloud'->'data', data),
+      reset_gen = coalesce((b.snapshot->'cloud'->>'reset_gen')::int, 0),
+      updated_at = now()
+    where code = b.snapshot->'cloud'->>'code';
+  end if;
+  return jsonb_build_object('ok', true, 'player_id', b.player_id, 'sync_rev', rev, 'sealed', false);
+end $$;
+
+revoke all on function public.bh_players_guard() from public, anon, authenticated;
+revoke all on function public.bh_players_bind() from public, anon, authenticated;
+revoke all on function public.bh_admin_reset(text, text) from public, anon, authenticated;
+revoke all on function public.bh_admin_restore_backup(bigint) from public, anon, authenticated;
+revoke all on function public.player_put(jsonb, text) from public, anon, authenticated;
+revoke all on function public.cloud_put(text, text, jsonb) from public, anon, authenticated;
+revoke all on function public.cloud_get(text) from public, anon, authenticated;
+grant execute on function public.player_put(jsonb, text) to anon;
+grant execute on function public.cloud_put(text, text, jsonb) to anon;
+grant execute on function public.cloud_get(text) to anon;
+revoke all on table public.cloud_saves from anon, authenticated;
